@@ -185,7 +185,8 @@ def doc():
 
 @task()
 def updateReadme():
-    text = system("%s --longhelp")
+    """Update the README.txt from herring_app.py"""
+    text = system("%s --longhelp" % PROJECT_SCRIPT)
     with open("README.txt", 'w') as readme_file:
         readme_file.write(text)
 

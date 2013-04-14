@@ -1,3 +1,4 @@
+
 =======
 Herring
 =======
@@ -33,6 +34,9 @@ Example:
     def bar():
         """ The bar for foo """
 
+Running a Task
+--------------
+
 To run a task, simply be in the directory with your herringfile or one of it's
 sub-directories and type:
 
@@ -44,19 +48,29 @@ This will run the foo task.
 
 Will run the foo task then the bar task.
 
+Command Line Arguments
+----------------------
+
 To pass arguments to the task, simply place them on the command line as keyword
 arguments.  The tasks may access the lists by using:  task.argv
+Or already parsed as keyword args by using:  task.kwargs
+
 Example:
 
     @task()
-    def foo():
-        print "arguments: %s" % repr(task.argv)
+    def argDemo():
+        print "argv: %s" % repr(task.argv)
+        print "kwargs: %s" % repr(task.kwargs)
 
-    herring foo --delta=3 --flag
+    herring argDemo --delta=3 --flag
 
 outputs:
 
-    arguments: ['--delta=3', '--flag']
+    argv: ['--delta=3', '--flag']
+    kwargs: ['delta': 3, 'flag': True]
+
+Available Tasks
+---------------
 
 To see the list of available tasks, run:
 
@@ -69,26 +83,45 @@ To see the list of available tasks, run:
 If you do not include a docstring for a task, the task is hidden and will not
 show up in the list, although it can still be ran.
 
+Reusing Tasks
+-------------
+If you have a "herringlib" directory in the same directory as your herringfile,
+herring will attempt to load all .py files in it (glob: "herringlib/**/*.py").
+These .py files may include tasks just like the herringfile.
+
+You will probably want to include __init__.py in herringlib and it's sub-
+directories so you can easily import the modules in your herringfile.
+
+Recommended practice is to only place project independent tasks that can
+be readily reused in your herringlib.  Project dependent tasks and methods
+should still go in your herringfile.
+
 Command line help is available
 ==============================
 
     herring --help
-    usage: Herring [-h] [-f FILESPEC] [-T] [-D] [-a] [-q] [-v] [tasks [tasks ...]]
+    usage: Herring [-h] [-f FILESPEC] [-T] [-D] [-a] [-q] [-v] [--longhelp]
+                   [tasks [tasks ...]]
 
     "Then, you must cut down the mightiest tree in the forrest... with... a
     herring!"
 
     positional arguments:
-      tasks                 The tasks to run. If none specified, tries to run the
-                            'default' task.
+      tasks                 The tasks to run. If none specified, tries to run
+                            the 'default' task.
 
     optional arguments:
       -h, --help            show this help message and exit
       -f FILESPEC, --herringfile FILESPEC
-                            The herringfile to use, by default uses "herringfile".
-      -T, --tasks           Lists the tasks (with docstrings) in the herringfile.
+                            The herringfile to use, by default uses
+                            "herringfile".
+      -T, --tasks           Lists the tasks (with docstrings) in the
+                            herringfile.
       -D, --depends         Lists the tasks (with docstrings) with their
                             dependencies in the herringfile.
       -a, --all             Lists all tasks, even those without docstrings.
       -q, --quiet           Suppress herring output.
       -v, --version         Show herring's version.
+      --longhelp            Long help about Herring
+
+
