@@ -1,0 +1,6 @@
+include *.txt
+include herringfile
+recursive-include docs *.txt
+recursive-include docs *.conf
+recursive-include tests *.py
+recursive-include herring *.txt

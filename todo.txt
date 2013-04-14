@@ -1,0 +1,2 @@
+For reusing tasks, it is nice to have a directory that can contain herringfiles
+that will be loaded prior to loading the project's herringfile.

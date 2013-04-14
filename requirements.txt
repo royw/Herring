@@ -1,0 +1,8 @@
+Cheesecake==0.6.1
+Herring>=0.0.13
+argparse==1.2.1
+distribute==0.6.24
+logilab-astng==0.24.2
+logilab-common==0.59.0
+pylint==0.27.0
+wsgiref==0.1.2
