@@ -1,0 +1,6 @@
+docs/
+attic/
+quality/
+MANIFEST
+*.log
+install.record
