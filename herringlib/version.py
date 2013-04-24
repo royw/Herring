@@ -5,7 +5,7 @@ from herring.herring_app import task
 def getProjectVersion(project_package=None):
     """ get the version from VERSION.txt """
     try:
-        version_file = os.path.join(os.getcwd(), project_package, 'VERSION.txt')
+        version_file = os.path.join(__DIR__, project_package, 'VERSION.txt')
         print "version_file => %s" % version_file
         with open(version_file, 'r') as file_:
             return file_.read().strip()
@@ -17,7 +17,7 @@ def getProjectVersion(project_package=None):
 def setProjectVersion(version, project_package=None):
     """ set the version in VERSION.txt """
     try:
-        version_file = os.path.join(os.getcwd(), project_package, 'VERSION.txt')
+        version_file = os.path.join(__DIR__, project_package, 'VERSION.txt')
         with open(version_file, 'w') as f:
             f.write(version + "\n")
     except IOError as e:
@@ -37,3 +37,7 @@ def bump():
     print "Bumped version from %s to %s" % (version, getProjectVersion())
 
 
+@task()
+def version():
+    """Show the current version"""
+    print "Current version is: %s" % getProjectVersion()

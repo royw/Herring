@@ -218,7 +218,6 @@ class ArgumentHelper(object):
                 value = ' '.join([kwargs[key], value])
             kwargs[key] = value
 
-
 class HerringApp(object):
     """
     This is the application class.
@@ -228,6 +227,8 @@ class HerringApp(object):
         herring.cli()
         herring.execute()
     """
+
+    directory = None
 
     # HerringTasks dictionary
     # key is task name as string
@@ -382,6 +383,9 @@ class HerringApp(object):
         """
         try:
             herring_file = self._find_herring_file(self._settings.herringfile)
+            HerringApp.directory = os.path.dirname(herring_file)
+            sys.path.append(os.path.realpath(HerringApp.directory))
+
             # the tasks are always ran with the current working directory
             # set to the directory that contains the herringfile
             os.chdir(os.path.dirname(str(herring_file)))
@@ -389,8 +393,8 @@ class HerringApp(object):
             self._info("Using: %s" % herring_file)
 
             self._load_tasks(herring_file)
-            task_list = self._get_tasks_list(HerringApp.HerringTasks,
-                                             self._settings.list_all_tasks)
+            task_list = list(self._get_tasks_list(HerringApp.HerringTasks,
+                                                  self._settings.list_all_tasks))
             if self._settings.list_tasks:
                 self._show_tasks(task_list)
             elif self._settings.list_dependencies:
@@ -466,14 +470,13 @@ class HerringApp(object):
         Loads the tasks from the herringfile populating the
         HerringApp.HerringTasks structure.
 
+        :param herring_file: the herringfile
         :return: None
         """
-        # print "herring_file => %s" % repr(herring_file)
+        print "herring_file => %s" % repr(herring_file)
         with open(str(herring_file)) as file_:
-            # exec file_.read() in globals()
-            source_lines = file_.read().split("\n")
             dest_lines = [line
-                          for line in source_lines
+                          for line in file_.readlines()
                           if not re.match(r"""
                                            ^\s*
                                            (
@@ -482,6 +485,8 @@ class HerringApp(object):
                                            )
                                            """, line, re.VERBOSE)]
             herring_source = "\n".join(dest_lines)
+            globals_dict = globals()
+            globals_dict['__DIR__'] = HerringApp.directory
             exec(herring_source, globals())
 
     def _get_tasks_list(self, herring_tasks, all_tasks_flag):
@@ -494,15 +499,12 @@ class HerringApp(object):
         :returns: task_list, a dict {name: '...', description: '...',
             dependencies: ['...']
         """
-        task_list = []
         for task_name in herring_tasks.keys():
             description = herring_tasks[task_name]['description']
             if all_tasks_flag or description is not None:
-                task_list.append({'name': task_name,
-                                  'description': description,
-                                  'dependencies':
-                                  herring_tasks[task_name]['depends']})
-        return task_list
+                yield({'name': task_name,
+                       'description': description,
+                       'dependencies': herring_tasks[task_name]['depends']})
 
     def _show_tasks(self, task_list):
         """
@@ -753,6 +755,7 @@ class HerringApp(object):
 
 # Alias for task decorator just makes the herringfiles a little cleaner.
 task = HerringApp.TaskWithArgs
+__DIR__ = HerringApp.directory
 
 
 def main():

@@ -78,6 +78,7 @@ def run(cmd_args, env=None, verbose=True):
 
 
 def runProcess(exe, env=None):
+    print("runProcess(%s, %s)" % (exe, env))
     sub_env = os.environ.copy()
     if env:
         for key, value in env.iteritems():
