@@ -3,7 +3,8 @@ import re
 import subprocess
 import sys
 from urllib import urlopen
-from herring.support.version import Version
+
+from herring.support.appVersion import AppVersion
 
 
 def package_update(package_name, package_script, package_repository):
@@ -15,13 +16,13 @@ def package_update(package_name, package_script, package_repository):
         match_obj = re.match(r".*%s\-(\d+\.\d+\.\d+)\.tar.gz" %
                              package_name, line)
         if match_obj:
-            versions.append(Version(match_obj.group(1)))
+            versions.append(AppVersion(match_obj.group(1)))
     latest = sorted(versions)[-1]
     print "latest %s version is %s" % (package_script, latest)
     version_str = run("%s --version" % package_script, verbose=False)
     match_obj = re.match(r'.*(\d+\.\d+\.\d+)', version_str)
     if match_obj:
-        current = Version(match_obj.group(1))
+        current = AppVersion(match_obj.group(1))
         print "current %s version is %s" % (package_script, current)
         if latest > current:
             run("pip install --upgrade %s/%s-%s.tar.gz" %

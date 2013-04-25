@@ -9,9 +9,9 @@ where major, minor, and patch are integers.
 
 
 Usage:
->>> v1 = Version('1.2.3')
->>> v2 = Version('1.25.4')
->>> v3 = Version('1.3.1')
+>>> v1 = AppVersion('1.2.3')
+>>> v2 = AppVersion('1.25.4')
+>>> v3 = AppVersion('1.3.1')
 >>> v1 < v2
 True
 >>> v1 < v3
@@ -25,10 +25,10 @@ True
 """
 __docformat__ = "restructuredtext en"
 
-__all__ = ('Version',)
+__all__ = ('AppVersion',)
 
 
-class Version(object):
+class AppVersion(object):
     """
     Provide version comparisons for "A.B.C" style version strings.
     """

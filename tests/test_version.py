@@ -1,19 +1,19 @@
 # coding=utf-8
 
 """
-Unit tests for Version class
+Unit tests for AppVersion class
 """
 
 from unittest import TestCase
-from herring.support.version import Version
+from herring.support.appVersion import AppVersion
 
 
 class TestVersion(TestCase):
-    """ Version Test Case """
+    """ AppVersion Test Case """
 
     def setUp(self):
         """called before each test_*()"""
-        self.v = [Version(vstr) for vstr in [
+        self.v = [AppVersion(vstr) for vstr in [
             '0.0.0',
             '0.0.1',
             '0.0.2',
@@ -43,6 +43,6 @@ class TestVersion(TestCase):
             self.assertTrue(self.v[index] <= self.v[index + 1])
             self.assertTrue(self.v[index + 1] >= self.v[index])
             self.assertTrue(self.v[index] != self.v[index + 1])
-            self.assertTrue(Version(str(self.v[index])) == self.v[index])
-            self.assertTrue(Version(repr(self.v[index])) == self.v[index])
+            self.assertTrue(AppVersion(str(self.v[index])) == self.v[index])
+            self.assertTrue(AppVersion(repr(self.v[index])) == self.v[index])
 

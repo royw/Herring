@@ -9,22 +9,16 @@ string task names which are task dependencies.
 import os
 import fnmatch
 import shutil
-from herring.herring_app import task
-
-# __DIR__ = HerringApp.directory
-
-print "__DIR__ => %s" % __DIR__
-print "os.getcwd() => %s" % os.getcwd()
+from herring.herring_app import task, HerringFile
 
 from herringlib.run import package_update, run, system
-from herringlib.version import getProjectVersion, setProjectVersion, bump
+from herringlib.version import getProjectVersion, bump
 
 PROJECT_NAME = 'Herring'
 PROJECT_PACKAGE = 'herring'
 PROJECT_SCRIPT = 'herring'
 PROJECT_TESTS_DIR = 'tests'
 LOCAL_PYPI_REPOSITORY = "http://tpcvm143.austin.hp.com/pypi"
-
 
 
 @task(depends=['build', 'doc', 'test'])
@@ -59,14 +53,14 @@ def uninstall():
         os.remove('install.record')
     else:
         # try uninstalling with pip
-        run(['pip', 'uninstall', __DIR__.split(os.path.sep)[-1]])
+        run(['pip', 'uninstall', HerringFile.directory.split(os.path.sep)[-1]])
 
 
 @task()
 def deploy():
     """ copy latest sdist tar ball to server """
     version = getProjectVersion(PROJECT_PACKAGE)
-    dist_file = os.path.join(__DIR__, 'dist',
+    dist_file = os.path.join(HerringFile.directory, 'dist',
                              "%s-%s.tar.gz" % (PROJECT_NAME, version))
     run(['scp', dist_file, 'tpcvm143.austin.hp.com://var/www/pypi/'])
 
@@ -87,10 +81,10 @@ def show():
 @task()
 def clean():
     """ remove build artifacts """
-    __recursively_remove(__DIR__, '*.pyc')
+    __recursively_remove(HerringFile.directory, '*.pyc')
 
     for dir_name in ['dist', 'build', "%s.egg-info" % PROJECT_NAME]:
-        target_dir = os.path.join(__DIR__, dir_name)
+        target_dir = os.path.join(HerringFile.directory, dir_name)
         if os.path.exists(target_dir):
             shutil.rmtree(target_dir)
 
@@ -98,14 +92,14 @@ def clean():
 @task(depends=['clean'])
 def purge():
     """ remove unnecessary files """
-    docs_dir = os.path.join(__DIR__, 'docs')
+    docs_dir = os.path.join(HerringFile.directory, 'docs')
     if os.path.exists(docs_dir):
         api_dir = os.path.join(docs_dir, 'api')
         if os.path.exists(api_dir):
             shutil.rmtree(api_dir)
 
     for dir_name in ['quality']:
-        target_dir = os.path.join(__DIR__, dir_name)
+        target_dir = os.path.join(HerringFile.directory, dir_name)
         if os.path.exists(target_dir):
             shutil.rmtree(target_dir)
 
@@ -122,7 +116,7 @@ def __recursively_remove(path, pattern):
 
 def qualityDir():
     """ make sure the quality directory exists """
-    quality_dir = os.path.join(__DIR__, 'quality')
+    quality_dir = os.path.join(HerringFile.directory, 'quality')
     if not os.path.exists(quality_dir):
         os.mkdir(quality_dir)
     return quality_dir
@@ -170,7 +164,7 @@ def complexity():
 @task()
 def doc():
     """ Generate API documentation """
-    docs_dir = os.path.join(__DIR__, 'docs')
+    docs_dir = os.path.join(HerringFile.directory, 'docs')
     if not os.path.exists(docs_dir):
         os.mkdir(docs_dir)
 

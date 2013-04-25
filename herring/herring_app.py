@@ -142,7 +142,7 @@ from functools import reduce
 from herring.support.toposort2 import toposort2
 
 
-__all__ = ("HerringApp", "test", "ArgumentHelper")
+__all__ = ("HerringApp", "HerringFile", "task", "ArgumentHelper")
 
 HELP = {
     'herring': "\"Then, you must cut down the mightiest tree in the " +
@@ -218,6 +218,11 @@ class ArgumentHelper(object):
                 value = ' '.join([kwargs[key], value])
             kwargs[key] = value
 
+
+class HerringFile(object):
+    directory = ''
+
+
 class HerringApp(object):
     """
     This is the application class.
@@ -227,8 +232,6 @@ class HerringApp(object):
         herring.cli()
         herring.execute()
     """
-
-    directory = None
 
     # HerringTasks dictionary
     # key is task name as string
@@ -245,7 +248,6 @@ class HerringApp(object):
         :param outputter: writer to send output to.  Usually sys.stdout
         """
         self._outputter = outputter
-        self._fix_sys_path()
         self._verbose = True
         self._version = self._load_version()
 
@@ -383,12 +385,12 @@ class HerringApp(object):
         """
         try:
             herring_file = self._find_herring_file(self._settings.herringfile)
-            HerringApp.directory = os.path.dirname(herring_file)
-            sys.path.append(os.path.realpath(HerringApp.directory))
+            HerringFile.directory = str(os.path.realpath(os.path.dirname(herring_file)))
+            sys.path.insert(1, HerringFile.directory)
 
             # the tasks are always ran with the current working directory
             # set to the directory that contains the herringfile
-            os.chdir(os.path.dirname(str(herring_file)))
+            os.chdir(HerringFile.directory)
 
             self._info("Using: %s" % herring_file)
 
@@ -421,7 +423,6 @@ class HerringApp(object):
         while cwd:
             try:
                 file_spec = os.path.join(cwd, herringfile)
-                # print "file_spec => %s" % file_spec
                 with open(file_spec):
                     pass
                 return file_spec
@@ -436,9 +437,9 @@ class HerringApp(object):
         :param herring_file: the herringfile
         :return: None
         """
+        self._load_herring_file(herring_file)
         for file_ in self.library_files(herring_file):
             self._load_herring_file(file_)
-        self._load_herring_file(herring_file)
 
     @staticmethod
     def library_files(herring_file, lib_base_name='herringlib',
@@ -473,7 +474,6 @@ class HerringApp(object):
         :param herring_file: the herringfile
         :return: None
         """
-        print "herring_file => %s" % repr(herring_file)
         with open(str(herring_file)) as file_:
             dest_lines = [line
                           for line in file_.readlines()
@@ -486,8 +486,11 @@ class HerringApp(object):
                                            """, line, re.VERBOSE)]
             herring_source = "\n".join(dest_lines)
             globals_dict = globals()
-            globals_dict['__DIR__'] = HerringApp.directory
-            exec(herring_source, globals())
+            # globals_dict['herringfile_dir'] = HerringFile.directory
+            try:
+                exec(herring_source, globals())
+            except ImportError as ex:
+                print(ex)
 
     def _get_tasks_list(self, herring_tasks, all_tasks_flag):
         """
@@ -623,31 +626,6 @@ class HerringApp(object):
             self._info("Running: %s" % task_name)
             HerringApp.HerringTasks[task_name]['task']()
 
-    def _fix_sys_path(self):
-        """
-        If this module is run as a script, its parent directory (/src/tests)
-        will get added to sys.path. This can cause problems if /src/tests has
-        packages/modules that conflict with packages/modules in /src or /lib.
-        For example, we want "import dst" to import from /src/dst, not
-        /src/tests/dst.
-        We must use os.path.realpath() here, as that is what Python adds to
-        sys.path.
-
-        :return: None
-        """
-        package = os.path.dirname(os.path.realpath(sys.argv[0]))
-
-        # Entries in sys.path may be relative, so we have convert each one to an
-        # absolute path before comparing it with `package`.
-        for path in sys.path:
-            path = os.path.realpath(path)
-            if path == package:
-                # Normally it is unsafe to modify sys.path while iterating over
-                # it, but this is safe since we stop iterating immediately after
-                # modifying sys.path.
-                sys.path.remove(package)
-                break
-
     def _info(self, message):
         """
         Output info message.
@@ -755,7 +733,6 @@ class HerringApp(object):
 
 # Alias for task decorator just makes the herringfiles a little cleaner.
 task = HerringApp.TaskWithArgs
-__DIR__ = HerringApp.directory
 
 
 def main():

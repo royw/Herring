@@ -4,3 +4,7 @@ quality/
 MANIFEST
 *.log
 install.record
+Herring.egg-info/
+build/
+dist/
+

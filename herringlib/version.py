@@ -1,11 +1,12 @@
 import os
-from herring.herring_app import task
+from herring.herring_app import task, HerringFile
 
 
 def getProjectVersion(project_package=None):
     """ get the version from VERSION.txt """
     try:
-        version_file = os.path.join(__DIR__, project_package, 'VERSION.txt')
+        parts = [HerringFile.directory, project_package, 'VERSION.txt']
+        version_file = os.path.join(*[f for f in parts if f is not None])
         print "version_file => %s" % version_file
         with open(version_file, 'r') as file_:
             return file_.read().strip()
@@ -17,7 +18,8 @@ def getProjectVersion(project_package=None):
 def setProjectVersion(version, project_package=None):
     """ set the version in VERSION.txt """
     try:
-        version_file = os.path.join(__DIR__, project_package, 'VERSION.txt')
+        parts = [HerringFile.directory, project_package, 'VERSION.txt']
+        version_file = os.path.join(*[f for f in parts if f is not None])
         with open(version_file, 'w') as f:
             f.write(version + "\n")
     except IOError as e:
@@ -30,14 +32,14 @@ def bump():
     Bumps the patch version in VERSION file up by one.  If the VERSION
     file does not exist, then create it and initialize the version to '0.0.0'.
     """
-    version = getProjectVersion()
+    version = getProjectVersion(project_package='herring')
     parts = version.split('.')
     parts[-1] = str(int(parts[-1]) + 1)
-    setProjectVersion('.'.join(parts))
-    print "Bumped version from %s to %s" % (version, getProjectVersion())
+    setProjectVersion('.'.join(parts), project_package='herring')
+    print "Bumped version from %s to %s" % (version, getProjectVersion(project_package='herring'))
 
 
 @task()
 def version():
     """Show the current version"""
-    print "Current version is: %s" % getProjectVersion()
+    print "Current version is: %s" % getProjectVersion(project_package='herring')
