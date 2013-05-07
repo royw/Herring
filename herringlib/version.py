@@ -29,8 +29,8 @@ def setProjectVersion(version, project_package=None):
 @task()
 def bump():
     """
-    Bumps the patch version in VERSION file up by one.  If the VERSION
-    file does not exist, then create it and initialize the version to '0.0.0'.
+    Bumps the patch version in VERSION file up by one.
+    If the VERSION file does not exist, then create it and initialize the version to '0.0.0'.
     """
     version = getProjectVersion(project_package='herring')
     parts = version.split('.')

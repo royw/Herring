@@ -103,32 +103,36 @@ Command line help is available
 ==============================
 
     herring --help
-    usage: Herring [-h] [-f FILESPEC] [-T] [-D] [-a] [-q] [-v] [--longhelp]
+    usage: Herring [-h] [-f FILESPEC] [-T] [-U] [-D] [-a] [-q] [-v] [-l]
                    [tasks [tasks ...]]
 
-    "Then, you must cut down the mightiest tree in the forrest... with... a
-    herring!"
+    "Then, you must cut down the mightiest tree in the forrest... with... a herring!"
+
+    Herring is a simple python make utility.  You write tasks in python, and
+    optionally assign dependent tasks.  The command line interface lets you
+    easily list the tasks and run them.  See --longhelp for details.
 
     positional arguments:
-      tasks                 The tasks to run. If none specified, tries to run
-                            the 'default' task.
+      tasks                 The tasks to run. If none specified, tries to run the
+                            'default' task.
 
     optional arguments:
       -h, --help            show this help message and exit
       -f FILESPEC, --herringfile FILESPEC
-                            The herringfile to use, by default uses
-                            "herringfile".
-      -T, --tasks           Lists the tasks (with docstrings) in the
-                            herringfile.
+                            The herringfile to use, by default uses "herringfile".
+      -T, --tasks           Lists the tasks (with docstrings) in the herringfile.
+      -U, --usage           Shows the full docstring for the tasks (with
+                            docstrings) in the herringfile.
       -D, --depends         Lists the tasks (with docstrings) with their
                             dependencies in the herringfile.
       -a, --all             Lists all tasks, even those without docstrings.
       -q, --quiet           Suppress herring output.
       -v, --version         Show herring's version.
-      --longhelp            Long help about Herring
+      -l, --longhelp        Long help about Herring
 
 """
 import fnmatch
+import textwrap
 
 __docformat__ = "restructuredtext en"
 
@@ -138,17 +142,22 @@ import sys
 import argparse
 
 from collections import deque
-from functools import reduce
 from herring.support.toposort2 import toposort2
 
 
 __all__ = ("HerringApp", "HerringFile", "task", "ArgumentHelper")
 
 HELP = {
-    'herring': "\"Then, you must cut down the mightiest tree in the " +
-               "forrest... with... a herring!\"",
+    'herring': textwrap.dedent("""\
+        "Then, you must cut down the mightiest tree in the forrest... with... a herring!"
+
+        Herring is a simple python make utility.  You write tasks in python, and
+        optionally assign dependent tasks.  The command line interface lets you
+        easily list the tasks and run them.  See --longhelp for details.
+        """),
     'herringfile': 'The herringfile to use, by default uses "herringfile".',
     'list_tasks': 'Lists the tasks (with docstrings) in the herringfile.',
+    'list_task_usages': 'Shows the full docstring for the tasks (with docstrings) in the herringfile.',
     'list_dependencies': 'Lists the tasks (with docstrings) with their '
                          'dependencies in the herringfile.',
     'list_all_tasks': 'Lists all tasks, even those without docstrings.',
@@ -325,11 +334,15 @@ class HerringApp(object):
 
         :return: ArgumentParser instance
         """
-        parser = argparse.ArgumentParser('Herring', description=HELP['herring'])
+        parser = argparse.ArgumentParser('Herring',
+                                         formatter_class=argparse.RawDescriptionHelpFormatter,
+                                         description=HELP['herring'])
         parser.add_argument('-f', '--herringfile', metavar='FILESPEC',
                             default='herringfile', help=HELP['herringfile'])
         parser.add_argument('-T', '--tasks', dest='list_tasks',
                             action="store_true", help=HELP['list_tasks'])
+        parser.add_argument('-U', '--usage', dest='list_task_usages',
+                            action="store_true", help=HELP['list_task_usages'])
         parser.add_argument('-D', '--depends', dest='list_dependencies',
                             action="store_true", help=HELP['list_dependencies'])
         parser.add_argument('-a', '--all', dest='list_all_tasks',
@@ -338,7 +351,7 @@ class HerringApp(object):
                             help='Suppress herring output.')
         parser.add_argument('-v', '--version', dest='version',
                             action='store_true', help=HELP['version'])
-        parser.add_argument('--longhelp', dest='longhelp', action='store_true',
+        parser.add_argument('-l', '--longhelp', dest='longhelp', action='store_true',
                             help='Long help about Herring')
         parser.add_argument('tasks', nargs='*', help=HELP['tasks'])
         return parser.parse_known_args()
@@ -399,6 +412,8 @@ class HerringApp(object):
                                                   self._settings.list_all_tasks))
             if self._settings.list_tasks:
                 self._show_tasks(task_list)
+            elif self._settings.list_task_usages:
+                self._show_task_usages(task_list)
             elif self._settings.list_dependencies:
                 self._show_depends(task_list)
             else:
@@ -485,8 +500,6 @@ class HerringApp(object):
                                            )
                                            """, line, re.VERBOSE)]
             herring_source = "\n".join(dest_lines)
-            globals_dict = globals()
-            # globals_dict['herringfile_dir'] = HerringFile.directory
             try:
                 exec(herring_source, globals())
             except ImportError as ex:
@@ -506,7 +519,7 @@ class HerringApp(object):
             description = herring_tasks[task_name]['description']
             if all_tasks_flag or description is not None:
                 yield({'name': task_name,
-                       'description': description,
+                       'description': str(description),
                        'dependencies': herring_tasks[task_name]['depends']})
 
     def _show_tasks(self, task_list):
@@ -520,8 +533,22 @@ class HerringApp(object):
         width = len(max([item['name'] for item in task_list], key=len))
         for item in task_list:
             self._row(name=item['name'],
-                      description=item['description'],
+                      description=item['description'].strip().splitlines()[0],
                       max_name_length=width)
+
+    def _show_task_usages(self, task_list, full=False):
+        """
+        Shows the tasks.
+
+        :param task_list: list of task names to show.
+        :return: None
+        """
+        self._header("Show task usages")
+        for item in task_list:
+            self._info("#" * 40)
+            self._info("# herring %s" % item['name'])
+            self._info(textwrap.dedent(item['description']).replace("\n\n", "\n").strip())
+            self._info('')
 
     def _show_depends(self, task_list):
         """
@@ -534,7 +561,7 @@ class HerringApp(object):
         width = len(max([item['name'] for item in task_list], key=len))
         for item in task_list:
             self._row(name=item['name'],
-                      description=item['description'],
+                      description=item['description'].strip().splitlines()[0],
                       dependencies=item['dependencies'],
                       max_name_length=width)
 
@@ -690,7 +717,8 @@ class HerringApp(object):
         :param c2_width: width (number of characters) for second column
         :return: None
         """
-        values = self._wrap(self._unindent(c2_value), c2_width).split("\n")
+        # values = textwrap.fill(self._unindent(c2_value), c2_width).split("\n")
+        values = textwrap.fill(c2_value, c2_width).split("\n")
         self._info(ROW_FORMAT.format(c1_value, values[0],
                                      width1=c1_width,
                                      width2=c2_width))
@@ -698,38 +726,6 @@ class HerringApp(object):
             self._info(ROW_FORMAT.format(' ', line,
                                          width1=c1_width,
                                          width2=c2_width))
-
-    def _unindent(self, text):
-        """
-        Converts an indented, multi-line text string to a single line.
-        Each line is stripped of leading and trailing whitespace, then
-        the lines are joined.
-
-        :param text: a multi-line text string to be unindented.
-        :return: the unindented string
-        """
-        buf = []
-        lines = text.strip().split("\n")
-        for line in lines:
-            buf.append(line.strip())
-        return " ".join(buf)
-
-    def _wrap(self, text, max_width):
-        """
-        A word-wrap function that preserves existing line breaks
-        and most spaces in the text. Expects that existing line
-        breaks are posix newlines.
-
-        :param text: the string to wrap
-        :param max_width: the max width of each line after wrapping
-        :return: the wrapped text string
-        """
-        return reduce(lambda line, word, width=max_width: '%s%s%s' % (
-            line,
-            ' \n'[(len(line) - line.rfind('\n') - 1 + len(
-                word.split('\n', 1)[0]) >= width)],
-            word), text.split(' '))
-
 
 # Alias for task decorator just makes the herringfiles a little cleaner.
 task = HerringApp.TaskWithArgs
