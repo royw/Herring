@@ -4,21 +4,59 @@ This is Herring's herringfile which contains various tasks used in development.
 As you can see, a task is just a function with a @task decorator.  The decorator
 takes an optional :depends: keyword argument which should point to a list of
 string task names which are task dependencies.
+
+Add the following to your *requirements.txt* file:
+
+* herring
+* argparse
+
 """
 
 import os
-import fnmatch
-import shutil
 from herring.herring_app import task, HerringFile
+from herring.support.SimpleLogger import info
 
-from herringlib.run import package_update, run, system
-from herringlib.version import getProjectVersion, bump
+from herringlib.project_settings import ProjectSettings
+from herringlib.version import getProjectVersion
 
-PROJECT_NAME = 'Herring'
-PROJECT_PACKAGE = 'herring'
-PROJECT_SCRIPT = 'herring'
-PROJECT_TESTS_DIR = 'tests'
-LOCAL_PYPI_REPOSITORY = "http://tpcvm143.austin.hp.com/pypi"
+
+Project = ProjectSettings()
+
+version = getProjectVersion(project_package='herring')
+info("version: %s" % version)
+Project.metadata(
+    {
+        'name': 'Herring',
+        'package': 'herring',
+        'author': 'Roy Wright',
+        'author_email': 'roy.wright@hp.com',
+        'description': '',
+        'script': 'herring',
+        'main': 'herring_app.py',
+        'version': version,
+        'distHost': 'tpcvm143.austin.hp.com',
+        'pypiDir': '/var/pypi/dev',
+        'user': os.environ['USER'],
+        'pylintrc': os.path.join(HerringFile.directory, 'pylint.rc'),
+        'pythonPath': ".:%s" % HerringFile.directory
+    })
+
+Project.dirMap(
+    {
+        'quality': 'quality',
+        'docs': 'docs',
+        'uml': 'docs/_src/uml',
+        'api': 'docs/api',
+        'templates': 'docs/_templates',
+        'report': 'report',
+        'tests': 'tests',
+        'dist': 'dist',
+        'build': 'build',
+        'egg': "%s.egg-info" % Project.name
+    }
+)
+
+Project.requiredFiles()
 
 
 @task(depends=['build', 'doc', 'test'])
@@ -27,185 +65,21 @@ def default():
     pass
 
 
-# cleaning is necessary to remove stale .pyc files, particularly after
-# refactoring.
-@task(depends=['clean'])
-def build():
-    """ build the project as a source distribution """
-    version = getProjectVersion(PROJECT_PACKAGE)
-    if version == '0.0.0':
-        bump()
-    system("python setup.py sdist")
-    # run("python setup.py bdist")
-
-
-@task(depends=['build'])
-def install():
-    """ install the project """
-    system("python setup.py install --record install.record")
-
-
-@task()
-def uninstall():
-    """ uninstall the project"""
-    if os.path.exists('install.record'):
-        system("cat install.record | xargs rm -rf")
-        os.remove('install.record')
-    else:
-        # try uninstalling with pip
-        run(['pip', 'uninstall', HerringFile.directory.split(os.path.sep)[-1]])
-
-
-@task()
-def deploy():
-    """ copy latest sdist tar ball to server """
-    version = getProjectVersion(PROJECT_PACKAGE)
-    dist_file = os.path.join(HerringFile.directory, 'dist',
-                             "%s-%s.tar.gz" % (PROJECT_NAME, version))
-    run(['scp', dist_file, 'tpcvm143.austin.hp.com://var/www/pypi/'])
-
-
 @task()
 def show():
     """ show all files in the project """
     # noinspection PyUnusedLocal
     def walker(arg, dir_name, files):
         if '/.' not in dir_name:
-            print "%s (%d files)" % (dir_name, len(files))
+            info("%s (%d files)" % (dir_name, len(files)))
             for file_name in files:
-                print "    %s" % file_name
+                info("    %s" % file_name)
 
     os.path.walk('.', walker, None)
 
 
 @task()
-def clean():
-    """ remove build artifacts """
-    __recursively_remove(HerringFile.directory, '*.pyc')
-
-    for dir_name in ['dist', 'build', "%s.egg-info" % PROJECT_NAME]:
-        target_dir = os.path.join(HerringFile.directory, dir_name)
-        if os.path.exists(target_dir):
-            shutil.rmtree(target_dir)
-
-
-@task(depends=['clean'])
-def purge():
-    """ remove unnecessary files """
-    docs_dir = os.path.join(HerringFile.directory, 'docs')
-    if os.path.exists(docs_dir):
-        api_dir = os.path.join(docs_dir, 'api')
-        if os.path.exists(api_dir):
-            shutil.rmtree(api_dir)
-
-    for dir_name in ['quality']:
-        target_dir = os.path.join(HerringFile.directory, dir_name)
-        if os.path.exists(target_dir):
-            shutil.rmtree(target_dir)
-
-
-def __recursively_remove(path, pattern):
-    """ recursively remove files that match a given pattern """
-    files = [os.path.join(dir_path, f)
-             for dir_path, dir_names, files in os.walk(path)
-             for f in fnmatch.filter(files, pattern)]
-    for file_ in files:
-        print "removing: %s" % file_
-        os.remove(file_)
-
-
-def qualityDir():
-    """ make sure the quality directory exists """
-    quality_dir = os.path.join(HerringFile.directory, 'quality')
-    if not os.path.exists(quality_dir):
-        os.mkdir(quality_dir)
-    return quality_dir
-
-
-@task(depends=['cheesecake', 'lint', 'complexity'])
-def quality():
-    """ Quality metrics """
-
-
-@task()
-def cheesecake():
-    """ Run the cheesecake kwalitee metric """
-    cheesecake_log = os.path.join(qualityDir(), 'cheesecake.log')
-    system("cheesecake_index --path=dist/%s-%s.tar.gz --keep-log -l %s" %
-           (PROJECT_NAME,
-            getProjectVersion(PROJECT_PACKAGE),
-            cheesecake_log))
-
-
-@task()
-def lint():
-    """ Run pylint with project overrides from pylint.rc """
-    pylint_log = os.path.join(qualityDir(), 'pylint.log')
-    system("pylint --rcfile=pylint.rc %s > %s" %
-           (PROJECT_PACKAGE, pylint_log))
-
-
-@task()
-def complexity():
-    """ Run McCabe code complexity """
-    quality_dir = qualityDir()
-    complexity_txt = os.path.join(quality_dir, 'complexity.txt')
-    graph = os.path.join(quality_dir, 'output.png')
-    acc = os.path.join(quality_dir, 'complexity_acc.txt')
-    metrics_html = os.path.join(quality_dir, 'complexity_metrics.html')
-    system("touch %s" % complexity_txt)
-    system("touch %s" % acc)
-    system("pymetrics --nosql --nocsv `find %s/ -iname \"*.py\"` > %s" %
-           (PROJECT_PACKAGE, complexity_txt))
-    system("pycabehtml.py -i %s -o %s -a %s -g %s" %
-           (complexity_txt, metrics_html, acc, graph))
-
-
-@task()
-def doc():
-    """ Generate API documentation """
-    docs_dir = os.path.join(HerringFile.directory, 'docs')
-    if not os.path.exists(docs_dir):
-        os.mkdir(docs_dir)
-
-    api_dir = os.path.join(docs_dir, 'api')
-    if not os.path.exists(api_dir):
-        os.mkdir(api_dir)
-
-    epy_conf = os.path.join(docs_dir, 'epydoc.conf')
-
-    cmd_args = ['epydoc',
-                '-v',
-                '--docformat', 'restructuredtext',
-                "--config=%s" % epy_conf,
-                "--output=%s" % api_dir,
-                '--graph', 'all',
-                PROJECT_PACKAGE]
-    run(cmd_args)
-
-
-@task()
-def updateReadme():
-    """Update the README.txt from herring_app.py"""
-    text = system("%s --longhelp" % PROJECT_SCRIPT)
-    with open("README.txt", 'w') as readme_file:
-        readme_file.write(text)
-
-
-@task()
-def test():
-    """ Run the unit tests """
-    run(("nosetests -vv --where=%s" % PROJECT_TESTS_DIR).split(' '))
-
-
-@task()
 def argsDemo():
     """ echos that task's arguments """
-    print "argv: %s" % repr(task.argv)
-    print "kwargs: %s" % repr(task.kwargs)
-
-
-@task()
-def herring_update():
-    """ update herring to the latest available """
-    package_update(PROJECT_NAME, PROJECT_SCRIPT, LOCAL_PYPI_REPOSITORY)
+    info("argv: %s" % repr(task.argv))
+    info("kwargs: %s" % repr(task.kwargs))

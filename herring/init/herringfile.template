@@ -1,0 +1,58 @@
+"""
+Herring tasks for {name}.  Most tasks are generic and located in herringlib/.
+
+Add the following to your *requirements.txt* file:
+
+* herring
+* argparse
+
+"""
+import os
+
+from herring.herring_app import task, HerringFile
+from herringlib.project_settings import ProjectSettings
+
+# Define our project environment.  Used by generic tasks in herringlib/
+from herringlib.version import getProjectVersion
+
+Project = ProjectSettings()
+
+Project.metadata(
+    {{
+        'name': '{name}',
+        'package': '{package}',
+        'author': '{author}',
+        'author_email': 'your_email@example.com',
+        'description': 'Describe your project here.',
+        'script': '{package}',
+        'main': '{package}_app.py',
+        'version': getProjectVersion('{package}'),
+        'distHost': 'tpcvm143.austin.hp.com',
+        'pypiDir': '/var/pypi/dev',
+        'user': os.environ['USER'],
+        'pylintrc': os.path.join(HerringFile.directory, 'pylint.rc'),
+        'pythonPath': ".:%s" % HerringFile.directory
+    }})
+
+Project.dirMap(
+    {{
+        'quality': 'quality',
+        'docs': 'docs',
+        'uml': 'docs/_src/uml',
+        'api': 'docs/api',
+        'templates': 'docs/_templates',
+        'report': 'report',
+        'tests': 'tests',
+        'dist': 'dist',
+        'build': 'build',
+        'egg': "%s.egg-info" % Project.name
+    }}
+)
+
+Project.requiredFiles()
+
+
+@task(depends=['build', 'doc', 'test'])
+def default():
+    """ The default task(s) to run when none are specified """
+    pass

@@ -1,0 +1,42 @@
+# from distutils.core import setup
+import os
+from setuptools import setup
+
+from sys import version
+
+if version < '2.2.3':
+    print '{name} requires python 2.6 or newer'
+    exit(-1)
+
+
+def getProjectVersion():
+    """ get the version from the project's VERSION.txt file"""
+    version_file = os.path.join(os.getcwd(), '{package}', 'VERSION.txt')
+    with open(version_file, 'r') as f:
+        return f.read().strip()
+
+
+setup(
+    name='{name}',
+    version=getProjectVersion(),
+    author='{author}',
+    author_email='{author_email}',
+    url='http://{package}.example.com',
+    packages=['{package}'],
+    package_dir={{'': '.'}},
+    package_data={{'{package}': ['*.txt', '*.js', '*.html', '*.css'],
+                  'docs': ['*'],
+                  'tests': ['*'],
+                  'herringlib': ['*'],
+                  '': ['*.txt', '*.rc', 'herringfile', '*.in']}},
+    license='license.txt',
+    description='{description}',
+    long_description=open('README.txt').read(),
+    install_requires=[
+        "argparse",
+        "mako"
+        # "Foo >= 1.2.3"
+    ],
+    entry_points={{
+        'console_scripts': ['{package} = {package}.{package}_app:main']
+    }})
