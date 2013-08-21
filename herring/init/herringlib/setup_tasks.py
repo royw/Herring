@@ -1,3 +1,4 @@
+# coding=utf-8
 """
 Set of Herring tasks for packaging a project.
 
@@ -25,6 +26,7 @@ def build():
     if Project.version == '0.0.0':
         bump()
     system("python setup.py sdist")
+    system("python setup.py bdist_wheel")
     # run("python setup.py bdist")
 
 

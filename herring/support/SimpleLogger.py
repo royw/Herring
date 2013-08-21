@@ -17,6 +17,7 @@ showLevel = False
 
 
 def setVerbose(verbose=True):
+    """set verbose mode"""
     if verbose:
         LogOutputter['info'] = [sys.stdout]
     else:
@@ -24,6 +25,7 @@ def setVerbose(verbose=True):
 
 
 def setDebug(debug=True):
+    """set debug logging mode"""
     if debug:
         LogOutputter['debug'] = [sys.stdout]
     else:
@@ -31,11 +33,13 @@ def setDebug(debug=True):
 
 
 def setComponent(component=None):
+    """set component label"""
     global currentComponent
     currentComponent = component
 
 
 def setShowLevel(on=True):
+    """enable showing the logging level"""
     global showLevel
     showLevel = on
 
@@ -54,21 +58,26 @@ def _output(level, message):
 
 
 def debug(message):
+    """debug message"""
     _output('debug', message)
 
 
 def info(message):
+    """info message"""
     _output('info', message)
 
 
 def warning(message):
+    """warning message"""
     _output('warning', message)
 
 
 def error(message):
+    """error message"""
     _output('error', message)
 
 
 def fatal(message):
+    """fatal message"""
     _output('fatal', message)
     exit(1)

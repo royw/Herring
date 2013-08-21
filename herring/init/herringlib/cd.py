@@ -1,3 +1,9 @@
+# coding=utf-8
+
+"""
+Helper for changing the current directory within a context.
+
+"""
 import os
 
 

@@ -20,18 +20,18 @@ Usage
 =====
 
 Tasks are defined by using a @task decorator on a function definition in the
-project's herringfile:
+project's herringfile::
 
     @task()
     def foo():
         \"\"\" Do something fooey \"\"\"
         #...
 
-Task decorators can take optional keywords:
+Task decorators can take optional keywords::
 
     :depends: List of task names as strings.
 
-Example:
+Example::
 
     @task(depends=['foo'])
     def bar():
@@ -41,15 +41,14 @@ Running a Task
 --------------
 
 To run a task, simply be in the directory with your herringfile or one of it's
-sub-directories and type:
+sub-directories and to run the foo task, type::
 
     herring foo
 
-This will run the foo task.
+And this will run the foo task then the bar task::
 
     herring bar
 
-Will run the foo task then the bar task.
 
 Command Line Arguments
 ----------------------
@@ -58,7 +57,7 @@ To pass arguments to the task, simply place them on the command line as keyword
 arguments.  The tasks may access the lists by using:  task.argv
 Or already parsed as keyword args by using:  task.kwargs
 
-Example:
+Example::
 
     @task()
     def argDemo():
@@ -67,7 +66,7 @@ Example:
 
     herring argDemo --delta=3 --flag
 
-outputs:
+outputs::
 
     argv: ['--delta=3', '--flag']
     kwargs: ['delta': 3, 'flag': True]
@@ -76,6 +75,8 @@ Available Tasks
 ---------------
 
 To see the list of available tasks, run:
+
+.. code-block: bash
 
     herring -T
     Show tasks
@@ -88,8 +89,9 @@ show up in the list, although it can still be ran.
 
 Reusing Tasks
 -------------
+
 If you have a "herringlib" directory in the same directory as your herringfile,
-herring will attempt to load all .py files in it (glob: "herringlib/**/*.py").
+herring will attempt to load all .py files in it (glob: "herringlib/\*\*/\*.py").
 These .py files may include tasks just like the herringfile.
 
 You will probably want to include __init__.py in herringlib and it's sub-
@@ -101,6 +103,8 @@ should still go in your herringfile.
 
 Command line help is available
 ==============================
+
+.. code-block: bash
 
     herring --help
     usage: Herring [-h] [-f FILESPEC] [-T] [-U] [-D] [-a] [-q] [-v] [-l]
@@ -131,27 +135,27 @@ Command line help is available
       -l, --longhelp        Long help about Herring
 
 """
+from herring.argument_helper import ArgumentHelper
+from herring.herring_file import HerringFile
+from herring.new_project import NewProject
+from herring.task_with_args import TaskWithArgs, HerringTasks
 
 __docformat__ = "restructuredtext en"
 
 import fnmatch
 from operator import itemgetter
-import shutil
-import subprocess
 import textwrap
 
 import re
 import os
 import sys
 import argparse
-import pkg_resources
 
-from collections import deque
 from herring.support.toposort2 import toposort2
 from herring.support.SimpleLogger import debug, info, error, fatal, setVerbose, setDebug
 
 
-__all__ = ("HerringApp", "HerringFile", "task", "ArgumentHelper", "run")
+__all__ = ("HerringApp", "task", "run", "HerringTasks")
 
 HELP = {
     'herring': textwrap.dedent("""\
@@ -178,211 +182,6 @@ HELP = {
 ROW_FORMAT = "{0:<{width1}s}  # {1:<{width2}s}"
 
 
-class ArgumentHelper(object):
-    """ Helper for handling command line arguments. """
-    @staticmethod
-    def argv_to_dict(argv):
-        """
-        Given a list of keyword arguments, parse into a kwargs dictionary.
-
-        Each argument should either start with '--' indicating a key, or not,
-        indicating a value.
-        Also supports "--key=value" syntax.
-        True will be used for the value of a key that does not have a given
-        value. Multiple values will be joined with a space.
-
-        This method does not attempt to cast any values, they all remain
-        strings.
-
-        >>> argv = ['--flag', 'false', '--foo', 'alpha', 'beta', '--bar=delta',
-                '--charlie']
-        >>> kwargs = ArgumentHelper.argv_to_dict(argv)
-        >>> kwargs
-        {'charlie': True, 'flag': 'false', 'foo': 'alpha beta', 'bar': 'delta'}
-        """
-        kwargs = {}
-        current_key = None
-        args = deque(argv)
-        while args:
-            arg = args.popleft()
-            if arg == '--':
-                ArgumentHelper.set_kwargs_flag(kwargs, current_key)
-            elif arg.startswith('--'):
-                ArgumentHelper.set_kwargs_flag(kwargs, current_key)
-                current_key = arg[2:]
-                if '=' in current_key:
-                    current_key, value = current_key.split("=", 1)
-                    kwargs[current_key] = value
-            else:
-                ArgumentHelper.merge_kwargs(kwargs, current_key, arg)
-        ArgumentHelper.set_kwargs_flag(kwargs, current_key)
-        return kwargs
-
-    @staticmethod
-    def set_kwargs_flag(kwargs, key):
-        """ set the flag in kwargs if it has not yet been set. """
-        if key is not None:
-            if key not in kwargs:
-                kwargs[key] = True
-
-    @staticmethod
-    def merge_kwargs(kwargs, key, value):
-        """
-        set the kwargs key/value pair, joining any pre-existing value with
-        a space.
-        """
-        if key is not None:
-            if key in kwargs:
-                value = ' '.join([kwargs[key], value])
-            kwargs[key] = value
-
-
-class HerringFile(object):
-    directory = ''
-
-    @classmethod
-    def run(cls, cmd_args, env=None, verbose=True):
-        """ Down and dirty shell runner.  Yeah, I know, not pretty. """
-        info("cmd_args => %s" % repr(cmd_args))
-        info("env => %s" % repr(env))
-        info("verbose => %s" % repr(verbose))
-        if verbose:
-            info(' '.join(cmd_args))
-        lines = []
-        for line in cls.runProcess(cmd_args, env=env):
-            if verbose:
-                sys.stdout.write(line)
-            lines.append(line)
-        return "".join(lines)
-
-    @classmethod
-    def runProcess(cls, exe, env=None):
-        info("runProcess(%s, %s)" % (exe, env))
-        sub_env = os.environ.copy()
-        if env:
-            for key, value in env.iteritems():
-                sub_env[key] = value
-
-        p = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                             env=sub_env)
-        while True:
-            ret_code = p.poll()   # returns None while subprocess is running
-            line = p.stdout.readline()
-            yield line
-            if ret_code is not None:
-                break
-
-
-class NewProject(object):
-    def __init__(self, target_dir):
-        """
-        Create project infrastructure for a new project.
-
-        :param target_dir: The top level directory for the new project
-        :type target_dir: str
-        """
-        self.full_path = os.path.abspath(target_dir)
-
-    def populate(self):
-        """
-        Populate the new project.
-
-        If there is not a herringfile in the target directory, then create one and make
-        best guesses to necessary values.
-
-        If there is not a herringlib in the target directory, then create one and populate
-        with standard development tasks.
-
-        If there is not a package directory, then create one and populate with an package_app.py
-        empty file.
-        """
-        self._makedirs(self.full_path)
-        self.initializeHerringfile(self.full_path)
-        self.initializeHerringlib(self.full_path)
-        self.initializePackage(self.full_path)
-
-    def initializeHerringfile(self, dest_path):
-        """
-        Create an initial herringfile for the new project.
-
-        :param dest_path: The directory where the herringfile goes
-        :type dest_path: str
-        """
-        herring_file = os.path.join(dest_path, 'herringfile')
-        if os.path.exists(herring_file):
-            info("%s already exists!  Left unchanged." % herring_file)
-            return
-        name = os.path.basename(dest_path)
-        package = name.lower()
-        author = os.environ['USER']
-        with open(herring_file, 'w') as outFile:
-            template = pkg_resources.resource_string('herring.init', 'herringfile.template')
-            try:
-                outFile.write(template.format(name=name,
-                                              package=package,
-                                              author=author))
-            except Exception as ex:
-                error(ex)
-
-    def initializeHerringlib(self, dest_path):
-        """
-        Create an initial populated herringlib directory.
-
-        :param dest_path:  The parent directory for the new herringlib directory.
-        :type dest_path: str
-        """
-        herringlib_dir = os.path.join(dest_path, 'herringlib')
-        if os.path.exists(herringlib_dir):
-            info("%s already exists!  Left unchanged." % herringlib_dir)
-            return
-        lib_dir = pkg_resources.resource_filename('herring.init', 'herringlib')
-        info("copytree(%s, %s)" % (lib_dir, herringlib_dir))
-        shutil.copytree(lib_dir, herringlib_dir)
-
-    def initializePackage(self, dest_path):
-        """
-        Create the initial package and app file.
-
-        :param dest_path:  The parent directory for the new package directory.
-        :type dest_path: str
-        """
-        name = os.path.basename(dest_path)
-        package_name = name.lower()
-        package_dir = os.path.join(dest_path, package_name)
-        if os.path.exists(package_dir):
-            return
-        self._makedirs(package_dir)
-
-        init_file = os.path.join(package_dir, "__init__.py")
-        open(init_file, 'w').close()
-
-        app_file = os.path.join(package_dir, "{package}_app.py".format(package=package_name))
-        with open(app_file, 'w') as outFile:
-            outFile.write(textwrap.dedent("""
-            def main():
-                \"\"\"
-                This is the console entry point
-
-                :return: None
-                \"\"\"
-                pass
-
-
-            if __name__ == '__main__':
-                main()
-
-            """))
-
-    def _makedirs(self, directory_name):
-        """Safely make needed directories (mkdir -p)"""
-        try:
-            os.makedirs(directory_name)
-        except OSError, err:
-            if err.errno != 17:
-                raise
-        return directory_name
-
-
 class HerringApp(object):
     """
     This is the application class.
@@ -392,14 +191,6 @@ class HerringApp(object):
         herring.cli()
         herring.execute()
     """
-
-    # HerringTasks dictionary
-    # key is task name as string
-    # value is dictionary with keys in ['task', 'depends']
-    # where value['task'] is the task function reference
-    # and value['depends'] is a list of string task names
-    # that are this task's dependencies.
-    HerringTasks = {}
 
     def __init__(self):
         """
@@ -422,60 +213,6 @@ class HerringApp(object):
         except IOError:
             pass
         return 'Unknown'
-
-    class TaskWithArgs(object):
-        """
-        task decorator
-
-        This gathers info about the task and stores it into the
-        HerringApp.HerringTasks dictionary.  The decorator does not run the
-        task.  The task will be invoked via the HerringApp.HerringTasks
-        dictionary.
-
-        """
-
-        # the unused command line arguments are placed here as a list so
-        # that tasks can access them as: task.argv
-        argv = None
-        kwargs = None
-
-        # noinspection PyRedeclaration
-        def __init__(self, *deco_args, **deco_kwargs):
-            """
-            keyword arguments:
-                depends:  a list of task names where the task names are strings
-            """
-            self.deco_args = deco_args
-            self.deco_kwargs = deco_kwargs
-            self._settings = None
-
-        def __call__(self, func):
-            """
-            invoked once when the module is loaded so we hook in here
-            to build our internal task dictionary.
-
-            :param func: the function being decorated
-            :returns: function that simply invokes the decorated function
-            """
-            depends = []
-            if 'depends' in self.deco_kwargs:
-                depends = self.deco_kwargs['depends']
-
-            def _wrap(*args, **kwargs):
-                """
-                A simple wrapper
-
-                :param args: positional arguments passed through
-                :param kwargs: keyword arguments passed through
-                """
-                return func(*args, **kwargs)
-
-            HerringApp.HerringTasks[func.__name__] = {
-                'task': _wrap,
-                'depends': depends,
-                'description': func.__doc__
-            }
-            return _wrap
 
     def _get_settings(self):
         """
@@ -525,8 +262,8 @@ class HerringApp(object):
         setVerbose(not self._settings.quiet)
         setDebug(self._settings.debug)
 
-        HerringApp.TaskWithArgs.argv = argv
-        HerringApp.TaskWithArgs.kwargs = ArgumentHelper.argv_to_dict(argv)
+        TaskWithArgs.argv = argv
+        TaskWithArgs.kwargs = ArgumentHelper.argv_to_dict(argv)
 
         if self._settings.longhelp:
             info(sys.modules[__name__].__doc__)
@@ -567,7 +304,7 @@ class HerringApp(object):
             info("Using: %s" % herring_file)
 
             self._load_tasks(herring_file)
-            task_list = list(self._get_tasks_list(HerringApp.HerringTasks,
+            task_list = list(self._get_tasks_list(HerringTasks,
                                                   self._settings.list_all_tasks))
             if self._settings.list_tasks:
                 self._show_tasks(task_list)
@@ -735,7 +472,7 @@ class HerringApp(object):
 
         :return: List containing default task names.
         """
-        if 'default' in HerringApp.HerringTasks.keys():
+        if 'default' in HerringTasks.keys():
             return ['default']
         return []
 
@@ -751,7 +488,7 @@ class HerringApp(object):
         if not task_list:
             raise ValueError("No tasks given")
         for name in task_list:
-            task_names = HerringApp.HerringTasks.keys()
+            task_names = HerringTasks.keys()
             if name not in task_names:
                 raise ValueError("Unable to find task: '%s'. "
                                  "Available tasks: %s" %
@@ -813,9 +550,9 @@ class HerringApp(object):
         """
         verified_task_list = self._verify_tasks_exists(task_list)
         for task_name in self._resolve_dependencies(verified_task_list,
-                                                    HerringApp.HerringTasks):
+                                                    HerringTasks):
             info("Running: %s" % task_name)
-            HerringApp.HerringTasks[task_name]['task']()
+            HerringTasks[task_name]['task']()
 
     def _header(self, message):
         """
@@ -868,7 +605,7 @@ class HerringApp(object):
 
 
 # Alias for task decorator just makes the herringfiles a little cleaner.
-task = HerringApp.TaskWithArgs
+task = TaskWithArgs
 run = HerringFile.run
 
 

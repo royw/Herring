@@ -1,3 +1,8 @@
+# coding=utf-8
+
+"""
+Safely edit a file by creating a backup which will be restored on any error.
+"""
 from contextlib import contextmanager
 import os
 import shutil
@@ -12,7 +17,7 @@ def safeEdit(fileName):
 
     Usage::
 
-        with saveEdit(fileName) as files:
+        with safeEdit(fileName) as files:
             for line in files['in'].readlines():
                 # edit line
                 files['out'].write(line)

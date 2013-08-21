@@ -1,3 +1,4 @@
+# coding=utf-8
 """
 Add the following to your *requirements.txt* file:
 

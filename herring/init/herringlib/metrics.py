@@ -1,3 +1,4 @@
+# coding=utf-8
 """
 Herring tasks for quality metrics (cheesecake, pymetrics, pycabehtml, pylint).
 

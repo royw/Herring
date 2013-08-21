@@ -1,3 +1,13 @@
+# coding=utf-8
+
+"""
+Clean tasks
+-----------
+
+clean() removes \*.pyc and \*\~ files.
+
+purge() additionally removes the generated api and quality directories.
+"""
 import os
 import shutil
 from herring.herring_app import task, HerringFile

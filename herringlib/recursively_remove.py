@@ -1,10 +1,23 @@
+# coding=utf-8
+
+"""
+Recursively remove files matching a pattern from a directory tree.
+"""
+
 import fnmatch
 import os
 from herring.support.SimpleLogger import info
 
 
 def recursively_remove(path, pattern):
-    """ recursively remove files that match a given pattern """
+    """
+    recursively remove files that match a given pattern
+
+    :param path: The directory to start removing files from.
+    :type path: str
+    :param pattern: The file glob pattern to match for removal.
+    :type pattern: str
+    """
     files = [os.path.join(dir_path, f)
              for dir_path, dir_names, files in os.walk(path)
              for f in fnmatch.filter(files, pattern)]

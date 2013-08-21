@@ -1,3 +1,4 @@
+# coding=utf-8
 """
 Helpers for list manipulation.  Basically modelled from ruby's Array.compress, Array.uniq
 
