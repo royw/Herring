@@ -17,7 +17,11 @@ showLevel = False
 
 
 def setVerbose(verbose=True):
-    """set verbose mode"""
+    """
+    set verbose mode
+    :param verbose: if verbose, then info messages are sent to stdout.
+     :type verbose: bool
+    """
     if verbose:
         LogOutputter['info'] = [sys.stdout]
     else:
@@ -25,21 +29,34 @@ def setVerbose(verbose=True):
 
 
 def setDebug(debug=True):
-    """set debug logging mode"""
+    """
+    set debug logging mode
+
+    :param debug: if debug, then debug messages are sent to stdout.
+    """
     if debug:
         LogOutputter['debug'] = [sys.stdout]
+        LogOutputter['info'] = [sys.stdout]
     else:
         LogOutputter['debug'] = []
 
 
 def setComponent(component=None):
-    """set component label"""
+    """
+    set component label
+
+    :param component: the component label to insert into the message string.
+    """
     global currentComponent
     currentComponent = component
 
 
 def setShowLevel(on=True):
-    """enable showing the logging level"""
+    """
+    enable showing the logging level
+
+    :param on: if on, then include the log level of the message (DEBUG, INFO, ...) in the output.
+    """
     global showLevel
     showLevel = on
 
@@ -58,26 +75,51 @@ def _output(level, message):
 
 
 def debug(message):
-    """debug message"""
+    """
+    debug message
+
+    :param message: the message to emit
+     :type message: object that can be converted to a string using str()
+    """
     _output('debug', message)
 
 
 def info(message):
-    """info message"""
+    """
+    info message
+
+    :param message: the message to emit
+     :type message: object that can be converted to a string using str()
+    """
     _output('info', message)
 
 
 def warning(message):
-    """warning message"""
+    """
+    warning message
+
+    :param message: the message to emit
+     :type message: object that can be converted to a string using str()
+    """
     _output('warning', message)
 
 
 def error(message):
-    """error message"""
+    """
+    error message
+
+    :param message: the message to emit
+     :type message: object that can be converted to a string using str()
+    """
     _output('error', message)
 
 
 def fatal(message):
-    """fatal message"""
+    """
+    fatal message
+
+    :param message: the message to emit
+     :type message: object that can be converted to a string using str()
+    """
     _output('fatal', message)
     exit(1)

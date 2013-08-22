@@ -80,7 +80,6 @@ class NewProject(object):
             info("%s already exists!  Left unchanged." % herringlib_dir)
             return
         lib_dir = pkg_resources.resource_filename('herring.init', 'herringlib')
-        info("copytree(%s, %s)" % (lib_dir, herringlib_dir))
         shutil.copytree(lib_dir, herringlib_dir)
 
     def initializePackage(self, dest_path):

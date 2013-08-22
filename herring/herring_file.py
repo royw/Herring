@@ -17,7 +17,16 @@ class HerringFile(object):
 
     @classmethod
     def run(cls, cmd_args, env=None, verbose=True):
-        """ Down and dirty shell runner.  Yeah, I know, not pretty. """
+        """
+        Down and dirty shell runner.  Yeah, I know, not pretty.
+
+        :param cmd_args: list of command arguments
+         :type cmd_args: list
+        :param env: the environment variables for the command to use.
+         :type env: dict
+        :param verbose: if verbose, then echo the command and it's output to stdout.
+         :type verbose: bool
+        """
         info("cmd_args => %s" % repr(cmd_args))
         info("env => %s" % repr(env))
         info("verbose => %s" % repr(verbose))
@@ -32,6 +41,16 @@ class HerringFile(object):
 
     @classmethod
     def runProcess(cls, exe, env=None):
+        """
+        Run the process yield for each output line from the process.
+
+        :param cls: class name
+        :type cls: class
+        :param exe: command line components
+        :type exe: list
+        :param env: environment
+        :type env: dict
+        """
         info("runProcess(%s, %s)" % (exe, env))
         sub_env = os.environ.copy()
         if env:

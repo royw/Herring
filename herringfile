@@ -32,7 +32,7 @@ Project.metadata(
         'author_email': 'roy.wright@hp.com',
         'description': '',
         'script': 'herring',
-        'main': 'herring_app.py',
+        'main': 'herring_main.py',
         'version': version,
         'distHost': 'tpcvm143.austin.hp.com',
         'pypiDir': '/var/pypi/dev',

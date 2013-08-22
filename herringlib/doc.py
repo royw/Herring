@@ -20,13 +20,16 @@ Add the following to your *requirements.txt* file:
 * sphinxcontrib-seqdiag
 
 """
+import fnmatch
 
 import os
 import re
 from herring.herring_app import task, run, HerringFile
-from herring.support.SimpleLogger import info
+from herring.init.herringlib.runner import system
+from herring.support.SimpleLogger import info, warning
 from herringlib.cd import cd
 from herringlib.clean import clean
+from herringlib.executables import executablesAvailable
 from herringlib.recursively_remove import recursively_remove
 from herringlib.safe_edit import safeEdit
 
@@ -59,6 +62,9 @@ def hackDocSrcFile(fileName):
     #
     # need to add package path from automodule line to module name in mod line.
 
+    if os.path.splitext(fileName)[1] != '.rst':
+        return
+
     # build dict from automodule lines where key is base name, value is full name
     nameDict = {}
     with open(fileName, 'r') as inFile:
@@ -76,9 +82,11 @@ def hackDocSrcFile(fileName):
     with safeEdit(fileName) as files:
         inFile = files['in']
         outFile = files['out']
+        info("Editing %s" % fileName)
 
         lineLength = 0
         package = False
+        class_name = ''
         for line in inFile.readlines():
             match = re.match(r':mod:`(.+)`(.*)', line)
             if match:
@@ -88,17 +96,34 @@ def hackDocSrcFile(fileName):
                     line = ''.join(":mod:`%s`%s\n" % (value, match.group(2)))
                 lineLength = len(line)
                 package = re.search(r':mod:.+Package', line)
+                class_name = key
             elif re.match(r'[=\-\.][=\-\.][=\-\.]+', line):
                 if lineLength > 0:
                     line = "%s\n" % (line[0] * lineLength)
                     if package:
                         packageImage = "uml/packages_{name}.svg".format(name=moduleName.split('.')[-1])
-                        line += "\n.. figure:: {image}\n\n    {name} Packages\n\n".format(image=packageImage,
-                                                                                          name=moduleName)
-                    else:
                         classesImage = "uml/classes_{name}.svg".format(name=moduleName.split('.')[-1])
-                        line += "\n.. figure:: {image}\n\n    {name} Classes\n\n".format(image=classesImage,
-                                                                                         name=moduleName)
+                        image_path = os.path.join(Project.docsDir, '_src', packageImage)
+                        if os.path.exists(image_path):
+                            info("adding figure %s" % image_path)
+                            line += "\n.. figure:: {image}\n    :width: 1100 px\n\n    {name} Packages\n\n".format(
+                                image=packageImage,
+                                name=moduleName)
+                            line += "\n.. figure:: {image}\n\n    {name} Classes\n\n".format(
+                                image=classesImage,
+                                name=moduleName)
+                        else:
+                            warning("%s does not exist!" % image_path)
+                    else:
+                        classesImage = "uml/classes_{module}.{name}.png".format(module=moduleName, name=class_name)
+                        image_path = os.path.join(Project.docsDir, '_src', classesImage)
+                        if os.path.exists(image_path):
+                            info("adding figure %s" % image_path)
+                            line += "\n.. figure:: {image}\n\n    {name} Class\n\n".format(
+                                image=classesImage,
+                                name=class_name)
+                        else:
+                            warning("%s does not exist!" % image_path)
             outFile.write(line)
 
         outFile.write("\n\n")
@@ -116,6 +141,8 @@ def apiDoc():
     with cd(Project.docsDir):
         os.system("sphinx-apidoc -d 6 -o _src ../%s" % Project.package)
 
+
+def _customizeDocSrcFiles():
     for dirName, dirNames, fileNames in os.walk(os.path.join(Project.docsDir, '_src')):
         for fileName in fileNames:
             if fileName != 'modules.rst':
@@ -154,24 +181,47 @@ def cleanDocLog(fileName):
             outFile.write(line)
 
 
+def _createModuleDiagrams(path):
+    if not executablesAvailable(['pyreverse']):
+        return
+    for module_path in [dir_path for dir_path, dir_names, files in os.walk(path)]:
+        init_filename = os.path.join(module_path, '__init__.py')
+        if os.path.exists(init_filename):
+            name = os.path.basename(module_path).split(".")[0]
+            cmd_line = 'PYTHONPATH="{path}" pyreverse -o svg -p {name} {module}'.format(path=Project.pythonPath,
+                                                                                        name=name,
+                                                                                        module=module_path)
+            info(cmd_line)
+            os.system(cmd_line)
+
+
+def _createClassDiagrams(path):
+    if not executablesAvailable(['pynsource']):
+        return
+    files = [os.path.join(dir_path, f)
+             for dir_path, dir_names, files in os.walk(path)
+             for f in fnmatch.filter(files, '*.py')]
+    for src_file in files:
+        name = src_file.replace(HerringFile.directory + '/', '').replace('.py', '.png').replace('/', '.')
+        output = "classes_{name}".format(name=name)
+        cmd_line = "pynsource -y {output} {source}".format(output=output, source=src_file)
+        info(cmd_line)
+        os.system(cmd_line)
+
+
 @task(depends=['apiDoc'])
 def docDiagrams():
+    """Create UML diagrams"""
     path = os.path.join(HerringFile.directory, Project.package)
     with cd(Project.umlDir):
-        for module_path in [dir_path for dir_path, dir_names, files in os.walk(path)]:
-            init_filename = os.path.join(module_path, '__init__.py')
-            if os.path.exists(init_filename):
-                name = os.path.basename(module_path).split(".")[0]
-                cmd_line = 'PYTHONPATH="{path}" pyreverse -o svg -p {name} {module}'.format(path=Project.pythonPath,
-                                                                                            name=name,
-                                                                                            module=module_path)
-                info(cmd_line)
-                os.system(cmd_line)
+        _createModuleDiagrams(path)
+        _createClassDiagrams(path)
 
 
-@task(depends=['apiDoc', 'docDiagrams'])
+@task(depends=['apiDoc', 'docDiagrams', 'updateReadme'])
 def sphinxDocs():
     """Generate sphinx API documents"""
+    _customizeDocSrcFiles()
     with cd(Project.docsDir):
         os.system('PYTHONPATH=%s sphinx-build -b html -d _build/doctrees -w docs.log -a -E -n . _build/html' %
                   Project.pythonPath)
@@ -180,7 +230,7 @@ def sphinxDocs():
 
 @task()
 def idoc():
-    # incremental build for testing purposes.
+    """Incremental build docs for testing purposes"""
     with cd(Project.docsDir):
         os.system('PYTHONPATH=%s sphinx-build -b html -d _build/doctrees -w docs.log -n . _build/html' %
                   Project.pythonPath)
@@ -204,4 +254,13 @@ def doc():
 
 @task(depends=['doc'])
 def doc_post_clean():
+    """Generate docs then clean up afterwards"""
     clean()
+
+
+@task()
+def updateReadme():
+    """Update the README.txt from the application's --longhelp output"""
+    text = system("%s --longhelp" % os.path.join(HerringFile.directory, Project.package, Project.main))
+    with open("README.txt", 'w') as readme_file:
+        readme_file.write(text)

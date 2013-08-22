@@ -26,7 +26,6 @@ def build():
     if Project.version == '0.0.0':
         bump()
     system("python setup.py sdist")
-    system("python setup.py bdist_wheel")
     # run("python setup.py bdist")
 
 
@@ -79,13 +78,3 @@ def deploy():
     s.sendline('ln -s {src} {dest}'.format(src=distVersion, dest=distLatest))
     s.prompt()
     s.logout()
-
-
-@task()
-def updateReadme():
-    """Update the README.txt from the application's --longhelp output"""
-    text = system("%s --longhelp" % os.path.join(HerringFile.directory, Project.package, Project.main))
-    with open("README.txt", 'w') as readme_file:
-        readme_file.write(text)
-
-

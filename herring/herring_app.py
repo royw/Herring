@@ -1,143 +1,10 @@
-#!/usr/bin/env python
 # coding=utf-8
 
 """
-=======
-Herring
-=======
-
-Herring is a simple python make utility.  You write tasks in python, and
-optionally assign dependent tasks.  The command line interface lets you easily
-list the tasks and run them.
-
-"First you must find... another shrubbery! (dramatic chord) Then, when you have
-found the shrubbery, you must place it here, beside this shrubbery, only
-slightly higher so you get a two layer effect with a little path running down
-the middle. ("A path! A path!") Then, you must cut down the mightiest tree in
-the forrest... with... a herring!"
-
-Usage
-=====
-
-Tasks are defined by using a @task decorator on a function definition in the
-project's herringfile::
-
-    @task()
-    def foo():
-        \"\"\" Do something fooey \"\"\"
-        #...
-
-Task decorators can take optional keywords::
-
-    :depends: List of task names as strings.
-
-Example::
-
-    @task(depends=['foo'])
-    def bar():
-        \"\"\" The bar for foo \"\"\"
-
-Running a Task
---------------
-
-To run a task, simply be in the directory with your herringfile or one of it's
-sub-directories and to run the foo task, type::
-
-    herring foo
-
-And this will run the foo task then the bar task::
-
-    herring bar
-
-
-Command Line Arguments
-----------------------
-
-To pass arguments to the task, simply place them on the command line as keyword
-arguments.  The tasks may access the lists by using:  task.argv
-Or already parsed as keyword args by using:  task.kwargs
-
-Example::
-
-    @task()
-    def argDemo():
-        print "argv: %s" % repr(task.argv)
-        print "kwargs: %s" % repr(task.kwargs)
-
-    herring argDemo --delta=3 --flag
-
-outputs::
-
-    argv: ['--delta=3', '--flag']
-    kwargs: ['delta': 3, 'flag': True]
-
-Available Tasks
----------------
-
-To see the list of available tasks, run:
-
-.. code-block: bash
-
-    herring -T
-    Show tasks
-    ============================================================
-    herring foo        # Do something fooey
-    herring bar        # The bar for foo
-
-If you do not include a docstring for a task, the task is hidden and will not
-show up in the list, although it can still be ran.
-
-Reusing Tasks
--------------
-
-If you have a "herringlib" directory in the same directory as your herringfile,
-herring will attempt to load all .py files in it (glob: "herringlib/\*\*/\*.py").
-These .py files may include tasks just like the herringfile.
-
-You will probably want to include __init__.py in herringlib and it's sub-
-directories so you can easily import the modules in your herringfile.
-
-Recommended practice is to only place project independent tasks that can
-be readily reused in your herringlib.  Project dependent tasks and methods
-should still go in your herringfile.
-
-Command line help is available
-==============================
-
-.. code-block: bash
-
-    herring --help
-    usage: Herring [-h] [-f FILESPEC] [-T] [-U] [-D] [-a] [-q] [-v] [-l]
-                   [tasks [tasks ...]]
-
-    "Then, you must cut down the mightiest tree in the forrest... with... a herring!"
-
-    Herring is a simple python make utility.  You write tasks in python, and
-    optionally assign dependent tasks.  The command line interface lets you
-    easily list the tasks and run them.  See --longhelp for details.
-
-    positional arguments:
-      tasks                 The tasks to run. If none specified, tries to run the
-                            'default' task.
-
-    optional arguments:
-      -h, --help            show this help message and exit
-      -f FILESPEC, --herringfile FILESPEC
-                            The herringfile to use, by default uses "herringfile".
-      -T, --tasks           Lists the tasks (with docstrings) in the herringfile.
-      -U, --usage           Shows the full docstring for the tasks (with
-                            docstrings) in the herringfile.
-      -D, --depends         Lists the tasks (with docstrings) with their
-                            dependencies in the herringfile.
-      -a, --all             Lists all tasks, even those without docstrings.
-      -q, --quiet           Suppress herring output.
-      -v, --version         Show herring's version.
-      -l, --longhelp        Long help about Herring
-
+The main Herring application.
 """
-from herring.argument_helper import ArgumentHelper
+
 from herring.herring_file import HerringFile
-from herring.new_project import NewProject
 from herring.task_with_args import TaskWithArgs, HerringTasks
 
 __docformat__ = "restructuredtext en"
@@ -149,7 +16,6 @@ import textwrap
 import re
 import os
 import sys
-import argparse
 
 from herring.support.toposort2 import toposort2
 from herring.support.SimpleLogger import debug, info, error, fatal, setVerbose, setDebug
@@ -157,29 +23,12 @@ from herring.support.SimpleLogger import debug, info, error, fatal, setVerbose, 
 
 __all__ = ("HerringApp", "task", "run", "HerringTasks")
 
-HELP = {
-    'herring': textwrap.dedent("""\
-        "Then, you must cut down the mightiest tree in the forrest... with... a herring!"
-
-        Herring is a simple python make utility.  You write tasks in python, and
-        optionally assign dependent tasks.  The command line interface lets you
-        easily list the tasks and run them.  See --longhelp for details.
-        """),
-    'herringfile': 'The herringfile to use, by default uses "herringfile".',
-    'list_tasks': 'Lists the tasks (with docstrings) in the herringfile.',
-    'list_task_usages': 'Shows the full docstring for the tasks (with docstrings) in the herringfile.',
-    'list_dependencies': 'Lists the tasks (with docstrings) with their '
-                         'dependencies in the herringfile.',
-    'list_all_tasks': 'Lists all tasks, even those without docstrings.',
-    'version': "Show herring's version.",
-    'tasks': "The tasks to run.  If none specified, tries to run the "
-             "'default' task.",
-    'init': "Initialize a new project to use Herring.  Creates herringfile and herringlib in the given directory.",
-    'quiet': 'Suppress herring output.',
-    'debug': 'Display debug messages'
-}
 
 ROW_FORMAT = "{0:<{width1}s}  # {1:<{width2}s}"
+
+# Alias for task decorator just makes the herringfiles a little cleaner.
+task = TaskWithArgs
+run = HerringFile.run
 
 
 class HerringApp(object):
@@ -196,104 +45,28 @@ class HerringApp(object):
         """
         The Herring application.
         """
+        # noinspection PyArgumentEqualDefault
         setVerbose(True)
         setDebug(False)
-        self._version = self._load_version()
 
-    def _load_version(self):
-        """
-        Load the applications version from the VERSION.txt file
-
-        :return: the version string or 'Unknown'
-        """
-        path = os.path.dirname(__file__)
-        try:
-            with open(os.path.join(path, 'VERSION.txt')) as version_file:
-                return version_file.read().strip()
-        except IOError:
-            pass
-        return 'Unknown'
-
-    def _get_settings(self):
-        """
-        Handle the command line arguments
-
-        :return: ArgumentParser instance
-        """
-        parser = argparse.ArgumentParser('Herring',
-                                         formatter_class=argparse.RawDescriptionHelpFormatter,
-                                         description=HELP['herring'])
-        parser.add_argument('-f', '--herringfile', metavar='FILESPEC',
-                            default='herringfile', help=HELP['herringfile'])
-        parser.add_argument('-T', '--tasks', dest='list_tasks',
-                            action="store_true", help=HELP['list_tasks'])
-        parser.add_argument('-U', '--usage', dest='list_task_usages',
-                            action="store_true", help=HELP['list_task_usages'])
-        parser.add_argument('-D', '--depends', dest='list_dependencies',
-                            action="store_true", help=HELP['list_dependencies'])
-        parser.add_argument('-a', '--all', dest='list_all_tasks',
-                            action='store_true', help=HELP['list_all_tasks'])
-        parser.add_argument('-q', '--quiet', dest='quiet', action='store_true',
-                            help=HELP['quiet'])
-        parser.add_argument('-d', '--debug', dest='debug',
-                            action='store_true', help=HELP['debug'])
-        parser.add_argument('-v', '--version', dest='version',
-                            action='store_true', help=HELP['version'])
-        parser.add_argument('-l', '--longhelp', dest='longhelp', action='store_true',
-                            help='Long help about Herring')
-        parser.add_argument('-i', '--init', metavar='DIRSPEC',
-                            default=None, help=HELP['init'])
-        parser.add_argument('tasks', nargs='*', help=HELP['tasks'])
-        return parser.parse_known_args()
-
-    def cli(self):
-        """
-        Command Line Interface.
-
-        Exits the application in the following conditions:
-        * user requested the applications version
-        * can not find the herringfile
-
-        :return: None
-        """
-
-        self._settings, argv = self._get_settings()
-
-        setVerbose(not self._settings.quiet)
-        setDebug(self._settings.debug)
-
-        TaskWithArgs.argv = argv
-        TaskWithArgs.kwargs = ArgumentHelper.argv_to_dict(argv)
-
-        if self._settings.longhelp:
-            info(sys.modules[__name__].__doc__)
-            exit(0)
-
-        if self._settings.version:
-            info("Herring version %s" % self._version)
-            exit(0)
-
-        if self._settings.init:
-            proj = NewProject(self._settings.init)
-            exit(proj.populate())
-
-    def execute(self):
+    def execute(self, settings):
         """
         Execute the tasks specified in the _settings object.
 
         Currently:
-            * _settings.list_task asserted shows the available tasks.
-            * _settings.list_dependencies asserted shows the available tasks
+            * settings.list_task asserted shows the available tasks.
+            * settings.list_dependencies asserted shows the available tasks
                 and their dependencies.
-            * _settings.list_all_tasks asserted modifies the listing to include
+            * settings.list_all_tasks asserted modifies the listing to include
                 tasks that do not have a docstring.
-            * if both _settings.list_task and _settings.list_dependencies are
-                deasserted, then run the tasks from _settings.tasks
+            * if both settings.list_task and settings.list_dependencies are
+                deasserted, then run the tasks from settings.tasks
+        :param settings: the application settings
 
         :return: None
         """
         try:
-            herring_file = self._find_herring_file(self._settings.herringfile)
+            herring_file = self._find_herring_file(settings.herringfile)
             HerringFile.directory = str(os.path.realpath(os.path.dirname(herring_file)))
             sys.path.insert(1, HerringFile.directory)
 
@@ -305,16 +78,16 @@ class HerringApp(object):
 
             self._load_tasks(herring_file)
             task_list = list(self._get_tasks_list(HerringTasks,
-                                                  self._settings.list_all_tasks))
-            if self._settings.list_tasks:
+                                                  settings.list_all_tasks))
+            if settings.list_tasks:
                 self._show_tasks(task_list)
-            elif self._settings.list_task_usages:
+            elif settings.list_task_usages:
                 self._show_task_usages(task_list)
-            elif self._settings.list_dependencies:
+            elif settings.list_dependencies:
                 self._show_depends(task_list)
             else:
                 try:
-                    self._run_tasks(self._settings.tasks)
+                    self._run_tasks(settings.tasks)
                 except ValueError as ex:
                     fatal(ex)
         except ValueError as ex:
@@ -437,7 +210,7 @@ class HerringApp(object):
                       description=item['description'].strip().splitlines()[0],
                       max_name_length=width)
 
-    def _show_task_usages(self, task_list, full=False):
+    def _show_task_usages(self, task_list):
         """
         Shows the tasks.
 
@@ -602,24 +375,3 @@ class HerringApp(object):
         info(ROW_FORMAT.format(c1_value, values[0], width1=c1_width, width2=c2_width))
         for line in values[1:]:
             info(ROW_FORMAT.format(' ', line, width1=c1_width, width2=c2_width))
-
-
-# Alias for task decorator just makes the herringfiles a little cleaner.
-task = TaskWithArgs
-run = HerringFile.run
-
-
-def main():
-    """
-    This is the console entry point
-
-    :return: None
-    """
-
-    herring = HerringApp()
-    herring.cli()
-    herring.execute()
-
-
-if __name__ == '__main__':
-    main()

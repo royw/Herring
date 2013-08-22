@@ -31,6 +31,8 @@ class ArgumentHelper(object):
         >>> kwargs = ArgumentHelper.argv_to_dict(argv)
         >>> kwargs
         {'charlie': True, 'flag': 'false', 'foo': 'alpha beta', 'bar': 'delta'}
+
+        :param argv: argument list
         """
         kwargs = {}
         current_key = None
@@ -52,7 +54,14 @@ class ArgumentHelper(object):
 
     @staticmethod
     def set_kwargs_flag(kwargs, key):
-        """ set the flag in kwargs if it has not yet been set. """
+        """
+        set the flag in kwargs if it has not yet been set.
+
+        :param kwargs: keyword arguments
+         :type kwargs: dict
+        :param key: key
+         :type key: str
+        """
         if key is not None:
             if key not in kwargs:
                 kwargs[key] = True
@@ -62,6 +71,13 @@ class ArgumentHelper(object):
         """
         set the kwargs key/value pair, joining any pre-existing value with
         a space.
+
+        :param kwargs: keyword arguments
+         :type kwargs: dict
+        :param key: key
+         :type key: str
+        :param value: the value to set the kwarg to
+         :type value: object
         """
         if key is not None:
             if key in kwargs:
