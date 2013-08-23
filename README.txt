@@ -140,9 +140,11 @@ Now create the project's root directory and populate it for Herring::
     foobar  herringfile  herringlib
 
     ➤ ls herringlib/
-    cd.py     clean.pyc  __init__.py     list_helper.pyc  project_settings.py    recursively_remove.pyc  safe_edit.py    setup_tasks.pyc  tests.pyc
-    cd.pyc    doc.py     __init__.pyc    metrics.py       project_settings.pyc   runner.py               safe_edit.pyc   templates        version.py
-    clean.py  doc.pyc    list_helper.py  metrics.pyc      recursively_remove.py  runner.pyc              setup_tasks.py  tests.py         version.pyc
+    cd.py      doc.pyc          metrics.py             recursively_remove.pyc  setup_tasks.py   version.py
+    cd.pyc     __init__.py      metrics.pyc            runner.py               setup_tasks.pyc  version.pyc
+    clean.py   __init__.pyc     project_settings.py    runner.pyc              templates
+    clean.pyc  list_helper.py   project_settings.pyc   safe_edit.py            tests.py
+    doc.py     list_helper.pyc  recursively_remove.py  safe_edit.pyc           tests.pyc
 
     ➤ ls foobar
     foobar_app.py  __init__.py

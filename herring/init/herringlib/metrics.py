@@ -17,11 +17,15 @@ Add the following to your *requirements.txt* file:
 * pymetrics
 
 """
+
+__docformat__ = 'restructuredtext en'
+
 import os
 from herring.herring_app import task
 from herringlib.runner import system
 
 
+# pylint: disable=W0604,E0602
 global Project
 
 

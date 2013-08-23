@@ -24,15 +24,19 @@ True
 >>> repr(v2)
 '1.25.4'
 """
+
 __docformat__ = "restructuredtext en"
 
 __all__ = ('AppVersion',)
+
+# pylint: disable=R0903,W0141
 
 
 class AppVersion(object):
     """
     Provide version comparisons for A.B.C style version strings.
     """
+
     def __init__(self, version_str):
         """
         The version_str must be of the form A.B.C where A, B, and C are
@@ -106,15 +110,15 @@ class AppVersion(object):
 
     def __eq__(self, other):
         """ equals """
-        return(self.major == other.major and
-               self.minor == other.minor and
-               self.patch == other.patch)
+        return (self.major == other.major and
+                self.minor == other.minor and
+                self.patch == other.patch)
 
     def __ne__(self, other):
         """ not equals """
-        return(self.major != other.major or
-               self.minor != other.minor or
-               self.patch != other.patch)
+        return (self.major != other.major or
+                self.minor != other.minor or
+                self.patch != other.patch)
 
     def __str__(self):
         """ String representation """

@@ -4,6 +4,8 @@
 Helper for handling command line arguments.
 """
 
+__docformat__ = 'restructuredtext en'
+
 from collections import deque
 
 __all__ = ('ArgumentHelper',)
@@ -33,6 +35,7 @@ class ArgumentHelper(object):
         {'charlie': True, 'flag': 'false', 'foo': 'alpha beta', 'bar': 'delta'}
 
         :param argv: argument list
+        :type argv: list(str)
         """
         kwargs = {}
         current_key = None
@@ -58,9 +61,9 @@ class ArgumentHelper(object):
         set the flag in kwargs if it has not yet been set.
 
         :param kwargs: keyword arguments
-         :type kwargs: dict
+        :type kwargs: dict
         :param key: key
-         :type key: str
+        :type key: str
         """
         if key is not None:
             if key not in kwargs:
@@ -73,15 +76,13 @@ class ArgumentHelper(object):
         a space.
 
         :param kwargs: keyword arguments
-         :type kwargs: dict
+        :type kwargs: dict
         :param key: key
-         :type key: str
+        :type key: str
         :param value: the value to set the kwarg to
-         :type value: object
+        :type value: object
         """
         if key is not None:
             if key in kwargs:
                 value = ' '.join([kwargs[key], value])
             kwargs[key] = value
-
-

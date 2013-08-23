@@ -2,3 +2,5 @@
 """
 A topological sort function.
 """
+
+__docformat__ = 'restructuredtext en'

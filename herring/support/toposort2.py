@@ -8,6 +8,7 @@ From: Topological Sort (Python recipe)
 * Changed dictionary comprehensions to dictionary generators to support
     python 2.6. (Roy)
 """
+
 __docformat__ = "restructuredtext en"
 
 
@@ -35,6 +36,7 @@ def toposort2(data):
     :return: generator returns lists of sets in topological order
     """
 
+    # pylint: disable=W0622
     from functools import reduce
 
     # Ignore self dependencies.
@@ -65,7 +67,9 @@ def toposort2(data):
     error_format = "Cyclic dependencies exist among these items:\n%s"
     assert not data, error_format % '\n'.join(repr(x) for x in data.iteritems())
 
+
 if __name__ == '__main__':
     import doctest
+
     doctest.testmod()
 

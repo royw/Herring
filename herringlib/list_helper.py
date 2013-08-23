@@ -8,28 +8,30 @@ Add the following to your *requirements.txt* file:
 
 """
 
+__docformat__ = 'restructuredtext en'
+
 from ordereddict import OrderedDict
 
 
-def compressList(srcList):
+def compressList(src_list):
     """
     Removes None or empty items from the list
 
-    :param srcList: source list
-    :type srcList: list
+    :param src_list: source list
+    :type src_list: list
     :return: compressed list
     :rtype: list
     """
-    return [item for item in srcList if item]
+    return [item for item in src_list if item]
 
 
-def uniqueList(srcList):
+def uniqueList(src_list):
     """
     returns a new list without any duplicates
 
-    :param srcList: source list
-    :type srcList: list
+    :param src_list: source list
+    :type src_list: list
     :return: unique list
     :rtype: list
     """
-    return OrderedDict.fromkeys(srcList).keys()
+    return OrderedDict.fromkeys(src_list).keys()

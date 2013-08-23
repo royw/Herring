@@ -77,12 +77,14 @@ with *Project.docsDir*.
 
 """
 
+__docformat__ = 'restructuredtext en'
+
 import fnmatch
 import os
 import re
 import shutil
 from herring.herring_app import HerringFile, task
-from herring.support.SimpleLogger import debug, info, error
+from herring.support.simple_logger import debug, info, error
 from herringlib.list_helper import compressList, uniqueList
 
 __author__ = 'wrighroy'
@@ -95,15 +97,15 @@ class ProjectSettings(object):
     @DynamicAttrs
     """
 
-    def metadata(self, dataDict):
+    def metadata(self, data_dict):
         """
         Set the project's environment attributes
 
-        :param dataDict: the project's attributes
-         :type dataDict: dict
+        :param data_dict: the project's attributes
+         :type data_dict: dict
         """
-        debug("metadata(%s)" % repr(dataDict))
-        for key, value in dataDict.items():
+        debug("metadata(%s)" % repr(data_dict))
+        for key, value in data_dict.items():
             self.__setattr__(key, value)
         required = {'name': 'ProjectName',
                     'package': 'package',
@@ -114,25 +116,27 @@ class ProjectSettings(object):
             if key not in self.__dict__:
                 self.__setattr__(key, required[key])
 
-    def dirMap(self, dirDict):
+    def dirMap(self, dir_dict):
         """
         Set the project's directory structure
 
         The dirDict keys are appended with a 'Dir' suffix to form attribute names while
         the dirDict values are project root relative paths to the directories.
 
-        :param dirDict: the project's directory attributes
-         :type dirDict: dict
+        :param dir_dict: the project's directory attributes
+         :type dir_dict: dict
         """
-        debug("dirMap(%s)" % repr(dirDict))
-        for key, value in dirDict.items():
+        debug("dirMap(%s)" % repr(dir_dict))
+        for key, value in dir_dict.items():
             self.__setattr__(key + 'Dir', self.__directory(value))
 
-    def __directory(self, relativeName):
-        directory_name = os.path.join(HerringFile.directory, relativeName)
+    def __directory(self, relative_name):
+        """return the full path from the given path relative to the herringfile directory"""
+        directory_name = os.path.join(HerringFile.directory, relative_name)
         return self.__makedirs(directory_name)
 
     def __makedirs(self, directory_name):
+        """mkdir -p"""
         try:
             os.makedirs(directory_name)
         except OSError, err:
@@ -156,15 +160,18 @@ class ProjectSettings(object):
         debug("requiredFiles")
         template_dir = os.path.abspath(os.path.join(HerringFile.directory, 'herringlib', 'templates'))
 
-        for dirName, dirNames, fileNames in os.walk(template_dir):
-            for fileName in fileNames:
-                template_filename = os.path.join(dirName, fileName)
+        for root_dir, dirs, files in os.walk(template_dir):
+            for file_name in files:
+                template_filename = os.path.join(root_dir, file_name)
+                # info('template_filename: %s' % template_filename)
                 dest_filename = template_filename.replace('/herringlib/templates/', '/')
+                # info('dest_filename: %s' % dest_filename)
                 if os.path.isdir(template_filename):
                     self.__makedirs(template_filename)
                 else:
                     self.__makedirs(os.path.dirname(dest_filename))
                     root, ext = os.path.splitext(dest_filename)
+                    # info('root: %s' % root)
                     if ext == '.template':
                         if not os.path.exists(root):
                             self.__createFromTemplate(template_filename, root)
@@ -172,43 +179,51 @@ class ProjectSettings(object):
                         if not os.path.exists(dest_filename):
                             shutil.copyfile(template_filename, dest_filename)
 
-    def __createFromTemplate(self, srcFilename, destFilename):
+    def __createFromTemplate(self, src_filename, dest_filename):
+        """
+        render the destination file from the source template file
+
+        :param src_filename: the template file
+        :param dest_filename: the rendered file
+        """
         name = self.__getattribute__('name')
         package = self.__getattribute__('package')
         author = self.__getattribute__('author')
         author_email = self.__getattribute__('author_email')
         description = self.__getattribute__('description')
-        with open(srcFilename, "r") as inFile:
-            template = inFile.read()
-            with open(destFilename, 'w') as outFile:
+        with open(src_filename, "r") as in_file:
+            template = in_file.read()
+            with open(dest_filename, 'w') as out_file:
                 try:
-                    outFile.write(template.format(name=name,
-                                                  package=package,
-                                                  author=author,
-                                                  author_email=author_email,
-                                                  description=description))
+                    out_file.write(template.format(name=name,
+                                                   package=package,
+                                                   author=author,
+                                                   author_email=author_email,
+                                                   description=description))
+                # catching all exceptions
+                # pylint: disable=W0703
                 except Exception as ex:
                     error(ex)
 
 
-def get_module_docstring(filePath):
+def get_module_docstring(file_path):
     """
     Get module-level docstring of Python module at filepath, e.g. 'path/to/file.py'.
-    :param filePath:  The filepath to a module file.
+    :param file_path:  The filepath to a module file.
     :type: str
     :returns: the module docstring
     :rtype: str
     """
 
-    co = compile(open(filePath).read(), filePath, 'exec')
-    if co.co_consts and isinstance(co.co_consts[0], basestring):
-        docstring = co.co_consts[0]
+    comp = compile(open(file_path).read(), file_path, 'exec')
+    if comp.co_consts and isinstance(comp.co_consts[0], basestring):
+        docstring = comp.co_consts[0]
     else:
         docstring = None
     return docstring
 
 
-def getRequirements(docString):
+def getRequirements(doc_string):
     """
     Extract the required packages from the docstring.
 
@@ -218,14 +233,14 @@ def getRequirements(docString):
     2) after that line, ignoring blank lines, there are bullet list items starting with a '*'
     3) these bullet list items are the names of the required third party packages
 
-    :param docString: a module docstring
+    :param doc_string: a module docstring
     :type: str
     """
-    if docString is None:
+    if doc_string is None:
         return []
     requirements = []
     contiguous = False
-    for line in compressList(docString.split("\n")):
+    for line in compressList(doc_string.split("\n")):
         if 'requirements.txt' in line:
             contiguous = True
             continue
@@ -250,20 +265,20 @@ def checkRequirements():
         requirements += getRequirements(get_module_docstring(file_))
     needed = sorted(compressList(uniqueList(requirements)))
 
-    requirementsFilename = os.path.join(HerringFile.directory, 'requirements.txt')
-    if not os.path.exists(requirementsFilename):
-        info("Missing: " + requirementsFilename)
+    requirements_filename = os.path.join(HerringFile.directory, 'requirements.txt')
+    if not os.path.exists(requirements_filename):
+        info("Missing: " + requirements_filename)
         return
 
-    with open(requirementsFilename, 'r') as inFile:
-        requirements = [re.split("<|>|=|!", line)[0] for line in [line.strip() for line in inFile.readlines()]
+    with open(requirements_filename, 'r') as in_file:
+        requirements = [re.split("<|>|=|!", line)[0] for line in [line.strip() for line in in_file.readlines()]
                         if line and not line.startswith('#')]
         required = sorted(compressList(uniqueList(requirements)))
 
     diff = sorted(set(needed) - set(required))
     if not diff:
-        info("Your %s includes all known herringlib task requirements" % requirementsFilename)
+        info("Your %s includes all known herringlib task requirements" % requirements_filename)
         return
 
-    info("Please add the following to your %s:\n" % requirementsFilename)
+    info("Please add the following to your %s:\n" % requirements_filename)
     info("\n".join(diff))

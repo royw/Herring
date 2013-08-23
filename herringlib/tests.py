@@ -7,9 +7,12 @@ Add the following to your *requirements.txt* file:
 
 """
 
+__docformat__ = 'restructuredtext en'
+
 from herring.herring_app import task, run
 
 
+# pylint: disable=W0604,E0602
 global Project
 
 

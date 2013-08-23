@@ -1,6 +1,6 @@
 # coding=utf-8
 
-"""
+r"""
 Clean tasks
 -----------
 
@@ -8,13 +8,17 @@ clean() removes \*.pyc and \*\~ files.
 
 purge() additionally removes the generated api and quality directories.
 """
+
+__docformat__ = 'restructuredtext en'
+
 import os
 import shutil
 from herring.herring_app import task, HerringFile
-from herring.support.SimpleLogger import debug
+from herring.support.simple_logger import debug
 from herringlib.recursively_remove import recursively_remove
 
 
+# pylint: disable=W0604,E0602
 global Project
 
 

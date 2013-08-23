@@ -2,8 +2,10 @@
 # coding=utf-8
 
 """
-This is the console entry point for the herring application.
+This is the console entry point (from setup.py) for the herring application.
 """
+
+__docformat__ = 'restructuredtext en'
 
 from herring.herring_app import HerringApp
 from herring.herring_cli import HerringCLI

@@ -14,7 +14,7 @@ Add the following to your *requirements.txt* file:
 
 import os
 from herring.herring_app import task, HerringFile
-from herring.support.SimpleLogger import info
+from herring.support.simple_logger import info
 
 from herringlib.project_settings import ProjectSettings
 from herringlib.version import getProjectVersion

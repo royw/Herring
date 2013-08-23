@@ -4,12 +4,17 @@
 Helper for verifying that 3rd party applications are available for use.
 """
 
+__docformat__ = 'restructuredtext en'
+
 from herring.init.herringlib.runner import system
-from herring.support.SimpleLogger import warning
+from herring.support.simple_logger import warning
 
 HELP = {
-    'pynsource': "pyNsource generates class diagrams.  Please install from http://www.andypatterns.com/index.php/products/pynsource/",
-    'pyreverse': 'pyreverse generates package and class UML diagrams and is part of pylint.  Please install pylint.'
+    'pynsource': "pyNsource generates class diagrams.  "
+                 "Please install from http://www.andypatterns.com/index.php/products/pynsource/",
+    'pyreverse': 'pyreverse generates package and class UML diagrams and is part of pylint.  Please install pylint.',
+    'rstlint': 'rstlint checks the RST in the given file.  '
+               'Please install from http://svn.python.org/projects/python/trunk/Doc/tools/'
 }
 
 

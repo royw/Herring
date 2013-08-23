@@ -4,6 +4,8 @@
 The command line interface for the herring application.
 """
 
+__docformat__ = 'restructuredtext en'
+
 import argparse
 import os
 import re
@@ -11,10 +13,11 @@ import sys
 import textwrap
 from herring.argument_helper import ArgumentHelper
 from herring.new_project import NewProject
-from herring.support.SimpleLogger import setVerbose, setDebug, info
+from herring.support.simple_logger import info, Logger
 from herring.task_with_args import TaskWithArgs
 
 VERSION_REGEX = r'__version__\s*=\s*[\'\"](\S+)[\'\"]'
+ROW_FORMAT = "{0:<{width1}s}  # {1:<{width2}s}"
 
 HELP = {
     'herring': textwrap.dedent("""\
@@ -49,8 +52,8 @@ class HerringCLI(object):
         :param app: the herring app instance
         :type app: HerringApp
         """
-        settings = self.cli()
-        app.execute(settings)
+        settings = self.setup()
+        app.execute(self, settings)
 
     def _get_settings(self):
         """
@@ -84,21 +87,22 @@ class HerringCLI(object):
         parser.add_argument('tasks', nargs='*', help=HELP['tasks'])
         return parser.parse_known_args()
 
-    def cli(self):
+    def setup(self):
         """
         Command Line Interface.
 
         Exits the application in the following conditions:
-        * user requested the applications version
-        * can not find the herringfile
+
+            * user requested the applications version
+            * can not find the herringfile
 
         :return: None
         """
 
         settings, argv = self._get_settings()
 
-        setVerbose(not settings.quiet)
-        setDebug(settings.debug)
+        Logger.setVerbose(not settings.quiet)
+        Logger.setDebug(settings.debug)
 
         TaskWithArgs.argv = argv
         TaskWithArgs.kwargs = ArgumentHelper.argv_to_dict(argv)
@@ -117,9 +121,13 @@ class HerringCLI(object):
         return settings
 
     def _load_version(self):
-        """
-        Get the version from __init__.py with a line: /^__version__\s*=\s*(\S+)/
+        r"""
+        Get the version from __init__.py with a line::
+
+            /^__version__\s*=\s*(\S+)/
+
         If it doesn't exist try to load it from the VERSION.txt file.
+
         If still no joy, then return '0.0.0'
 
         :returns: the version string or 'Unknown'
@@ -131,8 +139,8 @@ class HerringCLI(object):
         # trying __init__.py first
         try:
             file_name = os.path.join(path, '__init__.py')
-            with open(file_name, 'r') as inFile:
-                for line in inFile.readlines():
+            with open(file_name, 'r') as in_file:
+                for line in in_file.readlines():
                     match = re.match(VERSION_REGEX, line)
                     if match:
                         return match.group(1)
@@ -143,10 +151,108 @@ class HerringCLI(object):
         try:
             # noinspection PyUnresolvedReferences
             file_name = os.path.join(path, 'VERSION.txt')
-            with open(file_name, 'r') as inFile:
-                return inFile.read().strip()
+            with open(file_name, 'r') as in_file:
+                return in_file.read().strip()
         except IOError:
             pass
 
         # no joy again, so return default
         return 'Unknown'
+
+    def show_tasks(self, tasks):
+        """
+        Shows the tasks.
+
+        :param tasks: generator for list of task names to show.
+         :type tasks: iterator
+        :return: None
+        """
+        self._header("Show tasks")
+        for name, description, dependencies, width in tasks:
+            self._row(name=name, description=description.strip().splitlines()[0], max_name_length=width)
+
+    def show_task_usages(self, tasks):
+        """
+        Shows the tasks.
+
+        :param tasks: generator for list of task names to show.
+         :type tasks: iterator
+        :return: None
+        """
+        self._header("Show task usages")
+        for name, description, dependencies, width in tasks:
+            info("#" * 40)
+            info("# herring %s" % name)
+            info(textwrap.dedent(description).replace("\n\n", "\n").strip())
+            info('')
+
+    def show_depends(self, tasks):
+        """
+        Shows the tasks and their dependencies.
+
+        :param tasks: generator for list of task names to show.
+         :type tasks: iterator
+        :return: None
+        """
+        self._header("Show tasks and their dependencies")
+        for name, description, dependencies, width in tasks:
+            self._row(name=name, description=description.strip().splitlines()[0], dependencies=dependencies, max_name_length=width)
+
+    def _header(self, message):
+        """
+        Output table header message followed by a horizontal rule.
+
+        :param message: the table header text
+         :type message: str
+        :return: None
+        """
+        info(message)
+        info("=" * 80)
+
+    def _row(self, name=None, description=None, dependencies=None,
+             max_name_length=20):
+        """
+        Output table row message.
+
+        :param name: the task name
+         :type name: str
+        :param description: the task description
+         :type description: str
+        :param dependencies: the task's dependencies
+         :type dependencies: list or str
+        :param max_name_length: the length of the longest task name in the table
+         :type max_name_length: int
+        :return: None
+        """
+        if description is None:
+            description = ''
+        if dependencies is None:
+            dependencies = []
+
+        c1_width = max_name_length + 8
+        c2_width = 80 - 5 - c1_width
+
+        self._row_list('herring ' + name, description, c1_width, c2_width)
+        if dependencies:
+            self._row_list('', 'depends: ' + repr(dependencies), c1_width, c2_width)
+
+    def _row_list(self, c1_value, c2_value, c1_width, c2_width):
+        """
+        Output the two columns in the table row.
+
+        :param c1_value: value for first column
+         :type c1_value: str
+        :param c2_value: value for second column
+         :type c2_value: str
+        :param c1_width: width (number of characters) for first column
+         :type c1_width: int
+        :param c2_width: width (number of characters) for second column
+         :type c2_width: int
+        :return: None
+        """
+        # values = textwrap.fill(self._unindent(c2_value), c2_width).split("\n")
+        values = textwrap.fill(c2_value, c2_width).split("\n")
+        info(ROW_FORMAT.format(c1_value, values[0], width1=c1_width, width2=c2_width))
+        for line in values[1:]:
+            info(ROW_FORMAT.format(' ', line, width1=c1_width, width2=c2_width))
+

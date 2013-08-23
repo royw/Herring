@@ -7,14 +7,20 @@ Less so after you start deploying to a local pypi server.
 
 """
 
+__docformat__ = 'restructuredtext en'
+
 import os
-from herring.herring_app import task, run, HerringFile
+
 from pxssh import pxssh
-from herring.support.SimpleLogger import info
+
+from herring.herring_app import task, run, HerringFile
+from herring.support.simple_logger import info
 from herringlib.runner import system
 from herringlib.version import bump
 
 
+
+# pylint: disable=W0604,E0602
 global Project
 
 
@@ -50,31 +56,31 @@ def uninstall():
 def deploy():
     """ copy latest sdist tar ball to server """
     version = Project.version
-    projectVersionName = "{name}-{version}.tar.gz".format(name=Project.name, version=version)
-    projectLatestName = "{name}-latest.tar.gz".format(name=Project.name)
+    project_version_name = "{name}-{version}.tar.gz".format(name=Project.name, version=version)
+    project_latest_name = "{name}-latest.tar.gz".format(name=Project.name)
 
-    pypiDir = Project.pypiDir
-    distHost = Project.distHost
-    distDir = '{dir}/{name}'.format(dir=pypiDir, name=Project.name)
-    distUrl = '{host}:/{path}'.format(host=distHost, path=distDir)
-    distVersion = '{dir}/{file}'.format(dir=distDir, file=projectVersionName)
-    distLatest = '{dir}/{file}'.format(dir=distDir, file=projectLatestName)
-    distFile = os.path.join(HerringFile.directory, 'dist', projectVersionName)
+    pypi_dir = Project.pypiDir
+    dist_host = Project.distHost
+    dist_dir = '{dir}/{name}'.format(dir=pypi_dir, name=Project.name)
+    dist_url = '{host}:/{path}'.format(host=dist_host, path=dist_dir)
+    dist_version = '{dir}/{file}'.format(dir=dist_dir, file=project_version_name)
+    dist_latest = '{dir}/{file}'.format(dir=dist_dir, file=project_latest_name)
+    dist_file = os.path.join(HerringFile.directory, 'dist', project_version_name)
 
-    s = pxssh()
-    s.login(distHost, Project.user)
-    s.sendline('mkdir -p {dir}'.format(dir=distDir))
-    s.prompt()
-    info(s.before)
-    s.sendline('rm {path}'.format(path=distLatest))
-    s.prompt()
-    info(s.before)
-    s.logout()
+    ssh = pxssh()
+    ssh.login(dist_host, Project.user)
+    ssh.sendline('mkdir -p {dir}'.format(dir=dist_dir))
+    ssh.prompt()
+    info(ssh.before)
+    ssh.sendline('rm {path}'.format(path=dist_latest))
+    ssh.prompt()
+    info(ssh.before)
+    ssh.logout()
 
-    run(['scp', distFile, distUrl])
+    run(['scp', dist_file, dist_url])
 
-    s = pxssh()
-    s.login(distHost, Project.user)
-    s.sendline('ln -s {src} {dest}'.format(src=distVersion, dest=distLatest))
-    s.prompt()
-    s.logout()
+    ssh = pxssh()
+    ssh.login(dist_host, Project.user)
+    ssh.sendline('ln -s {src} {dest}'.format(src=dist_version, dest=dist_latest))
+    ssh.prompt()
+    ssh.logout()

@@ -3,6 +3,9 @@
 """
 Safely edit a file by creating a backup which will be restored on any error.
 """
+
+__docformat__ = 'restructuredtext en'
+
 from contextlib import contextmanager
 import os
 import shutil
@@ -11,7 +14,7 @@ from tempfile import NamedTemporaryFile
 
 # noinspection PyBroadException
 @contextmanager
-def safeEdit(fileName):
+def safeEdit(file_name):
     """
     Edit a file using a backup.  On any exception, restore the backup.
 
@@ -22,45 +25,48 @@ def safeEdit(fileName):
                 # edit line
                 files['out'].write(line)
 
-    :param fileName:  source file to edit
-    :type fileName: str
+    :param file_name:  source file to edit
+    :type file_name: str
     :yield: dict containing open file instances for input (files['in']) and output (files['out'])
     :raises: allows IO exceptions to propagate
     """
-    backupName = fileName + '~'
+    backup_name = file_name + '~'
 
-    inFile = None
-    tfName = None
-    tf = None
+    in_file = None
+    tf_name = None
+    tmp_file = None
     try:
-        inFile = open(fileName, 'r')
-        tf = NamedTemporaryFile(delete=False)
-        tfName = tf.name
-        yield {'in': inFile, 'out': tf}
+        in_file = open(file_name, 'r')
+        tmp_file = NamedTemporaryFile(delete=False)
+        tf_name = tmp_file.name
+        yield {'in': in_file, 'out': tmp_file}
+
+    # intentionally catching any exceptions
+    # pylint: disable=W0702
     except:
         # on any exception, delete the output temporary file
-        tf.close()
-        os.remove(tfName)
-        tf = None
-        tfName = None
+        tmp_file.close()
+        os.remove(tf_name)
+        tmp_file = None
+        tf_name = None
         raise
     finally:
-        if inFile:
-            inFile.close()
-        if tf:
-            tf.close()
-        if tfName:
+        if in_file:
+            in_file.close()
+        if tmp_file:
+            tmp_file.close()
+        if tf_name:
             # ideally this block would be thread locked at os level
             # remove previous backup file if it exists
             try:
-                os.remove(backupName)
+                os.remove(backup_name)
             except:
                 pass
 
             # Note, shutil.move will safely move even across file systems
 
             # backup source file
-            shutil.move(fileName, backupName)
+            shutil.move(file_name, backup_name)
 
             # put new file in place
-            shutil.move(tfName, fileName)
+            shutil.move(tf_name, file_name)

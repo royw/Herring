@@ -4,6 +4,10 @@
 Provides support for the @task decorator.
 """
 
+__docformat__ = 'restructuredtext en'
+
+from herring.support.simple_logger import error
+
 __all__ = ('TaskWithArgs', 'HerringTasks')
 
 
@@ -61,7 +65,12 @@ class TaskWithArgs(object):
             :param args: positional arguments passed through
             :param kwargs: keyword arguments passed through
             """
-            return func(*args, **kwargs)
+            try:
+                return func(*args, **kwargs)
+            except Exception as ex:
+                error("{name} - {err}".format(name=func.__name__), err=str(ex))
+                raise ex
+
 
         HerringTasks[func.__name__] = {
             'task': _wrap,

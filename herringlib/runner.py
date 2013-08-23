@@ -3,8 +3,11 @@
 """
 Run external scripts and programs.
 """
+
+__docformat__ = 'restructuredtext en'
+
 import os
-from herring.support.SimpleLogger import info
+from herring.support.simple_logger import info
 
 
 def system(cmd_line, verbose=True):

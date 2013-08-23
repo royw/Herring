@@ -4,9 +4,11 @@
 Recursively remove files matching a pattern from a directory tree.
 """
 
+__docformat__ = 'restructuredtext en'
+
 import fnmatch
 import os
-from herring.support.SimpleLogger import info
+from herring.support.simple_logger import debug
 
 
 def recursively_remove(path, pattern):
@@ -22,5 +24,5 @@ def recursively_remove(path, pattern):
              for dir_path, dir_names, files in os.walk(path)
              for f in fnmatch.filter(files, pattern)]
     for file_ in files:
-        info("removing: %s" % file_)
+        debug("removing: %s" % file_)
         os.remove(file_)

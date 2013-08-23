@@ -4,11 +4,13 @@
 Helper for populating a new project.
 """
 
+__docformat__ = 'restructuredtext en'
+
 import os
 import shutil
 import textwrap
 import pkg_resources
-from herring.support.SimpleLogger import info, error
+from herring.support.simple_logger import info, error
 
 __all__ = ('NewProject',)
 
@@ -59,12 +61,14 @@ class NewProject(object):
         name = os.path.basename(dest_path)
         package = name.lower()
         author = os.environ['USER']
-        with open(herring_file, 'w') as outFile:
+        with open(herring_file, 'w') as out_file:
             template = pkg_resources.resource_string('herring.init', 'herringfile.template')
             try:
-                outFile.write(template.format(name=name,
-                                              package=package,
-                                              author=author))
+                out_file.write(template.format(name=name,
+                                               package=package,
+                                               author=author))
+            # yes, I'm lazy and want to be sure to catch all exceptions here.
+            # pylint: disable=W0703
             except Exception as ex:
                 error(ex)
 
@@ -100,8 +104,8 @@ class NewProject(object):
         open(init_file, 'w').close()
 
         app_file = os.path.join(package_dir, "{package}_app.py".format(package=package_name))
-        with open(app_file, 'w') as outFile:
-            outFile.write(textwrap.dedent("""
+        with open(app_file, 'w') as out_file:
+            out_file.write(textwrap.dedent("""
             def main():
                 \"\"\"
                 This is the console entry point
@@ -124,5 +128,3 @@ class NewProject(object):
             if err.errno != 17:
                 raise
         return directory_name
-
-
