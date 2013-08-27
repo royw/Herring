@@ -3,6 +3,7 @@
 """
 Provides built in run support methods for herringfile tasks.
 """
+import pkgutil
 
 __docformat__ = 'restructuredtext en'
 
@@ -18,6 +19,8 @@ __all__ = ('HerringFile',)
 class HerringFile(object):
     """Run helper"""
     directory = ''
+
+    uninstalled_packages = []
 
     @classmethod
     def run(cls, cmd_args, env=None, verbose=True):
@@ -87,3 +90,22 @@ class HerringFile(object):
         :rtype: iterator(str)
         """
         return utils.findFiles(directory, includes, excludes)
+
+    @classmethod
+    def packagesRequired(cls, package_names):
+        """
+        Check that the give packages are installed.
+
+        :param package_names: the package names
+        :type package_names: list(str)
+        :return: asserted if all the packages are installed
+        :rtype: bool
+        """
+        result = True
+        for package_name in [name for name in package_names if name not in pkgutil.iter_modules(name)]:
+            print "Package \"{name}\" not installed!".format(name=package_name)
+            cls.uninstalled_packages.append(package_name)
+            result = False
+        return result
+
+

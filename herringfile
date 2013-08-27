@@ -56,7 +56,15 @@ Project.dirMap(
     }
 )
 
-Project.requiredFiles()
+if HerringFile.uninstalled_packages:
+    print("You have missing packages.  You may install using the following command:")
+    print("\n  pip install %s" % ' '.join(HerringFile.uninstalled_packages))
+
+
+@task()
+def initProject():
+    """Initializes a project by creating setup.py and required files"""
+    Project.requiredFiles()
 
 
 @task(depends=['build', 'doc', 'test'])

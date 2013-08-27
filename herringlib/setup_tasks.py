@@ -19,7 +19,6 @@ from herringlib.runner import system
 from herringlib.version import bump
 
 
-
 # pylint: disable=W0604,E0602
 global Project
 

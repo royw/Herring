@@ -85,8 +85,8 @@ import re
 import shutil
 from herring.herring_app import HerringFile, task
 from herring.support.simple_logger import debug, info, error
-from herringlib.list_helper import compressList, uniqueList
 
+from herringlib.list_helper import compressList, uniqueList
 __author__ = 'wrighroy'
 
 
