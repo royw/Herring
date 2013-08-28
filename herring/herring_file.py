@@ -4,6 +4,8 @@
 Provides built in run support methods for herringfile tasks.
 """
 import pkgutil
+import re
+from herringlib.runner import system
 
 __docformat__ = 'restructuredtext en'
 
@@ -83,9 +85,9 @@ class HerringFile(object):
         :param directory: the starting directory for the find
         :type directory: str
         :param includes: list of file glob patterns to find
-        :type includes: list(str)
+        :type includes: list
         :param excludes: list of file or directory glob patterns to exclude
-        :type excludes: list(str)
+        :type excludes: list
         :return: iterator of found file paths as strings
         :rtype: iterator(str)
         """
@@ -97,15 +99,18 @@ class HerringFile(object):
         Check that the give packages are installed.
 
         :param package_names: the package names
-        :type package_names: list(str)
+        :type package_names: list
         :return: asserted if all the packages are installed
         :rtype: bool
         """
         result = True
-        for package_name in [name for name in package_names if name not in pkgutil.iter_modules(name)]:
-            print "Package \"{name}\" not installed!".format(name=package_name)
-            cls.uninstalled_packages.append(package_name)
-            result = False
+
+        installed_packages = [re.split(r'[<>=!]', name)[0] for name in system('pip freeze', verbose=False).split("\n")]
+
+        for pkg_name in package_names:
+            if pkg_name not in installed_packages:
+                print pkg_name + " not installed!"
+                result = False
         return result
 
 

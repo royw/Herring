@@ -60,7 +60,7 @@ class HerringApp(object):
               deasserted, then run the tasks from settings.tasks
 
         :param cli: the command line interface instance
-        :type cli: HerringCLI
+        :type cli: herring.HerringCLI
         :param settings: the application settings
         :return: None
         """

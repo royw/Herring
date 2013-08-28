@@ -21,12 +21,12 @@ Add the following to your *requirements.txt* file:
 __docformat__ = 'restructuredtext en'
 
 packages_required = [
-    'cheesecake',
+    'Cheesecake',
     'matplotlib',
     'numpy',
     'pycabehtml',
     'pylint',
-    'pymetrics'
+    'PyMetrics'
 ]
 
 if HerringFile.packagesRequired(packages_required):

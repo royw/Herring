@@ -50,7 +50,7 @@ class HerringCLI(object):
         Handle the command line arguments then execute the app
 
         :param app: the herring app instance
-        :type app: HerringApp
+        :type app: herring.HerringApp
         """
         settings = self.setup()
         app.execute(self, settings)

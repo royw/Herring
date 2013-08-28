@@ -35,7 +35,7 @@ class ArgumentHelper(object):
         {'charlie': True, 'flag': 'false', 'foo': 'alpha beta', 'bar': 'delta'}
 
         :param argv: argument list
-        :type argv: list(str)
+        :type argv: list
         """
         kwargs = {}
         current_key = None

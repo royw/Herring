@@ -20,9 +20,9 @@ def findFiles(directory, includes=None, excludes=None):
     :param directory: the starting directory for the find
     :type directory: str
     :param includes: list of file glob patterns to find
-    :type includes: list(str)
+    :type includes: list
     :param excludes: list of file or directory glob patterns to exclude
-    :type excludes: list(str)
+    :type excludes: list
     :return: iterator of found file paths as strings
     :rtype: iterator(str)
     """
