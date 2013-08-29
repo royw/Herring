@@ -28,6 +28,9 @@ def executablesAvailable(executable_list):
     """
     for executable in executable_list:
         if not system("which {name}".format(name=executable), verbose=False).strip():
-            warning(HELP[executable])
+            if executable in HELP:
+                warning(HELP[executable])
+            else:
+                warning("Please install: %s" % executable)
             return False
     return True
