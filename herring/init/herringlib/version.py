@@ -1,12 +1,18 @@
 # coding=utf-8
 """
-Package version support.
+Package version support using "major.minor.tiny" version scheme (a subset of PEP 386 and PEP 440).
 
 Provides *version* and *bump* tasks.
 
 Old style used a package/VERSION.txt file that contained a version string.
 This old style is deprecated to the more pythoneese style of having a global __version__
 attribute located in package/__init__.py.
+
+# note, if the __init__.py does not have a __version__= line, then we append one to the end of the file.
+This might violate PEP 8 which states that::
+
+    "These lines should be included after the module's docstring, before any other code, separated by a
+    blank line above and below."
 
 Usage:
 
@@ -27,6 +33,7 @@ Usage:
     __version__ = '0.1.3'
 
 """
+from herringlib.comparable_mixin import ComparableMixin
 
 __docformat__ = 'restructuredtext en'
 
@@ -135,15 +142,118 @@ def bump():
     Bumps the patch version in VERSION file up by one.
     If the VERSION file does not exist, then create it and initialize the version to '0.0.0'.
     """
-    version_str = getProjectVersion(project_package=Project.package)
-    parts = version_str.split('.')
-    parts[-1] = str(int(parts[-1]) + 1)
-    setProjectVersion('.'.join(parts), project_package=Project.package)
+    original_version_str = getProjectVersion(project_package=Project.package)
+    version = Version(original_version_str)
+    version.bump('Tiny')
+    setProjectVersion(str(version), project_package=Project.package)
     Project.version = getProjectVersion(project_package=Project.package)
-    info("Bumped version from %s to %s" % (version_str, Project.version))
+    info("Bumped version from %s to %s" % (original_version_str, Project.version))
 
 
 @task()
 def version():
     """Show the current version"""
     info("Current version is: %s" % getProjectVersion(project_package=Project.package))
+
+
+class VersionScheme(object):
+    """
+    This class defines the version scheme used by Version.
+
+    A version scheme consists of a
+
+        * name,
+        * regular expression used to parse the version string,
+        * format string used to reassemble the parsed version into a string,
+        * list of field names used for accessing the components of the version.
+
+    Note, you need to manually maintain consistency between the regular expression,
+    the format string, and the fields list.  For example, if your version scheme
+    has N parts, then the regular expression should match into N groups, the format
+    string should expect N arguments to the str.format() method, and there must be
+    N unique names in the fields list.
+    """
+    def __init__(self, name, parse_regex, format_str, fields=None):
+        self.name = name
+        self.parse_regex = parse_regex
+        self.format_str = format_str
+        self.fields = fields or []
+
+
+Simple3VersionScheme = VersionScheme(name="A.B.C",
+                                     parse_regex=r"^(\d+)\.(\d+)\.(\d+)$",
+                                     format_str="{0}.{1}.{2}",
+                                     fields=['Major', 'Minor', 'Tiny'])
+
+Simple4VersionScheme = VersionScheme(name="A.B.C.D",
+                                     parse_regex=r"^(\d+)\.(\d+)\.(\d+)\.(\d+)$",
+                                     format_str="{0}.{1}.{2}.{3}",
+                                     fields=['Major', 'Minor', 'Tiny', 'Tiny2'])
+
+# Version uses the SupportedVersionSchemes list when trying to parse a string where
+# the given scheme is None.  The parsing attempts will be sequentially thru this list
+# until a match is found.
+SupportedVersionSchemes = [
+    Simple3VersionScheme,
+    Simple4VersionScheme
+]
+
+
+class Version(ComparableMixin):
+    """
+    A version class that supports multiple versioning schemes, version comparisons,
+    and version bumping.
+    """
+
+    def _cmpkey(self):
+        """A key for comparisons required by ComparableMixin"""
+        return self.parts
+
+    def __init__(self, version_str=None, scheme=None):
+        self.scheme = scheme
+        self.parts = []
+        if not self._parse(version_str):
+            raise AttributeError("Can not parse \"{ver}\"".format(ver=version_str))
+
+    def _parse(self, version_str):
+        if self.scheme is None:
+            for scheme in SupportedVersionSchemes:
+                if self._parse_with_scheme(version_str, scheme):
+                    self.scheme = scheme
+                    return True
+        else:
+            return self._parse_with_scheme(version_str, self.scheme)
+
+    def _parse_with_scheme(self, version_str, scheme):
+        if version_str is None:
+            return False
+        match = re.match(scheme.parse_regex, version_str)
+        if match:
+            self.parts = [int(item) for item in match.groups()]
+            return True
+        return False
+
+    def __str__(self):
+        if self.parts:
+            return self.scheme.format_str.format(*self.parts)
+        return "Unknown version"
+
+    def bump(self, field_name=None):
+        """
+        Bump the given version field by 1.  If no field name is given,
+        then bump the least significant field.
+
+        :param field_name: the field name that matches one of the scheme's fields
+        :type field_name: object
+        :return: True on success
+        :rtype: bool
+        """
+        if field_name is None:
+            field_name = self.scheme.fields[-1]
+        try:
+            index = self.scheme.fields.index(field_name)
+            self.parts[index] += 1
+            self.parts[index + 1:] = [0] * (len(self.parts) - index - 1)
+            return True
+        except:
+            return False
