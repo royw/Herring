@@ -3,16 +3,14 @@
 """
 Provides built in run support methods for herringfile tasks.
 """
-import pkgutil
-import re
-from herringlib.runner import system
+from pkgutil import iter_modules
+from platform import system
 
 __docformat__ = 'restructuredtext en'
 
 import os
 import subprocess
 import sys
-from herring.support import utils
 from herring.support.simple_logger import info
 
 __all__ = ('HerringFile',)
@@ -36,20 +34,20 @@ class HerringFile(object):
         :param verbose: if verbose, then echo the command and it's output to stdout.
         :type verbose: bool
         """
-        info("cmd_args => %s" % repr(cmd_args))
-        info("env => %s" % repr(env))
-        info("verbose => %s" % repr(verbose))
         if verbose:
+            info("cmd_args => %s" % repr(cmd_args))
+            info("env => %s" % repr(env))
+            info("verbose => %s" % repr(verbose))
             info(' '.join(cmd_args))
         lines = []
-        for line in cls.runProcess(cmd_args, env=env):
+        for line in cls.runProcess(cmd_args, env=env, verbose=verbose):
             if verbose:
                 sys.stdout.write(line)
             lines.append(line)
         return "".join(lines)
 
     @classmethod
-    def runProcess(cls, exe, env=None):
+    def runProcess(cls, exe, env=None, verbose=True):
         """
         Run the process yield for each output line from the process.
 
@@ -60,7 +58,8 @@ class HerringFile(object):
         :param env: environment
         :type env: dict
         """
-        info("runProcess(%s, %s)" % (exe, env))
+        if verbose:
+            info("runProcess(%s, %s)" % (exe, env))
         sub_env = os.environ.copy()
         if env:
             for key, value in env.iteritems():
@@ -76,24 +75,6 @@ class HerringFile(object):
                 break
 
     @classmethod
-    def findFiles(cls, directory, includes=None, excludes=None):
-        """
-        Find files given a starting directory and optionally a set of includes and/or excludes patterns.
-
-        The patterns should be globs (ex: ['*.py', '*.rst'])
-
-        :param directory: the starting directory for the find
-        :type directory: str
-        :param includes: list of file glob patterns to find
-        :type includes: list
-        :param excludes: list of file or directory glob patterns to exclude
-        :type excludes: list
-        :return: iterator of found file paths as strings
-        :rtype: iterator(str)
-        """
-        return utils.findFiles(directory, includes, excludes)
-
-    @classmethod
     def packagesRequired(cls, package_names):
         """
         Check that the give packages are installed.
@@ -105,12 +86,14 @@ class HerringFile(object):
         """
         result = True
 
-        installed_packages = [re.split(r'[<>=!]', name)[0] for name in system('pip freeze', verbose=False).split("\n")]
+        # installed_packages = [mod_info[1] for mod_info in iter_modules()]
+        # info("\n".join(sorted(installed_packages)))
+        packages = cls.run(['yolk', '-l'], verbose=False).split("\n")
+        installed_packages = [name.split()[0] for name in packages if name]
+        # info("installed_packages: %s" % repr(installed_packages))
 
         for pkg_name in package_names:
             if pkg_name not in installed_packages:
                 print pkg_name + " not installed!"
                 result = False
         return result
-
-
