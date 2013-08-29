@@ -23,6 +23,13 @@ Add the following to your *requirements.txt* file:
 
 __docformat__ = 'restructuredtext en'
 
+import fnmatch
+import os
+import re
+from herring.herring_app import task, run, HerringFile
+from herring.init.herringlib.runner import system
+from herring.support.simple_logger import info, warning
+
 required_packages = [
     'Pygments',
     'Sphinx',
@@ -35,17 +42,11 @@ required_packages = [
     'sphinxcontrib-seqdiag']
 
 if HerringFile.packagesRequired(required_packages):
-    import fnmatch
-    import os
-    import re
     from herringlib.cd import cd
     from herringlib.clean import clean
     from herringlib.executables import executablesAvailable
     from herringlib.recursively_remove import recursively_remove
     from herringlib.safe_edit import safeEdit
-    from herring.herring_app import task, run, HerringFile
-    from herring.init.herringlib.runner import system
-    from herring.support.simple_logger import info, warning
 
     # pylint: disable=W0604,E0602
     global Project

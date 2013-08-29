@@ -17,8 +17,13 @@ Add the following to your *requirements.txt* file:
 * pymetrics
 
 """
+from herringlib.executables import executablesAvailable
 
 __docformat__ = 'restructuredtext en'
+
+import os
+from herring.herring_app import task
+from herring.herring_file import HerringFile
 
 packages_required = [
     'Cheesecake',
@@ -30,9 +35,6 @@ packages_required = [
 ]
 
 if HerringFile.packagesRequired(packages_required):
-    import os
-    from herring.herring_file import HerringFile
-    from herring.herring_app import task
     from herringlib.runner import system
 
     # pylint: disable=W0604,E0602
@@ -46,6 +48,8 @@ if HerringFile.packagesRequired(packages_required):
     @task()
     def cheesecake():
         """ Run the cheesecake kwalitee metric """
+        if not executablesAvailable(['cheesecake_index']):
+            return
         cheesecake_log = os.path.join(Project.qualityDir, 'cheesecake.log')
         system("cheesecake_index --path=dist/%s-%s.tar.gz --keep-log -l %s" %
                (Project.name,
@@ -56,6 +60,8 @@ if HerringFile.packagesRequired(packages_required):
     @task()
     def lint():
         """ Run pylint with project overrides from pylint.rc """
+        if not executablesAvailable(['pylint']):
+            return
         options = ''
         if os.path.exists(Project.pylintrc):
             options += "--rcfile=pylint.rc"
@@ -66,6 +72,8 @@ if HerringFile.packagesRequired(packages_required):
     @task()
     def complexity():
         """ Run McCabe code complexity """
+        if not executablesAvailable(['pymetrics', 'pycabehtml.py']):
+            return
         quality_dir = Project.qualityDir
         complexity_txt = os.path.join(quality_dir, 'complexity.txt')
         graph = os.path.join(quality_dir, 'output.png')
