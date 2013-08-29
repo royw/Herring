@@ -6,10 +6,10 @@ Safely edit a file by creating a backup which will be restored on any error.
 
 __docformat__ = 'restructuredtext en'
 
-from contextlib import contextmanager
 import os
 import shutil
 from tempfile import NamedTemporaryFile
+from contextlib import contextmanager
 
 
 # noinspection PyBroadException
