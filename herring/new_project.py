@@ -10,6 +10,7 @@ import os
 import shutil
 import textwrap
 import pkg_resources
+from distutils.dir_util import copy_tree
 from herring.support.simple_logger import info, error
 
 __all__ = ('NewProject',)
@@ -139,7 +140,7 @@ class NewProject(object):
         """
         herringlib_dir = os.path.join(dest_path, 'herringlib')
         lib_dir = pkg_resources.resource_filename('herring.init', 'herringlib')
-        shutil.copytree(lib_dir, herringlib_dir)
+        copy_tree(lib_dir, herringlib_dir)
 
     def _makedirs(self, directory_name):
         """Safely make needed directories (mkdir -p)"""
