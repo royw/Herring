@@ -3,10 +3,12 @@
 """
 Provides support for the @task decorator.
 """
+import traceback
+import sys
 
 __docformat__ = 'restructuredtext en'
 
-from herring.support.simple_logger import error
+from herring.support.simple_logger import fatal
 
 __all__ = ('TaskWithArgs', 'HerringTasks')
 
@@ -68,9 +70,9 @@ class TaskWithArgs(object):
             try:
                 return func(*args, **kwargs)
             except Exception as ex:
-                error("{name} - {err}".format(name=func.__name__), err=str(ex))
-                raise ex
-
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                tb = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback))
+                fatal("{name} - ERROR: {err}\n{tb}".format(name=func.__name__, err=str(ex), tb=tb))
 
         HerringTasks[func.__name__] = {
             'task': _wrap,
@@ -78,5 +80,3 @@ class TaskWithArgs(object):
             'description': func.__doc__
         }
         return _wrap
-
-
