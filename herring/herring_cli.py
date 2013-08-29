@@ -122,7 +122,7 @@ class HerringCLI(object):
             exit(NewProject(settings.init).populate())
 
         if settings.update:
-            exit(NewProject(settings.init).update())
+            exit(NewProject(settings.update).update())
 
         return settings
 
