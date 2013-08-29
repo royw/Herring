@@ -22,3 +22,4 @@ sphinxcontrib-blockdiag
 sphinxcontrib-nwdiag
 sphinxcontrib-plantuml
 sphinxcontrib-seqdiag
+yolk

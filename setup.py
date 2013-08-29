@@ -65,7 +65,8 @@ setup(
     description='Just a python make utility.',
     long_description=open('README.txt').read(),
     install_requires=[
-        "argparse"
+        "argparse",
+        'yolk'
         # "Foo >= 1.2.3"
     ],
     entry_points={
