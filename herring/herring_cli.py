@@ -37,6 +37,7 @@ HELP = {
     'tasks': "The tasks to run.  If none specified, tries to run the "
              "'default' task.",
     'init': "Initialize a new project to use Herring.  Creates herringfile and herringlib in the given directory.",
+    'update': "Update the herringlib tasks in an existing project.",
     'quiet': 'Suppress herring output.',
     'debug': 'Display debug messages'
 }
@@ -82,8 +83,10 @@ class HerringCLI(object):
                             action='store_true', help=HELP['version'])
         parser.add_argument('-l', '--longhelp', dest='longhelp', action='store_true',
                             help='Long help about Herring')
-        parser.add_argument('-i', '--init', metavar='DIRSPEC',
+        parser.add_argument('--init', metavar='DIRSPEC',
                             default=None, help=HELP['init'])
+        parser.add_argument('--update', metavar='DIRSPEC',
+                            default=None, help=HELP['update'])
         parser.add_argument('tasks', nargs='*', help=HELP['tasks'])
         return parser.parse_known_args()
 
@@ -117,6 +120,9 @@ class HerringCLI(object):
 
         if settings.init:
             exit(NewProject(settings.init).populate())
+
+        if settings.update:
+            exit(NewProject(settings.init).update())
 
         return settings
 
@@ -196,7 +202,10 @@ class HerringCLI(object):
         """
         self._header("Show tasks and their dependencies")
         for name, description, dependencies, width in tasks:
-            self._row(name=name, description=description.strip().splitlines()[0], dependencies=dependencies, max_name_length=width)
+            self._row(name=name,
+                      description=description.strip().splitlines()[0],
+                      dependencies=dependencies,
+                      max_name_length=width)
 
     def _header(self, message):
         """
@@ -255,4 +264,3 @@ class HerringCLI(object):
         info(ROW_FORMAT.format(c1_value, values[0], width1=c1_width, width2=c2_width))
         for line in values[1:]:
             info(ROW_FORMAT.format(' ', line, width1=c1_width, width2=c2_width))
-

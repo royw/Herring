@@ -47,6 +47,16 @@ class NewProject(object):
         self.initializeHerringlib(self.full_path)
         self.initializePackage(self.full_path)
 
+    def update(self):
+        """
+        Updates a populated project with current herringlib tasks.
+
+        :return:
+        :rtype:
+        """
+        self._makedirs(self.full_path)
+        self.updateHerringlib(self.full_path)
+
     def initializeHerringfile(self, dest_path):
         """
         Create an initial herringfile for the new project.
@@ -119,6 +129,17 @@ class NewProject(object):
                 main()
 
             """))
+
+    def updateHerringlib(self, dest_path):
+        """
+        Update a populated herringlib directory.
+
+        :param dest_path:  The parent directory for the herringlib directory.
+        :type dest_path: str
+        """
+        herringlib_dir = os.path.join(dest_path, 'herringlib')
+        lib_dir = pkg_resources.resource_filename('herring.init', 'herringlib')
+        shutil.copytree(lib_dir, herringlib_dir)
 
     def _makedirs(self, directory_name):
         """Safely make needed directories (mkdir -p)"""
