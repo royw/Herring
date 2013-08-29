@@ -31,7 +31,7 @@ packages_required = [
     'numpy',
     'pycabehtml',
     'pylint',
-    'PyMetrics'
+    'pymetrics'
 ]
 
 if HerringFile.packagesRequired(packages_required):
