@@ -9,6 +9,7 @@ matplotlib
 nose
 numpy
 ordereddict
+pexpect
 pycabehtml
 pylint
 pymetrics

@@ -25,7 +25,7 @@ def getProjectVersion():
 
     # trying __init__.py first
     try:
-        file_name = os.path.join(os.getcwd(), 'herring', '__init__.py')
+        file_name = os.path.join(os.getcwd(), '{package}', '__init__.py')
         with open(file_name, 'r') as inFile:
             for line in inFile.readlines():
                 match = re.match(VERSION_REGEX, line)
@@ -36,7 +36,7 @@ def getProjectVersion():
 
     # no joy, so try getting the version from a VERSION.txt file.
     try:
-        file_name = os.path.join(os.getcwd(), 'herring', 'VERSION.txt')
+        file_name = os.path.join(os.getcwd(), '{package}', 'VERSION.txt')
         with open(file_name, 'r') as inFile:
             return inFile.read().strip()
     except IOError:
@@ -63,8 +63,8 @@ setup(
     description='{description}',
     long_description=open('README.txt').read(),
     install_requires=[
-        "argparse",
-        "mako"
+        # "argparse",
+        # "mako"
         # "Foo >= 1.2.3"
     ],
     entry_points={{
