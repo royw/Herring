@@ -89,11 +89,11 @@ class HerringFile(object):
         # installed_packages = [mod_info[1] for mod_info in iter_modules()]
         # info("\n".join(sorted(installed_packages)))
         packages = cls.run(['yolk', '-l'], verbose=False).split("\n")
-        installed_packages = [name.split()[0] for name in packages if name]
+        installed_packages = [name.split()[0].lower() for name in packages if name]
         # info("installed_packages: %s" % repr(installed_packages))
 
         for pkg_name in package_names:
-            if pkg_name not in installed_packages:
+            if pkg_name.lower() not in installed_packages:
                 print pkg_name + " not installed!"
                 result = False
         return result

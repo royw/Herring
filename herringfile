@@ -1,3 +1,4 @@
+# coding=utf-8
 """
 This is Herring's herringfile which contains various tasks used in development.
 
@@ -76,7 +77,7 @@ def default():
 @task()
 def show():
     """ show all files in the project """
-    # noinspection PyUnusedLocal
+    # noinspection PyUnusedLocal,PyDocstring
     def walker(arg, dir_name, files):
         if '/.' not in dir_name:
             info("%s (%d files)" % (dir_name, len(files)))
@@ -86,7 +87,7 @@ def show():
     os.path.walk('.', walker, None)
 
 
-@task()
+@task(help='You may show arguments using:  -a value  or:  --arg value')
 def argsDemo():
     """ echos that task's arguments """
     info("argv: %s" % repr(task.argv))

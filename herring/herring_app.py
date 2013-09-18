@@ -76,14 +76,13 @@ class HerringApp(object):
             info("Using: %s" % herring_file)
 
             self._load_tasks(herring_file)
-            task_list = list(self._get_tasks_list(HerringTasks,
-                                                  settings.list_all_tasks))
+            task_list = list(self._get_tasks_list(HerringTasks, settings.list_all_tasks))
             if settings.list_tasks:
-                cli.show_tasks(self._get_tasks(task_list))
+                cli.show_tasks(self._get_tasks(task_list), HerringTasks)
             elif settings.list_task_usages:
-                cli.show_task_usages(self._get_tasks(task_list))
+                cli.show_task_usages(self._get_tasks(task_list), HerringTasks)
             elif settings.list_dependencies:
-                cli.show_depends(self._get_tasks(task_list))
+                cli.show_depends(self._get_tasks(task_list), HerringTasks)
             else:
                 try:
                     self._run_tasks(settings.tasks)

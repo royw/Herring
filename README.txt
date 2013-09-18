@@ -27,10 +27,11 @@ project's herringfile::
 Task decorators can take optional keywords::
 
     :depends: List of task names as strings.
+    :help: Text that will be shown as notes when showing tasks.
 
 Example::
 
-    @task(depends=['foo'])
+    @task(depends=['foo'], help="doesn't do anything")
     def bar():
         """ The bar for foo """
 

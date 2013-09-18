@@ -60,6 +60,10 @@ class TaskWithArgs(object):
         if 'depends' in self.deco_kwargs:
             depends = self.deco_kwargs['depends']
 
+        task_help = None
+        if 'help' in self.deco_kwargs:
+            task_help = self.deco_kwargs['help']
+
         def _wrap(*args, **kwargs):
             """
             A simple wrapper
@@ -77,6 +81,7 @@ class TaskWithArgs(object):
         HerringTasks[func.__name__] = {
             'task': _wrap,
             'depends': depends,
+            'help': task_help,
             'description': func.__doc__
         }
         return _wrap

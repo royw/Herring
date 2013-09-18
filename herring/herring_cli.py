@@ -65,6 +65,7 @@ class HerringCLI(object):
         parser = argparse.ArgumentParser('Herring',
                                          formatter_class=argparse.RawDescriptionHelpFormatter,
                                          description=HELP['herring'])
+
         parser.add_argument('-f', '--herringfile', metavar='FILESPEC',
                             default='herringfile', help=HELP['herringfile'])
         parser.add_argument('-T', '--tasks', dest='list_tasks',
@@ -165,24 +166,29 @@ class HerringCLI(object):
         # no joy again, so return default
         return 'Unknown'
 
-    def show_tasks(self, tasks):
+    def show_tasks(self, tasks, herring_tasks):
         """
         Shows the tasks.
 
         :param tasks: generator for list of task names to show.
-         :type tasks: iterator
+        :type tasks: iterator
+        :param herring_tasks: all of the herring tasks
+        :type herring_tasks: dict
         :return: None
         """
         self._header("Show tasks")
         for name, description, dependencies, width in tasks:
             self._row(name=name, description=description.strip().splitlines()[0], max_name_length=width)
+        self._footer(herring_tasks)
 
-    def show_task_usages(self, tasks):
+    def show_task_usages(self, tasks, herring_tasks):
         """
         Shows the tasks.
 
         :param tasks: generator for list of task names to show.
-         :type tasks: iterator
+        :type tasks: iterator
+        :param herring_tasks: all of the herring tasks
+        :type herring_tasks: dict
         :return: None
         """
         self._header("Show task usages")
@@ -191,13 +197,16 @@ class HerringCLI(object):
             info("# herring %s" % name)
             info(textwrap.dedent(description).replace("\n\n", "\n").strip())
             info('')
+        self._footer(herring_tasks)
 
-    def show_depends(self, tasks):
+    def show_depends(self, tasks, herring_tasks):
         """
         Shows the tasks and their dependencies.
 
         :param tasks: generator for list of task names to show.
-         :type tasks: iterator
+        :type tasks: iterator
+        :param herring_tasks: all of the herring tasks
+        :type herring_tasks: dict
         :return: None
         """
         self._header("Show tasks and their dependencies")
@@ -206,6 +215,7 @@ class HerringCLI(object):
                       description=description.strip().splitlines()[0],
                       dependencies=dependencies,
                       max_name_length=width)
+        self._footer(herring_tasks)
 
     def _header(self, message):
         """
@@ -217,6 +227,17 @@ class HerringCLI(object):
         """
         info(message)
         info("=" * 80)
+
+    def _footer(self, tasks):
+        tasks_help = []
+        for task_name in tasks:
+            task = tasks[task_name]
+            if task['help']:
+                tasks_help.append("{name}:  {help}".format(name=task_name, help=task['help']))
+        if tasks_help:
+            info('')
+            info('Notes:')
+            info("\n".join(tasks_help))
 
     def _row(self, name=None, description=None, dependencies=None,
              max_name_length=20):
