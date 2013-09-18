@@ -32,9 +32,8 @@ class HerringApp(object):
 
     Usage::
 
-        herring = Herring(outputter=sys.stdout)
-        herring.cli()
-        herring.execute()
+        cli = HerringCLI()
+        cli.execute(HerringApp())
     """
 
     def __init__(self):
@@ -116,7 +115,7 @@ class HerringApp(object):
 
     def _load_tasks(self, herringfile):
         """
-        Loads any herringlib files then loads the given herringfile.
+        Loads the given herringfile then loads any herringlib files.
 
         :param herringfile: the herringfile path
         :type herringfile: str
@@ -130,9 +129,9 @@ class HerringApp(object):
     def library_files(herringfile, lib_base_name='herringlib',
                       pattern='*.py'):
         """
-        yield any .herring files located in herringlib subdirectory in the
+        Yield any .herring files located in herringlib subdirectory in the
         same directory as the given herringfile.  Ignore package __init__.py
-        files.
+        files, .svn and templates sub-directories.
 
         :param herringfile: the herringfile
         :type herringfile: str
@@ -174,7 +173,6 @@ class HerringApp(object):
                                            """, line, re.VERBOSE)]
             herring_source = "\n".join(dest_lines)
             try:
-                # run = HerringFile.run
                 globals_ = globals()
                 # pylint: disable=W0122
                 exec (herring_source, globals_)
@@ -183,7 +181,7 @@ class HerringApp(object):
 
     def _get_tasks_list(self, herring_tasks, all_tasks_flag):
         """
-        massage the tasks structure into an easier to access dict
+        A generator to massage the tasks structure into an easier to access dict.
 
         :param herring_tasks: the herring task structure
         :type herring_tasks: dict
@@ -217,7 +215,7 @@ class HerringApp(object):
 
     def _get_default_tasks(self):
         """
-        Get a list of default task names (@task(default=True))
+        Get a list of default task names (@task(default=True)).
 
         :return: List containing default task names.
         :rtype: list
@@ -228,7 +226,7 @@ class HerringApp(object):
 
     def _verify_tasks_exists(self, task_list):
         """
-        If a given task does not exist, then raise a ValueError exception
+        If a given task does not exist, then raise a ValueError exception.
 
         :return: None
         :raises ValueError:
@@ -247,7 +245,7 @@ class HerringApp(object):
 
     def _tasks_to_depend_dict(self, src_tasks, herring_tasks):
         """
-        builds dictionary used by toposort2 from HerringTasks
+        Builds dictionary used by toposort2 from HerringTasks
 
         :param src_tasks: a List of task names
         :type src_tasks: list
@@ -264,8 +262,8 @@ class HerringApp(object):
 
     def _find_dependencies(self, src_tasks, herring_tasks):
         """
-        finds the dependent tasks for the given source tasks, building up an
-        unordered list of tasks
+        Finds the dependent tasks for the given source tasks, building up an
+        unordered list of tasks.
 
         :param src_tasks: list of task names that may have dependencies
          :type src_tasks: list
@@ -284,7 +282,7 @@ class HerringApp(object):
 
     def _resolve_dependencies(self, src_tasks, herring_tasks):
         """
-        resolve the dependencies for the given list of task names
+        Resolve the dependencies for the given list of task names.
 
         :param src_tasks: list of task names that may have dependencies
         :type src_tasks: list

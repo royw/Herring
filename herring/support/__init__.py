@@ -1,6 +1,6 @@
 # coding=utf-8
 """
-A topological sort function.
+Support utilities for Herring.
 """
 
 __docformat__ = 'restructuredtext en'

@@ -15,16 +15,15 @@ __all__ = ('TaskWithArgs', 'HerringTasks')
 
 # HerringTasks dictionary
 # key is task name as string
-# value is dictionary with keys in ['task', 'depends']
-# where value['task'] is the task function reference
-# and value['depends'] is a list of string task names
-# that are this task's dependencies.
+# value is dictionary with keys in ['task', 'depends', 'help', 'description']
+# where value['task'] is the task function reference, value['depends'] is a list of string task names that
+# are this task's dependencies, value['help'] is None or a string, and value['description'] is the task's docstring.
 HerringTasks = {}
 
 
 class TaskWithArgs(object):
     """
-    task decorator
+    Task decorator
 
     This gathers info about the task and stores it into the
     HerringApp.HerringTasks dictionary.  The decorator does not run the
@@ -34,7 +33,7 @@ class TaskWithArgs(object):
     """
 
     # the unused command line arguments are placed here as a list so
-    # that tasks can access them as: task.argv
+    # that tasks can access them as: task.argv or task.kwargs
     argv = None
     kwargs = None
 
@@ -43,6 +42,7 @@ class TaskWithArgs(object):
         """
         keyword arguments:
             depends:  a list of task names where the task names are strings
+            help: a brief task note, usually command line options the task accepts
         """
         self.deco_args = deco_args
         self.deco_kwargs = deco_kwargs
@@ -50,7 +50,7 @@ class TaskWithArgs(object):
 
     def __call__(self, func):
         """
-        invoked once when the module is loaded so we hook in here
+        Invoked once when the module is loaded so we hook in here
         to build our internal task dictionary.
 
         :param func: the function being decorated
@@ -78,6 +78,7 @@ class TaskWithArgs(object):
                 tb = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback))
                 fatal("{name} - ERROR: {err}\n{tb}".format(name=func.__name__, err=str(ex), tb=tb))
 
+        # save task info into HerringTasks
         HerringTasks[func.__name__] = {
             'task': _wrap,
             'depends': depends,

@@ -15,7 +15,7 @@ import os
 
 class cd(object):
     """
-    Change directory, execute block, restore directory:
+    Change directory, execute block, restore directory.
 
     Usage:
 

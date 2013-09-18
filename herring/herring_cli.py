@@ -48,7 +48,7 @@ class HerringCLI(object):
 
     def execute(self, app):
         """
-        Handle the command line arguments then execute the app
+        Handle the command line arguments then execute the app.
 
         :param app: the herring app instance
         :type app: herring.HerringApp
@@ -58,7 +58,7 @@ class HerringCLI(object):
 
     def _get_settings(self):
         """
-        Handle the command line arguments
+        Parse the command line arguments.
 
         :return: ArgumentParser instance
         """
@@ -97,8 +97,9 @@ class HerringCLI(object):
 
         Exits the application in the following conditions:
 
-            * user requested the applications version
-            * can not find the herringfile
+            * user requested the applications version,
+            * user requested help or longhelp,
+            * can not find the herringfile.
 
         :return: None
         """
@@ -154,7 +155,7 @@ class HerringCLI(object):
         except IOError:
             pass
 
-        # no joy, so try getting the version from a VERSION.txt file.
+        # no joy, so try getting the version from a deprecated VERSION.txt file.
         try:
             # noinspection PyUnresolvedReferences
             file_name = os.path.join(path, 'VERSION.txt')

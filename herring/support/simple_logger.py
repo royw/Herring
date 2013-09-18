@@ -28,7 +28,8 @@ class SimpleLogger(object):
 
     def setVerbose(self, verbose=True):
         """
-        set verbose mode
+        Set verbose mode.
+
         :param verbose: if verbose, then info messages are sent to stdout.
          :type verbose: bool
         """
@@ -39,9 +40,10 @@ class SimpleLogger(object):
 
     def setDebug(self, enable_debug=True):
         """
-        set debug logging mode
+        Set debug logging mode.
     
         :param enable_debug: if debug, then debug messages are sent to stdout.
+        :type enable_debug: bool
         """
         if enable_debug:
             self.log_outputter['debug'] = [sys.stdout]
@@ -51,27 +53,30 @@ class SimpleLogger(object):
 
     def setComponent(self, component=None):
         """
-        set component label
-    
+        Set component label.
+
         :param component: the component label to insert into the message string.
+        :type component: str
         """
+        self.current_component = component
 
     def setShowLevel(self, show_level=True):
         """
-        enable showing the logging level
+        Enable showing the logging level.
     
         :param show_level: if on, then include the log level of the message (DEBUG, INFO, ...) in the output.
+        :type show_level: bool
         """
         self.show_level = show_level
 
     def _output(self, level, message):
         """
-        Assemble the message and send it to the appropriate stream(s)
+        Assemble the message and send it to the appropriate stream(s).
 
         :param level: the log level ('debug', 'info', 'warning', 'error', 'fatal')
-         :type level: str
+        :type level: str
         :param message: the message to include in the output message.
-         :type message: str
+        :type message: str
         """
         buf = []
         if self.show_level:
@@ -86,46 +91,46 @@ class SimpleLogger(object):
 
     def debug(self, message):
         """
-        debug message
+        Debug message.
     
         :param message: the message to emit
-         :type message: object that can be converted to a string using str()
+        :type message: object that can be converted to a string using str()
         """
         self._output('debug', message)
 
     def info(self, message):
         """
-        info message
+        Info message.
     
         :param message: the message to emit
-         :type message: object that can be converted to a string using str()
+        :type message: object that can be converted to a string using str()
         """
         self._output('info', message)
 
     def warning(self, message):
         """
-        warning message
+        Warning message.
     
         :param message: the message to emit
-         :type message: object that can be converted to a string using str()
+        :type message: object that can be converted to a string using str()
         """
         self._output('warning', message)
 
     def error(self, message):
         """
-        error message
+        Error message.
     
         :param message: the message to emit
-         :type message: object that can be converted to a string using str()
+        :type message: object that can be converted to a string using str()
         """
         self._output('error', message)
 
     def fatal(self, message):
         """
-        fatal message
+        Fatal message.
     
         :param message: the message to emit
-         :type message: object that can be converted to a string using str()
+        :type message: object that can be converted to a string using str()
         """
         self._output('fatal', message)
         exit(1)

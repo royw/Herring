@@ -144,7 +144,7 @@ def bump():
     """
     original_version_str = getProjectVersion(project_package=Project.package)
     version = Version(original_version_str)
-    version.bump('Tiny')
+    version.bump_field('Tiny')
     setProjectVersion(str(version), project_package=Project.package)
     Project.version = getProjectVersion(project_package=Project.package)
     info("Bumped version from %s to %s" % (original_version_str, Project.version))
@@ -238,7 +238,7 @@ class Version(ComparableMixin):
             return self.scheme.format_str.format(*self.parts)
         return "Unknown version"
 
-    def bump(self, field_name=None):
+    def bump_field(self, field_name=None):
         """
         Bump the given version field by 1.  If no field name is given,
         then bump the least significant field.
@@ -250,6 +250,7 @@ class Version(ComparableMixin):
         """
         if field_name is None:
             field_name = self.scheme.fields[-1]
+        # noinspection PyBroadException
         try:
             index = self.scheme.fields.index(field_name)
             self.parts[index] += 1

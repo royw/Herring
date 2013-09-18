@@ -3,9 +3,6 @@
 """
 Provides built in run support methods for herringfile tasks.
 """
-from pkgutil import iter_modules
-from platform import system
-
 __docformat__ = 'restructuredtext en'
 
 import os
@@ -57,6 +54,8 @@ class HerringFile(object):
         :type exe: list
         :param env: environment
         :type env: dict
+        :param verbose: outputs the method call if True
+        :type verbose: bool
         """
         if verbose:
             info("runProcess(%s, %s)" % (exe, env))

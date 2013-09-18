@@ -13,7 +13,7 @@ from herring.herring_cli import HerringCLI
 
 def main():
     """
-    This is the console entry point
+    This is the console entry point.
     """
 
     cli = HerringCLI()

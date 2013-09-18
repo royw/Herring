@@ -6,6 +6,11 @@
 
 
 class ComparableMixin(object):
+    """
+    Adds comparison operators when mixed with a class.
+
+    The class is required to implement a _cmpkey() method that returns an object that can be compared.
+    """
     def _compare(self, other, method):
         try:
             return method(self._cmpkey(), other._cmpkey())
