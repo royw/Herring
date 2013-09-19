@@ -5,7 +5,7 @@ Unit tests for AppVersion class
 """
 
 from unittest import TestCase
-from herring.support.appVersion import AppVersion
+from herringlib.version import Version
 
 
 class TestVersion(TestCase):
@@ -13,7 +13,7 @@ class TestVersion(TestCase):
 
     def setUp(self):
         """called before each test_*()"""
-        self.v = [AppVersion(vstr) for vstr in [
+        self.v = [Version(vstr) for vstr in [
             '0.0.0',
             '0.0.1',
             '0.0.2',
@@ -43,6 +43,4 @@ class TestVersion(TestCase):
             self.assertTrue(self.v[index] <= self.v[index + 1])
             self.assertTrue(self.v[index + 1] >= self.v[index])
             self.assertTrue(self.v[index] != self.v[index + 1])
-            self.assertTrue(AppVersion(str(self.v[index])) == self.v[index])
-            self.assertTrue(AppVersion(repr(self.v[index])) == self.v[index])
-
+            self.assertTrue(Version(str(self.v[index])) == self.v[index])
