@@ -3,6 +3,7 @@
 """
 Run external scripts and programs.
 """
+from herring.herring_app import run
 
 __docformat__ = 'restructuredtext en'
 
@@ -27,3 +28,20 @@ def system(cmd_line, verbose=True):
     if verbose:
         info(result)
     return result
+
+
+def script(cmdline, env=None):
+    """
+    Simple runner using the *script* utility to preserve color output by letting the
+    command being ran think it is running on a console instead of a tty.
+
+    See: man script
+
+    :param cmdline: command line to run
+    :type cmdline: str
+    :param env: environment variables or None
+    :type env: list
+    :return: the output of the command line
+    :rtype: str
+    """
+    run(['script', '-q', '-e', '-f', '-c', cmdline], env)

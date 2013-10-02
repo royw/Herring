@@ -45,6 +45,7 @@ Project.dirMap(
         'tests': 'tests',
         'dist': 'dist',
         'build': 'build',
+        'features': 'features',
         'egg': "%s.egg-info" % Project.name
     }}
 )

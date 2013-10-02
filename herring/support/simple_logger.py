@@ -14,7 +14,7 @@ __all__ = ('SimpleLogger', 'Logger', 'debug', 'info', 'warning', 'error', 'fatal
 class SimpleLogger(object):
     """A simple logger that supports multiple output streams on a per level basis."""
 
-    def __init__(self):
+    def __init__(self, out_stream=None):
         """Initialize"""
         self.current_component = None
         self.show_level = False
