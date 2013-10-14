@@ -18,6 +18,6 @@ if HerringFile.packagesRequired(required_packages):
     @task(help='You may append behave options when invoking the features task.')
     def features():
         """Run behave features"""
-        script('behave {features} {args}'.format(features=Project.features, args=' '.join(task.argv)))
+        script('behave {features} {args}'.format(features=Project.featuresDir, args=' '.join(task.argv)))
 
 
