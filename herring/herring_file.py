@@ -3,6 +3,8 @@
 """
 Provides built in run support methods for herringfile tasks.
 """
+import fcntl
+
 __docformat__ = 'restructuredtext en'
 
 import os
@@ -13,11 +15,23 @@ from herring.support.simple_logger import info
 __all__ = ('HerringFile',)
 
 
+#noinspection PyPep8Naming
 class HerringFile(object):
     """Run helper"""
     directory = ''
 
     uninstalled_packages = []
+
+    @classmethod
+    def _nonBlockRead(cls, output):
+        fd = output.fileno()
+        fl = fcntl.fcntl(fd, fcntl.F_GETFL)
+        fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
+        #noinspection PyBroadException
+        try:
+            return output.read()
+        except:
+            return ''
 
     @classmethod
     def run(cls, cmd_args, env=None, verbose=True):
@@ -40,6 +54,7 @@ class HerringFile(object):
         for line in cls.runProcess(cmd_args, env=env, verbose=verbose):
             if verbose:
                 sys.stdout.write(line)
+                sys.stdout.flush()
             lines.append(line)
         return "".join(lines)
 
@@ -66,12 +81,10 @@ class HerringFile(object):
 
         process = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
                                    env=sub_env)
-        while True:
-            ret_code = process.poll()   # returns None while subprocess is running
-            line = process.stdout.readline()
-            yield line
-            if ret_code is not None:
-                break
+        while process.poll() is None:   # returns None while subprocess is running
+            line = HerringFile._nonBlockRead(process.stdout)
+            if line:
+                yield line
 
     @classmethod
     def packagesRequired(cls, package_names):
