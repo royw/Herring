@@ -15,12 +15,8 @@ import os
 import shutil
 from herring.herring_app import task, HerringFile
 from herring.support.simple_logger import debug
-from herringlib.recursively_remove import recursively_remove
-from herringlib.project_settings import Project
-
-
-# pylint: disable=W0604,E0602
-global Project
+from recursively_remove import recursively_remove
+from project_settings import Project
 
 
 @task()
@@ -46,5 +42,3 @@ def purge():
 
     if os.path.exists(Project.qualityDir):
         shutil.rmtree(Project.qualityDir)
-
-

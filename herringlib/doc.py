@@ -20,7 +20,6 @@ Add the following to your *requirements.txt* file:
 * sphinxcontrib-seqdiag
 
 """
-from herringlib.runner import system
 
 __docformat__ = 'restructuredtext en'
 
@@ -28,8 +27,9 @@ import fnmatch
 import os
 import re
 from herring.herring_app import task, run, HerringFile
+from runner import system
 from herring.support.simple_logger import info, warning
-from herringlib.project_settings import Project
+from project_settings import Project
 
 required_packages = [
     'Pygments',
@@ -43,14 +43,11 @@ required_packages = [
     'sphinxcontrib-seqdiag']
 
 if HerringFile.packagesRequired(required_packages):
-    from herringlib.cd import cd
-    from herringlib.clean import clean
-    from herringlib.executables import executablesAvailable
-    from herringlib.recursively_remove import recursively_remove
-    from herringlib.safe_edit import safeEdit
-
-    # pylint: disable=W0604,E0602
-    global Project
+    from cd import cd
+    from clean import clean
+    from executables import executablesAvailable
+    from recursively_remove import recursively_remove
+    from safe_edit import safeEdit
 
     @task(depends=['clean'])
     def docClean():

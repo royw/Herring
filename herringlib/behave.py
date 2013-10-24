@@ -5,20 +5,16 @@ Helper for running the behave BDD utility.
 """
 from herring.herring_app import task
 from herring.herring_file import HerringFile
-from herringlib.project_settings import Project
+from project_settings import Project
 
 required_packages = [
     'behave'
 ]
 
 if HerringFile.packagesRequired(required_packages):
-    from herringlib.runner import script
-
-    global Project
+    from runner import script
 
     @task(help='You may append behave options when invoking the features task.')
     def features():
         """Run behave features"""
         script('behave {features} {args}'.format(features=Project.featuresDir, args=' '.join(task.argv)))
-
-

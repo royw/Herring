@@ -11,17 +11,16 @@ __docformat__ = 'restructuredtext en'
 
 import os
 
-from pxssh import pxssh
 
 from herring.herring_app import task, run, HerringFile
 from herring.support.simple_logger import info
-from herringlib.runner import system
-from herringlib.version import bump
-from herringlib.project_settings import Project
+from runner import system
+from version import bump
+from project_settings import Project
 
-
-# pylint: disable=W0604,E0602
-global Project
+packages_required = [
+    'pxssh',
+]
 
 # cleaning is necessary to remove stale .pyc files, particularly after
 # refactoring.
@@ -51,35 +50,38 @@ def uninstall():
         run(['pip', 'uninstall', HerringFile.directory.split(os.path.sep)[-1]])
 
 
-@task()
-def deploy():
-    """ copy latest sdist tar ball to server """
-    version = Project.version
-    project_version_name = "{name}-{version}.tar.gz".format(name=Project.name, version=version)
-    project_latest_name = "{name}-latest.tar.gz".format(name=Project.name)
+if HerringFile.packagesRequired(packages_required):
+    from pxssh import pxssh
 
-    pypi_dir = Project.pypiDir
-    dist_host = Project.distHost
-    dist_dir = '{dir}/{name}'.format(dir=pypi_dir, name=Project.name)
-    dist_url = '{host}:/{path}'.format(host=dist_host, path=dist_dir)
-    dist_version = '{dir}/{file}'.format(dir=dist_dir, file=project_version_name)
-    dist_latest = '{dir}/{file}'.format(dir=dist_dir, file=project_latest_name)
-    dist_file = os.path.join(HerringFile.directory, 'dist', project_version_name)
+    @task()
+    def deploy():
+        """ copy latest sdist tar ball to server """
+        version = Project.version
+        project_version_name = "{name}-{version}.tar.gz".format(name=Project.name, version=version)
+        project_latest_name = "{name}-latest.tar.gz".format(name=Project.name)
 
-    ssh = pxssh()
-    ssh.login(dist_host, Project.user)
-    ssh.sendline('mkdir -p {dir}'.format(dir=dist_dir))
-    ssh.prompt()
-    info(ssh.before)
-    ssh.sendline('rm {path}'.format(path=dist_latest))
-    ssh.prompt()
-    info(ssh.before)
-    ssh.logout()
+        pypi_dir = Project.pypiDir
+        dist_host = Project.distHost
+        dist_dir = '{dir}/{name}'.format(dir=pypi_dir, name=Project.name)
+        dist_url = '{host}:/{path}'.format(host=dist_host, path=dist_dir)
+        dist_version = '{dir}/{file}'.format(dir=dist_dir, file=project_version_name)
+        dist_latest = '{dir}/{file}'.format(dir=dist_dir, file=project_latest_name)
+        dist_file = os.path.join(HerringFile.directory, 'dist', project_version_name)
 
-    run(['scp', dist_file, dist_url])
+        ssh = pxssh()
+        ssh.login(dist_host, Project.user)
+        ssh.sendline('mkdir -p {dir}'.format(dir=dist_dir))
+        ssh.prompt()
+        info(ssh.before)
+        ssh.sendline('rm {path}'.format(path=dist_latest))
+        ssh.prompt()
+        info(ssh.before)
+        ssh.logout()
 
-    ssh = pxssh()
-    ssh.login(dist_host, Project.user)
-    ssh.sendline('ln -s {src} {dest}'.format(src=dist_version, dest=dist_latest))
-    ssh.prompt()
-    ssh.logout()
+        run(['scp', dist_file, dist_url])
+
+        ssh = pxssh()
+        ssh.login(dist_host, Project.user)
+        ssh.sendline('ln -s {src} {dest}'.format(src=dist_version, dest=dist_latest))
+        ssh.prompt()
+        ssh.logout()

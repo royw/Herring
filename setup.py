@@ -54,8 +54,7 @@ setup(
     url='http://herring.example.com',
     packages=['herring', 'herring.support'],
     # package_dir={'herring': 'herring'},
-    package_data={'herring': ['*.txt',
-                              ]},
+    package_data={'herring': ['*.txt']},
     license='license.txt',
     description='Just a python make utility.',
     long_description=open('README.txt').read(),
@@ -63,6 +62,7 @@ setup(
         "argparse",
         'yolk',
         'ordereddict',
+        'unipath',
         # "Foo >= 1.2.3"
     ],
     entry_points={

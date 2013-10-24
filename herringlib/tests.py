@@ -11,6 +11,7 @@ from herring.herring_file import HerringFile
 __docformat__ = 'restructuredtext en'
 
 from herring.herring_app import task, run
+from project_settings import Project
 
 required_packages = [
     'coverage',
@@ -18,10 +19,6 @@ required_packages = [
 ]
 
 if HerringFile.packagesRequired(required_packages):
-    # pylint: disable=W0604,E0602
-    global Project
-
-
     @task()
     def test():
         """ Run the unit tests """

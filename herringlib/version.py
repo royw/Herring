@@ -33,20 +33,17 @@ Usage:
     __version__ = '0.1.3'
 
 """
-from herringlib.comparable_mixin import ComparableMixin
+from comparable_mixin import ComparableMixin
+from project_settings import Project
 
 __docformat__ = 'restructuredtext en'
 
 import os
 import re
 from herring.herring_app import task, HerringFile
-from herring.support.safe_edit import safeEdit
+from safe_edit import safeEdit
 from herring.support.simple_logger import info, error, debug
-from herringlib.project_settings import Project
 
-
-# pylint: disable=W0604,E0602
-global Project
 
 VERSION_REGEX = r'__version__\s*=\s*[\'\"](\S+)[\'\"]'
 
@@ -105,14 +102,14 @@ def setProjectVersion(version_str, project_package=None):
     :type project_package: str
     """
 
-    def versionLine(version_str):
+    def versionLine(ver_str):
         """
         return python line for setting the __version__ attribute
 
-        :param version_str: the version string
-         :type version_str: str
+        :param ver_str: the version string
+         :type ver_str: str
         """
-        return "__version__ = '{version}'".format(version=version_str)
+        return "__version__ = '{version}'".format(version=ver_str)
 
     try:
         file_name = _fileSpec('__init__.py', project_package)
@@ -144,9 +141,9 @@ def bump():
     If the VERSION file does not exist, then create it and initialize the version to '0.0.0'.
     """
     original_version_str = getProjectVersion(project_package=Project.package)
-    version = Version(original_version_str)
-    version.bump_field('Tiny')
-    setProjectVersion(str(version), project_package=Project.package)
+    ver = Version(original_version_str)
+    ver.bump_field('Tiny')
+    setProjectVersion(str(ver), project_package=Project.package)
     Project.version = getProjectVersion(project_package=Project.package)
     info("Bumped version from %s to %s" % (original_version_str, Project.version))
 

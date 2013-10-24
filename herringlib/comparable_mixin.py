@@ -13,6 +13,7 @@ class ComparableMixin(object):
     """
     def _compare(self, other, method):
         try:
+            #noinspection PyProtectedMember
             return method(self._cmpkey(), other._cmpkey())
         except (AttributeError, TypeError):
             # _cmpkey not implemented, or return different type,
@@ -39,5 +40,3 @@ class ComparableMixin(object):
 
     def __ne__(self, other):
         return self._compare(other, lambda s, o: s != o)
-
-

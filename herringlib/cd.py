@@ -36,5 +36,3 @@ class cd(object):
     # noinspection PyUnusedLocal
     def __exit__(self, etype, value, traceback):
         os.chdir(self.saved_path)
-
-

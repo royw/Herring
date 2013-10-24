@@ -17,14 +17,14 @@ Add the following to your *requirements.txt* file:
 * pymetrics
 
 """
-from herringlib.executables import executablesAvailable
+from executables import executablesAvailable
 
 __docformat__ = 'restructuredtext en'
 
 import os
 from herring.herring_app import task
 from herring.herring_file import HerringFile
-from herringlib.project_settings import Project
+from project_settings import Project
 
 packages_required = [
     'Cheesecake',
@@ -36,15 +36,11 @@ packages_required = [
 ]
 
 if HerringFile.packagesRequired(packages_required):
-    from herringlib.runner import system
-
-    # pylint: disable=W0604,E0602
-    global Project
+    from runner import system
 
     @task(depends=['cheesecake', 'lint', 'complexity'])
     def metrics():
         """ Quality metrics """
-
 
     @task()
     def cheesecake():
@@ -57,7 +53,6 @@ if HerringFile.packagesRequired(packages_required):
                 Project.version,
                 cheesecake_log))
 
-
     @task()
     def lint():
         """ Run pylint with project overrides from pylint.rc """
@@ -68,7 +63,6 @@ if HerringFile.packagesRequired(packages_required):
             options += "--rcfile=pylint.rc"
         pylint_log = os.path.join(Project.qualityDir, 'pylint.log')
         system("pylint {options} {dir} > {log}".format(options=options, dir=Project.package, log=pylint_log))
-
 
     @task()
     def complexity():

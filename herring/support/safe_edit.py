@@ -45,10 +45,12 @@ def safeEdit(file_name):
     # pylint: disable=W0702
     except:
         # on any exception, delete the output temporary file
-        tmp_file.close()
-        os.remove(tf_name)
-        tmp_file = None
-        tf_name = None
+        if tmp_file:
+            tmp_file.close()
+            tmp_file = None
+        if tf_name:
+            os.remove(tf_name)
+            tf_name = None
         raise
     finally:
         if in_file:
