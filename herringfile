@@ -17,11 +17,9 @@ import os
 from herring.herring_app import task, HerringFile
 from herring.support.simple_logger import info
 
-from herringlib.project_settings import ProjectSettings
+from herringlib.project_settings import ProjectSettings, Project
 from herringlib.version import getProjectVersion
 
-
-Project = ProjectSettings()
 
 version = getProjectVersion(project_package='herring')
 info("version: %s" % version)
@@ -93,3 +91,10 @@ def argsDemo():
     """ echos that task's arguments """
     info("argv: %s" % repr(task.argv))
     info("kwargs: %s" % repr(task.kwargs))
+
+
+@task()
+def bang():
+    """test error handling"""
+    raise RuntimeError('boom!')
+

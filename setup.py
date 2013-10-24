@@ -3,11 +3,11 @@ import os
 import re
 from setuptools import setup
 
-from sys import version
-
-if version < '2.2.3':
-    print 'herring requires python 2.6 or newer'
-    exit(-1)
+#from sys import version
+#
+#if version < '2.2.3':
+#    print 'herring requires python 2.6 or newer'
+#    exit(-1)
 
 
 VERSION_REGEX = r'__version__\s*=\s*[\'\"](\S+)[\'\"]'
@@ -52,21 +52,17 @@ setup(
     author='Roy Wright',
     author_email='roy@wright.org',
     url='http://herring.example.com',
-    packages=['herring', 'herring.support', 'herring.init'],
+    packages=['herring', 'herring.support'],
     # package_dir={'herring': 'herring'},
     package_data={'herring': ['*.txt',
-                              'init/*.template',
-                              'init/herringlib/*.py',
-                              'init/herringlib/templates/*.template',
-                              'init/herringlib/templates/docs/*.template',
-                              'init/herringlib/templates/docs/_static/*.png',
                               ]},
     license='license.txt',
     description='Just a python make utility.',
     long_description=open('README.txt').read(),
     install_requires=[
         "argparse",
-        'yolk'
+        'yolk',
+        'ordereddict',
         # "Foo >= 1.2.3"
     ],
     entry_points={

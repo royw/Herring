@@ -24,6 +24,7 @@ __docformat__ = 'restructuredtext en'
 import os
 from herring.herring_app import task
 from herring.herring_file import HerringFile
+from herringlib.project_settings import Project
 
 packages_required = [
     'Cheesecake',

@@ -15,6 +15,8 @@ nose
 numpy
 pycabehtml
 PyMetrics
+pytest==2.3.5
+six
 sphinx-bootstrap-theme
 sphinx-pyreverse
 sphinxcontrib-actdiag
@@ -22,4 +24,6 @@ sphinxcontrib-blockdiag
 sphinxcontrib-nwdiag
 sphinxcontrib-plantuml
 sphinxcontrib-seqdiag
+tox
+unipath
 yolk

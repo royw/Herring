@@ -3,6 +3,7 @@
 """
 Provides support for the @task decorator.
 """
+import inspect
 import traceback
 import sys
 
@@ -76,13 +77,15 @@ class TaskWithArgs(object):
             except Exception as ex:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 tb = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback))
-                fatal("{name} - ERROR: {err}\n{tb}".format(name=func.__name__, err=str(ex), tb=tb))
+                fatal("{name} - ERROR: {err}\n{tb}".format(name=func.__name__,
+                                                           err=str(ex),
+                                                           tb=tb))
 
         # save task info into HerringTasks
         HerringTasks[func.__name__] = {
             'task': _wrap,
             'depends': depends,
             'help': task_help,
-            'description': func.__doc__
+            'description': func.__doc__,
         }
         return _wrap

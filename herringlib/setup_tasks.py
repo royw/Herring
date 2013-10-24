@@ -17,6 +17,7 @@ from herring.herring_app import task, run, HerringFile
 from herring.support.simple_logger import info
 from herringlib.runner import system
 from herringlib.version import bump
+from herringlib.project_settings import Project
 
 
 # pylint: disable=W0604,E0602

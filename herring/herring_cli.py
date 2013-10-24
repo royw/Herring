@@ -12,9 +12,9 @@ import re
 import sys
 import textwrap
 from herring.argument_helper import ArgumentHelper
-from herring.new_project import NewProject
 from herring.support.simple_logger import info, Logger
 from herring.task_with_args import TaskWithArgs
+
 
 VERSION_REGEX = r'__version__\s*=\s*[\'\"](\S+)[\'\"]'
 ROW_FORMAT = "{0:<{width1}s}  # {1:<{width2}s}"
@@ -36,8 +36,8 @@ HELP = {
     'version': "Show herring's version.",
     'tasks': "The tasks to run.  If none specified, tries to run the "
              "'default' task.",
-    'init': "Initialize a new project to use Herring.  Creates herringfile and herringlib in the given directory.",
-    'update': "Update the herringlib tasks in an existing project.",
+    #'init': "Initialize a new project to use Herring.  Creates herringfile and herringlib in the given directory.",
+    #'update': "Update the herringlib tasks in an existing project.",
     'quiet': 'Suppress herring output.',
     'debug': 'Display debug messages'
 }
@@ -84,10 +84,8 @@ class HerringCLI(object):
                             action='store_true', help=HELP['version'])
         parser.add_argument('-l', '--longhelp', dest='longhelp', action='store_true',
                             help='Long help about Herring')
-        parser.add_argument('--init', metavar='DIRSPEC',
-                            default=None, help=HELP['init'])
-        parser.add_argument('--update', metavar='DIRSPEC',
-                            default=None, help=HELP['update'])
+        #parser.add_argument('--init', metavar='DIRSPEC', default=None, help=HELP['init'])
+        #parser.add_argument('--update', metavar='DIRSPEC', default=None, help=HELP['update'])
         parser.add_argument('tasks', nargs='*', help=HELP['tasks'])
         return parser.parse_known_args()
 
@@ -120,11 +118,11 @@ class HerringCLI(object):
             info("Herring version %s" % self._load_version())
             exit(0)
 
-        if settings.init:
-            exit(NewProject(settings.init).populate())
-
-        if settings.update:
-            exit(NewProject(settings.update).update())
+        #if settings.init:
+        #    exit(NewProject(settings.init).populate())
+        #
+        #if settings.update:
+        #    exit(NewProject(settings.update).update())
 
         return settings
 

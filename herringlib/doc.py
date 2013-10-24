@@ -20,6 +20,7 @@ Add the following to your *requirements.txt* file:
 * sphinxcontrib-seqdiag
 
 """
+from herringlib.runner import system
 
 __docformat__ = 'restructuredtext en'
 
@@ -27,8 +28,8 @@ import fnmatch
 import os
 import re
 from herring.herring_app import task, run, HerringFile
-from herring.init.herringlib.runner import system
 from herring.support.simple_logger import info, warning
+from herringlib.project_settings import Project
 
 required_packages = [
     'Pygments',

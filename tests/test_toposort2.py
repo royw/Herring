@@ -4,11 +4,11 @@
 Unit tests for toposort2 function
 """
 
-from unittest import TestCase
+import pytest
 from herring.support.toposort2 import toposort2
 
 
-class TestToposort2(TestCase):
+class TestToposort2:
     """ Test suite for toposort2 """
     # noinspection PySetFunctionToLiteral
     def test_toposort2(self):
@@ -33,5 +33,4 @@ class TestToposort2(TestCase):
 
         for level in (sorted(x) for x in toposort2(data)):
             expected = expected_results.pop(0)
-            self.assertTrue(level == expected,
-                            "level => %s, expected => %s" % (level, expected))
+            assert level == expected, "level => %s, expected => %s" % (level, expected)

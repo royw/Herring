@@ -6,7 +6,7 @@ Helper for verifying that 3rd party applications are available for use.
 
 __docformat__ = 'restructuredtext en'
 
-from herring.init.herringlib.runner import system
+from herringlib.runner import system
 from herring.support.simple_logger import warning
 
 HELP = {

@@ -5,6 +5,7 @@ Helper for running the behave BDD utility.
 """
 from herring.herring_app import task
 from herring.herring_file import HerringFile
+from herringlib.project_settings import Project
 
 required_packages = [
     'behave'

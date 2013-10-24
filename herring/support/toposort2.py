@@ -9,6 +9,8 @@ From: Topological Sort (Python recipe)
     python 2.6. (Roy)
 """
 
+import six
+
 __docformat__ = "restructuredtext en"
 
 
@@ -45,7 +47,7 @@ def toposort2(data):
 
     # Find all items that don't depend on anything.
     extra_items_in_deps = reduce(set.union,
-                                 data.itervalues()) - set(data.iterkeys())
+                                 six.itervalues(data)) - set(six.iterkeys(data))
 
     # Add empty dependencies where needed
     # data.update({item: set() for item in extra_items_in_deps})
@@ -53,7 +55,7 @@ def toposort2(data):
     # dict((item, word.count(item)) for item in set(word))
     data.update(dict((item, set()) for item in extra_items_in_deps))
     while True:
-        ordered = set(item for item, dep in data.iteritems() if not dep)
+        ordered = set(item for item, dep in six.iteritems(data) if not dep)
         if not ordered:
             break
         yield ordered
@@ -61,11 +63,11 @@ def toposort2(data):
         #         for item, dep in data.iteritems()
         #         if item not in ordered}
         data = dict((item, (dep - ordered))
-                    for item, dep in data.iteritems()
+                    for item, dep in six.iteritems(data)
                     if item not in ordered)
 
     error_format = "Cyclic dependencies exist among these items:\n%s"
-    assert not data, error_format % '\n'.join(repr(x) for x in data.iteritems())
+    assert not data, error_format % '\n'.join(repr(x) for x in six.iteritems(data))
 
 
 if __name__ == '__main__':

@@ -4,6 +4,7 @@
 Provides built in run support methods for herringfile tasks.
 """
 import fcntl
+from herring.support.graceful_interrupt_handler import GracefulInterruptHandler
 
 __docformat__ = 'restructuredtext en'
 
@@ -21,6 +22,7 @@ class HerringFile(object):
     directory = ''
 
     uninstalled_packages = []
+    installed_packages = None
 
     @classmethod
     def _nonBlockRead(cls, output):
@@ -56,6 +58,7 @@ class HerringFile(object):
                 sys.stdout.write(line)
                 sys.stdout.flush()
             lines.append(line)
+
         return "".join(lines)
 
     @classmethod
@@ -79,12 +82,17 @@ class HerringFile(object):
             for key, value in env.iteritems():
                 sub_env[key] = value
 
-        process = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
-                                   env=sub_env)
-        while process.poll() is None:   # returns None while subprocess is running
-            line = HerringFile._nonBlockRead(process.stdout)
-            if line:
-                yield line
+        with GracefulInterruptHandler() as handler:
+            process = subprocess.Popen(exe, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                                       env=sub_env)
+            while process.poll() is None:   # returns None while subprocess is running
+                if handler.interrupted:
+                    process.kill()
+                while True:
+                    line = HerringFile._nonBlockRead(process.stdout)
+                    if not line:
+                        break
+                    yield line
 
     @classmethod
     def packagesRequired(cls, package_names):
@@ -98,14 +106,14 @@ class HerringFile(object):
         """
         result = True
 
-        # installed_packages = [mod_info[1] for mod_info in iter_modules()]
-        # info("\n".join(sorted(installed_packages)))
         packages = cls.run(['yolk', '-l'], verbose=False).split("\n")
-        installed_packages = [name.split()[0].lower() for name in packages if name]
-        # info("installed_packages: %s" % repr(installed_packages))
+        if cls.installed_packages is None:
+            cls.installed_packages = [name.split()[0].lower() for name in packages if name]
+
+        # info("installed_packages: %s" % repr(cls.installed_packages))
 
         for pkg_name in package_names:
-            if pkg_name.lower() not in installed_packages:
-                print pkg_name + " not installed!"
+            if pkg_name.lower() not in cls.installed_packages:
+                print(pkg_name + " not installed!")
                 result = False
         return result

@@ -40,8 +40,9 @@ __docformat__ = 'restructuredtext en'
 import os
 import re
 from herring.herring_app import task, HerringFile
-from herring.init.herringlib.safe_edit import safeEdit
+from herring.support.safe_edit import safeEdit
 from herring.support.simple_logger import info, error, debug
+from herringlib.project_settings import Project
 
 
 # pylint: disable=W0604,E0602

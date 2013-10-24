@@ -3,7 +3,7 @@
 """
 Test the herring application.
 """
-from StringIO import StringIO
+from six import StringIO
 import os
 import shutil
 from tempfile import mkdtemp
@@ -54,10 +54,10 @@ class TestHerring(TestCase):
         dataDict = self.herring_app._tasks_to_depend_dict(self.herring_tasks.keys(), self.herring_tasks)
         self.assertEquals(dataDict['alpha'], set([]))
         self.assertEquals(dataDict['beta'], set([]))
-        self.assertEquals(dataDict['gamma'], {'alpha'})
-        self.assertEquals(dataDict['delta'], {'beta', 'phi'})
+        self.assertEquals(dataDict['gamma'], set(['alpha']))
+        self.assertEquals(dataDict['delta'], set(['beta', 'phi']))
         self.assertEquals(dataDict['phi'], set([]))
-        self.assertEquals(dataDict['sigma'], {'alpha', 'delta'})
+        self.assertEquals(dataDict['sigma'], set(['alpha', 'delta']))
         self.assertFalse(self._output_buf.getvalue())
 
     def verify_findDependencies(self, src_list, dest_list):
@@ -77,8 +77,7 @@ class TestHerring(TestCase):
         self.verify_findDependencies(['gamma'], ['gamma', 'alpha'])
         self.verify_findDependencies(['delta'], ['delta', 'beta', 'phi'])
         self.verify_findDependencies(['phi'], ['phi'])
-        self.verify_findDependencies(['sigma'], ['sigma', 'alpha', 'delta',
-                                                 'beta', 'phi'])
+        self.verify_findDependencies(['sigma'], ['sigma', 'alpha', 'delta', 'beta', 'phi'])
 
     def verify_resolveDependencies(self, src_list, dest_list):
         """
@@ -88,7 +87,7 @@ class TestHerring(TestCase):
         :param dest_list: output list containing task names
         """
         depends = self.herring_app._resolve_dependencies(src_list, self.herring_tasks)
-        self.assertEquals(depends, dest_list)
+        self.assertEquals(sorted(depends), sorted(dest_list))
 
     def test__resolveDependencies(self):
         """ tasks are ordered """
@@ -97,8 +96,7 @@ class TestHerring(TestCase):
         self.verify_resolveDependencies(['gamma'], ['alpha', 'gamma'])
         self.verify_resolveDependencies(['delta'], ['beta', 'phi', 'delta'])
         self.verify_resolveDependencies(['phi'], ['phi'])
-        self.verify_resolveDependencies(['sigma'], ['alpha', 'beta', 'phi',
-                                                    'delta', 'sigma'])
+        self.verify_resolveDependencies(['sigma'], ['alpha', 'beta', 'phi', 'delta', 'sigma'])
 
     # def test__wrap(self):
     #     """ verify the _wrap method correctly wraps strings """

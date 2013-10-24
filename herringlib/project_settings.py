@@ -281,3 +281,5 @@ if HerringFile.packagesRequired(['ordereddict']):
 
         info("Please add the following to your %s:\n" % requirements_filename)
         info("\n".join(diff))
+
+    Project = ProjectSettings()

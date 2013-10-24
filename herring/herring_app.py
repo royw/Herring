@@ -3,6 +3,10 @@
 """
 The main Herring application.
 """
+from imp import PY_SOURCE
+import pkgutil
+import types
+from unipath import Path
 
 __docformat__ = 'restructuredtext en'
 
@@ -121,9 +125,14 @@ class HerringApp(object):
         :type herringfile: str
         :return: None
         """
-        self._load_herring_file(herringfile)
-        for file_ in self.library_files(herringfile):
-            self._load_herring_file(file_)
+        sys.path.extend(os.path.dirname(herringfile))
+        self._load_file(herringfile)
+        for file_name in self.library_files(herringfile):
+            debug("file_name = {file}".format(file=file_name))
+            mod_name = 'herringlib.' + Path(file_name).stem
+            debug("mod_name = {name}".format(name=mod_name))
+            __import__(mod_name)
+
 
     @staticmethod
     def library_files(herringfile, lib_base_name='herringlib',
@@ -143,41 +152,48 @@ class HerringApp(object):
         :return: iterator for path to a library herring file
         :rtype: iterator
         """
-        lib_dir = os.path.join(os.path.dirname(herringfile), lib_base_name)
-        if os.path.isdir(lib_dir):
-            files = findFiles(lib_dir, excludes=['*/templates/*', '__init__.py', '.svn'], includes=[pattern])
-            for file_name in files:
-                if os.path.basename(file_name) == '__init__.py':
+        herring_path = Path(os.path.dirname(herringfile))
+        lib_dir = Path(herring_path, lib_base_name)
+        if lib_dir.isdir():
+            files = findFiles(lib_dir, excludes=['*/templates/*', '.svn'], includes=[pattern])
+            for file_path in [Path(file_name) for file_name in files]:
+                if file_path.name == '__init__.py':
                     continue
-                debug("loading herringlib:  %s" % file_name)
-                yield file_name
+                debug("loading from herringlib:  %s" % file_path)
+                yield herring_path.rel_path_to(file_path)
 
-    def _load_herring_file(self, herringfile):
+    def load_plugin(self, plugin, paths):
+        import imp
+
+        # check if we haven't loaded it already
+        try:
+            return sys.modules[plugin]
+        except KeyError:
+            pass
+        # ok, the load it
+        #fp, filename, desc = imp.find_module(plugin, paths)
+        filename = os.path.join(paths, plugin)
+        extension = os.path.splitext(filename)[1]
+        mode = 'r'
+        desc = (extension, mode, PY_SOURCE)
+        debug(repr(desc))
+        with open(filename, mode) as fp:
+            mod = imp.load_module(plugin, fp, filename, desc)
+        return mod
+
+    def _load_file(self, file_name):
         """
         Loads the tasks from the herringfile populating the
         HerringApp.HerringTasks structure.
 
-        :param herringfile: the herringfile
-        :type herringfile: str
+        :param file_name: the herringfile
+        :type file_name: str
         :return: None
         """
-        with open(str(herringfile)) as file_:
-            dest_lines = [line
-                          for line in file_.readlines()
-                          if not re.match(r"""
-                                           ^\s*
-                                           (
-                                                from\s+herring\.herring_app
-                                              | import\s+herring
-                                           )
-                                           """, line, re.VERBOSE)]
-            herring_source = "\n".join(dest_lines)
-            try:
-                globals_ = globals()
-                # pylint: disable=W0122
-                exec (herring_source, globals_)
-            except ImportError as ex:
-                error(ex)
+        plugin = os.path.basename(file_name)
+        path = os.path.dirname(file_name)
+        debug("plugin: {plugin}, path: {path}".format(plugin=plugin, path=path))
+        self.load_plugin(plugin, path)
 
     def _get_tasks_list(self, herring_tasks, all_tasks_flag):
         """
@@ -309,5 +325,6 @@ class HerringApp(object):
         verified_task_list = self._verify_tasks_exists(task_list)
         for task_name in self._resolve_dependencies(verified_task_list,
                                                     HerringTasks):
-            info("Running: %s" % task_name)
+            info("Running: {name} ({description})".format(name=task_name,
+                                                          description=HerringTasks[task_name]['description']))
             HerringTasks[task_name]['task']()

@@ -16,6 +16,7 @@ import shutil
 from herring.herring_app import task, HerringFile
 from herring.support.simple_logger import debug
 from herringlib.recursively_remove import recursively_remove
+from herringlib.project_settings import Project
 
 
 # pylint: disable=W0604,E0602
