@@ -11,7 +11,7 @@ __docformat__ = 'restructuredtext en'
 import os
 import subprocess
 import sys
-from herring.support.simple_logger import info
+from herring.support.simple_logger import debug
 
 __all__ = ('HerringFile',)
 
@@ -48,10 +48,10 @@ class HerringFile(object):
         :type verbose: bool
         """
         if verbose:
-            info("cmd_args => %s" % repr(cmd_args))
-            info("env => %s" % repr(env))
-            info("verbose => %s" % repr(verbose))
-            info(' '.join(cmd_args))
+            debug("cmd_args => %s" % repr(cmd_args))
+            debug("env => %s" % repr(env))
+            debug("verbose => %s" % repr(verbose))
+            debug(' '.join(cmd_args))
         lines = []
         for line in cls.runProcess(cmd_args, env=env, verbose=verbose):
             if verbose:
@@ -76,7 +76,7 @@ class HerringFile(object):
         :type verbose: bool
         """
         if verbose:
-            info("runProcess(%s, %s)" % (exe, env))
+            debug("runProcess(%s, %s)" % (exe, env))
         sub_env = os.environ.copy()
         if env:
             for key, value in env.iteritems():
