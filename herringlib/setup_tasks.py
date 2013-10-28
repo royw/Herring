@@ -19,7 +19,7 @@ from version import bump
 from project_settings import Project
 
 packages_required = [
-    'pxssh',
+    'pexpect',
 ]
 
 # cleaning is necessary to remove stale .pyc files, particularly after
