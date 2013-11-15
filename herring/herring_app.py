@@ -4,13 +4,10 @@
 The main Herring application.
 """
 from imp import PY_SOURCE
-import pkgutil
-import types
 from unipath import Path
 
 __docformat__ = 'restructuredtext en'
 
-import re
 import os
 import sys
 
