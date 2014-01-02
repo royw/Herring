@@ -6,20 +6,22 @@ Add the following to your *requirements.txt* file:
 * nose
 
 """
-from herring.herring_file import HerringFile
 
 __docformat__ = 'restructuredtext en'
 
-from herring.herring_app import task, run
-from project_settings import Project
+from herring.herring_app import task
+from project_settings import Project, packages_required
+from local_shell import LocalShell
+
 
 required_packages = [
     'coverage',
     'nose'
 ]
 
-if HerringFile.packagesRequired(required_packages):
+if packages_required(required_packages):
     @task()
     def test():
         """ Run the unit tests """
-        run(("nosetests -vv --where=%s" % Project.testsDir).split(' '))
+        with LocalShell() as local:
+            local.run(("nosetests -vv --where=%s" % Project.tests_dir).split(' '))

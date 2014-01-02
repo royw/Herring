@@ -13,8 +13,8 @@ __docformat__ = 'restructuredtext en'
 
 import os
 import shutil
-from herring.herring_app import task, HerringFile
-from herring.support.simple_logger import debug
+from herring.herring_app import task
+from simple_logger import debug
 from recursively_remove import recursively_remove
 from project_settings import Project
 
@@ -22,11 +22,11 @@ from project_settings import Project
 @task()
 def clean():
     """ remove build artifacts """
-    recursively_remove(HerringFile.directory, '*.pyc')
-    recursively_remove(HerringFile.directory, '*~')
+    recursively_remove(Project.herringfile_dir, '*.pyc')
+    recursively_remove(Project.herringfile_dir, '*~')
     debug(repr(Project.__dict__))
 
-    dirs = [Project.distDir, Project.buildDir, Project.eggDir]
+    dirs = [Project.dist_dir, Project.egg_dir]
     # print "dirs => %s" % repr(dirs)
 
     for dir_name in dirs:
@@ -37,8 +37,8 @@ def clean():
 @task(depends=['clean'])
 def purge():
     """ remove unnecessary files """
-    if os.path.exists(Project.apiDir):
-        shutil.rmtree(Project.apiDir)
+    if os.path.exists(Project.api_dir):
+        shutil.rmtree(Project.api_dir)
 
-    if os.path.exists(Project.qualityDir):
-        shutil.rmtree(Project.qualityDir)
+    if os.path.exists(Project.quality_dir):
+        shutil.rmtree(Project.quality_dir)

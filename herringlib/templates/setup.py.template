@@ -13,7 +13,7 @@ if version < '2.2.3':
 VERSION_REGEX = r'__version__\s*=\s*[\'\"](\S+)[\'\"]'
 
 
-def getProjectVersion():
+def get_project_version():
     """
     Get the version from __init__.py with a line: /^__version__\s*=\s*(\S+)/
     If it doesn't exist try to load it from the VERSION.txt file.
@@ -48,20 +48,30 @@ def getProjectVersion():
 
 setup(
     name='{name}',
-    version=getProjectVersion(),
+    version=get_project_version(),
     author='{author}',
     author_email='{author_email}',
     url='http://{package}.example.com',
     packages=['{package}'],
     package_dir={{'': '.'}},
     package_data={{'{package}': ['*.txt', '*.js', '*.html', '*.css'],
-                  'docs': ['*'],
                   'tests': ['*'],
-                  'herringlib': ['*'],
-                  '': ['*.txt', '*.rc', 'herringfile', '*.in']}},
+                  '': ['*.rst', '*.txt', '*.rc', '*.in']}},
     license='license.txt',
     description='{description}',
     long_description=open('README.txt').read(),
+    # use keywords relevant to the application
+    keywords=[],
+    # use classifiers from:  https://pypi.python.org/pypi?%3Aaction=list_classifiers
+    classifiers=[
+        'Development Status :: 5 - Production/Stable',
+        'Intended Audience :: Developers',
+        'License :: OSI Approved :: MIT License',
+        'Natural Language :: English',
+        'Operating System :: OS Independent',
+        'Programming Language :: Python',
+        'Topic :: Software Development',
+    ],
     install_requires=[
         # "argparse",
         # "mako"

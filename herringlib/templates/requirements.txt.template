@@ -13,6 +13,7 @@ pexpect
 pycabehtml
 pylint
 pymetrics
+setuptools >= 2.0.1
 sphinx-bootstrap-theme
 sphinx-pyreverse
 sphinxcontrib-plantuml

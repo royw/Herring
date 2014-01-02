@@ -20,16 +20,17 @@ Add the following to your *requirements.txt* file:
 * sphinxcontrib-seqdiag
 
 """
+import shutil
 
 __docformat__ = 'restructuredtext en'
 
 import fnmatch
 import os
 import re
-from herring.herring_app import task, run, HerringFile
-from runner import system
-from herring.support.simple_logger import info, warning
-from project_settings import Project
+from herring.herring_app import task
+from simple_logger import info, warning
+from project_settings import Project, packages_required
+from local_shell import LocalShell
 
 required_packages = [
     'Pygments',
@@ -42,21 +43,21 @@ required_packages = [
     'sphinxcontrib-nwdiag',
     'sphinxcontrib-seqdiag']
 
-if HerringFile.packagesRequired(required_packages):
+if packages_required(required_packages):
     from cd import cd
     from clean import clean
-    from executables import executablesAvailable
+    from executables import executables_available
     from recursively_remove import recursively_remove
-    from safe_edit import safeEdit
+    from safe_edit import safe_edit, quick_edit
 
     @task(depends=['clean'])
-    def docClean():
+    def doc_clean():
         """Remove documentation artifacts"""
-        recursively_remove(os.path.join(Project.docsDir, '_src'), '*')
-        recursively_remove(os.path.join(Project.docsDir, '_epy'), '*')
-        recursively_remove(os.path.join(Project.docsDir, '_build'), '*')
+        recursively_remove(os.path.join(Project.docs_dir, '_src'), '*')
+        recursively_remove(os.path.join(Project.docs_dir, '_epy'), '*')
+        recursively_remove(os.path.join(Project.docs_dir, '_build'), '*')
 
-    def _nameDict(file_name):
+    def _name_dict(file_name):
         """extract the name dictionary from the automodule lines in the sphinx src file"""
         name_dict = {}
         with open(file_name, 'r') as in_file:
@@ -69,12 +70,12 @@ if HerringFile.packagesRequired(required_packages):
                         name_dict[key] = value
         return name_dict
 
-    def _packageLine(module_name):
+    def _package_line(module_name):
         """create the package figure lines for the given module"""
         line = ''
         package_image = "uml/packages_{name}.svg".format(name=module_name.split('.')[-1])
         classes_image = "uml/classes_{name}.svg".format(name=module_name.split('.')[-1])
-        image_path = os.path.join(Project.docsDir, '_src', package_image)
+        image_path = os.path.join(Project.docs_dir, '_src', package_image)
         if os.path.exists(image_path):
             info("adding figure %s" % image_path)
             line += "\n.. figure:: {image}\n    :width: 1100 px\n\n    {name} Packages\n\n".format(
@@ -87,11 +88,11 @@ if HerringFile.packagesRequired(required_packages):
             warning("%s does not exist!" % image_path)
         return line
 
-    def _classLine(module_name, class_name):
+    def _class_line(module_name, class_name):
         """create the class figure lines for the given module and class"""
         line = ''
         classes_image = "uml/classes_{module}.{name}.png".format(module=module_name, name=class_name)
-        image_path = os.path.join(Project.docsDir, '_src', classes_image)
+        image_path = os.path.join(Project.docs_dir, '_src', classes_image)
         if os.path.exists(image_path):
             info("adding figure %s" % image_path)
             line += "\n.. figure:: {image}\n\n    {name} Class\n\n".format(
@@ -101,7 +102,7 @@ if HerringFile.packagesRequired(required_packages):
             warning("%s does not exist!" % image_path)
         return line
 
-    def hackDocSrcFile(file_name):
+    def hack_doc_src_file(file_name):
         """
         Hack the generated doc source file to add UML and inheritance diagram support.
 
@@ -123,12 +124,12 @@ if HerringFile.packagesRequired(required_packages):
             return
 
         # build dict from automodule lines where key is base name, value is full name
-        name_dict = _nameDict(file_name)
+        name_dict = _name_dict(file_name)
 
         module_name = os.path.splitext(os.path.basename(file_name))[0]
 
         # substitute full names into mod lines with base names.
-        with safeEdit(file_name) as files:
+        with safe_edit(file_name) as files:
             in_file = files['in']
             out_file = files['out']
             info("Editing %s" % file_name)
@@ -150,9 +151,9 @@ if HerringFile.packagesRequired(required_packages):
                     if line_length > 0:
                         line = "%s\n" % (line[0] * line_length)
                         if package:
-                            line += _packageLine(module_name)
+                            line += _package_line(module_name)
                         else:
-                            line += _classLine(module_name, class_name)
+                            line += _class_line(module_name, class_name)
                 out_file.write(line)
 
             out_file.write("\n\n")
@@ -163,25 +164,25 @@ if HerringFile.packagesRequired(required_packages):
                 out_file.write(".. inheritance-diagram:: %s\n" % value)
             out_file.write("\n\n")
 
-    @task(depends=['docClean'])
-    def apiDoc():
+    @task(depends=['doc_clean'])
+    def api_doc():
         """Generate API sphinx source files from code"""
-        with cd(Project.docsDir):
+        with cd(Project.docs_dir):
             os.system("sphinx-apidoc -d 6 -o _src ../%s" % Project.package)
 
-    def _customizeDocSrcFiles():
+    def _customize_doc_src_files():
         """change the auto-api generated sphinx src files to be more what we want"""
-        for root, dirs, files in os.walk(os.path.join(Project.docsDir, '_src')):
+        for root, dirs, files in os.walk(os.path.join(Project.docs_dir, '_src')):
             for file_name in files:
                 if file_name != 'modules.rst':
-                    hackDocSrcFile(os.path.join(root, file_name))
+                    hack_doc_src_file(os.path.join(root, file_name))
 
             # ignore dot sub-directories ('.*') (mainly for skipping .svn directories)
             for name in dirs:
                 if name.startswith('.'):
                     dirs.remove(name)
 
-    def cleanDocLog(file_name):
+    def clean_doc_log(file_name):
         """
         Removes sphinx/python 2.6 warning messages.
 
@@ -197,7 +198,7 @@ if HerringFile.packagesRequired(required_packages):
         :param file_name: log file name
          :type file_name: str
         """
-        with safeEdit(file_name) as files:
+        with safe_edit(file_name) as files:
             in_file = files['in']
             out_file = files['out']
             for line in in_file.readlines():
@@ -207,14 +208,14 @@ if HerringFile.packagesRequired(required_packages):
                         continue
                 out_file.write(line)
 
-    def _createModuleDiagrams(path):
+    def _create_module_diagrams(path):
         """
         create module UML diagrams
 
         :param path: the module path
          :type path: str
         """
-        if not executablesAvailable(['pyreverse']):
+        if not executables_available(['pyreverse']):
             return
         for module_path in [root for root, dirs, files in os.walk(path)]:
             init_filename = os.path.join(module_path, '__init__.py')
@@ -226,59 +227,58 @@ if HerringFile.packagesRequired(required_packages):
                 info(cmd_line)
                 os.system(cmd_line)
 
-    def _createClassDiagrams(path):
+    def _create_class_diagrams(path):
         """
         Create class UML diagram
 
         :param path: path to the module file.
         :type path: str
         """
-        if not executablesAvailable(['pynsource']):
+        if not executables_available(['pynsource']):
             return
         files = [os.path.join(dir_path, f)
                  for dir_path, dir_names, files in os.walk(path)
                  for f in fnmatch.filter(files, '*.py')]
         for src_file in files:
-            name = src_file.replace(HerringFile.directory + '/', '').replace('.py', '.png').replace('/', '.')
+            name = src_file.replace(Project.herringfile_dir + '/', '').replace('.py', '.png').replace('/', '.')
             output = "classes_{name}".format(name=name)
             cmd_line = "pynsource -y {output} {source}".format(output=output, source=src_file)
             info(cmd_line)
             os.system(cmd_line)
 
-    @task(depends=['apiDoc'])
-    def docDiagrams():
+    @task(depends=['api_doc'])
+    def doc_diagrams():
         """Create UML diagrams"""
-        path = os.path.join(HerringFile.directory, Project.package)
-        with cd(Project.umlDir):
-            _createModuleDiagrams(path)
-            _createClassDiagrams(path)
+        path = os.path.join(Project.herringfile_dir, Project.package)
+        with cd(Project.uml_dir):
+            _create_module_diagrams(path)
+            _create_class_diagrams(path)
 
-    @task(depends=['apiDoc', 'docDiagrams', 'updateReadme'])
-    def sphinxDocs():
+    @task(depends=['api_doc', 'doc_diagrams', 'sphinx_logo'])
+    def sphinx_docs():
         """Generate sphinx API documents"""
-        _customizeDocSrcFiles()
-        with cd(Project.docsDir):
-            os.system('PYTHONPATH=%s sphinx-build -b html -d _build/doctrees -w docs.log -a -E -n . _build/html' %
-                      Project.pythonPath)
-            cleanDocLog('docs.log')
+        _customize_doc_src_files()
+        with cd(Project.docs_dir):
+            os.system('PYTHONPATH={pythonpath} sphinx-build -b html -d _build/doctrees -w docs.log '
+                      '-a -E -n . ../{htmldir}'.format(pythonpath=Project.pythonPath, htmldir=Project.docs_html_dir))
+            clean_doc_log('docs.log')
 
     @task()
     def idoc():
         """Incremental build docs for testing purposes"""
-        with cd(Project.docsDir):
-            os.system('PYTHONPATH=%s sphinx-build -b html -d _build/doctrees -w docs.log -n . _build/html' %
-                      Project.pythonPath)
-            cleanDocLog('docs.log')
+        with cd(Project.docs_dir):
+            os.system('PYTHONPATH={pythonpath} sphinx-build -b html -d _build/doctrees -w docs.log '
+                      '-n . ../{htmldir}'.format(pythonpath=Project.pythonPath, htmldir=Project.docs_html_dir))
+            clean_doc_log('docs.log')
 
-    @task(depends=['apiDoc'])
-    def epyDocs():
+    @task(depends=['api_doc'])
+    def epy_docs():
         """Generate epy API documents"""
-        with cd(Project.docsDir):
-            cmd_args = ['epydoc', '-v', '--output', '_epy', '--graph', 'all', 'bin', 'db', 'dst', 'dut', 'lab',
-                        'otto', 'pc', 'tests', 'util']
-            run(cmd_args)
+        with cd(Project.docs_dir):
+            with LocalShell as local:
+                local.run('epydoc -v --output _epy --graph all bin db dst dut lab otto pc tests util')
 
-    @task(depends=['sphinxDocs'])
+    @task(depends=['sphinx_docs'])
     def doc():
         """Generate API documents"""
         pass
@@ -291,26 +291,91 @@ if HerringFile.packagesRequired(required_packages):
     @task()
     def updateReadme():
         """Update the README.txt from the application's --longhelp output"""
-        text = system("%s --longhelp" % os.path.join(HerringFile.directory, Project.package, Project.main))
-        with open("README.txt", 'w') as readme_file:
-            readme_file.write(text)
+        with LocalShell() as local:
+            text = local.system("%s --longhelp" % os.path.join(Project.herringfile_dir, Project.package, Project.main))
+            with open("README.txt", 'w') as readme_file:
+                readme_file.write(text)
 
     @task(depends=['docClean'])
     def rstlint():
         """Check the RST in the source files"""
-        if not executablesAvailable(['rstlint.py']):
+        if not executables_available(['rstlint.py']):
             return
         rst_files = [os.path.join(dir_path, f)
-                     for dir_path, dir_names, files in os.walk(HerringFile.directory)
+                     for dir_path, dir_names, files in os.walk(Project.herringfile_dir)
                      for f in fnmatch.filter(files, '*.rst')]
 
         src_files = [os.path.join(dir_path, f)
-                     for dir_path, dir_names, files in os.walk(HerringFile.directory)
+                     for dir_path, dir_names, files in os.walk(Project.herringfile_dir)
                      for f in fnmatch.filter(files, '*.py')]
 
-        for src_file in rst_files + src_files:
-            cmd_line = 'rstlint.py {file}'.format(file=src_file)
-            result = system(cmd_line, verbose=False)
-            if not re.search(r'No problems found', result):
-                info(cmd_line)
-                info(result)
+        with LocalShell as local:
+            for src_file in rst_files + src_files:
+                cmd_line = 'rstlint.py {file}'.format(file=src_file)
+                result = local.system(cmd_line, verbose=False)
+                if not re.search(r'No problems found', result):
+                    info(cmd_line)
+                    info(result)
+
+    def _neon(text):
+        pre = """\
+            -size 500x200 \
+            xc:lightblue \
+            -font Aegean-Regular -pointsize 72 \
+            -gravity center \
+            -undercolor black \
+            -stroke none \
+            -strokewidth 3 \
+        """
+        post = """\
+            -trim \
+            +repage \
+            -shave 1x1 \
+            -bordercolor black \
+            -border 20x20 \
+        """
+        on = """convert \
+            {pre} \
+            -fill DeepSkyBlue \
+            -annotate +0+0 '{text}' \
+            {post} \
+            \( +clone -blur 0x25 -level 0%,50% \) \
+            -compose screen -composite \
+            {text}_on.png
+        """.format(text=text, pre=pre, post=post)
+
+        off = """convert \
+            {pre} \
+            -fill grey12 \
+            -annotate +0+0 '{text}' \
+            {post} \
+             {text}_off.png
+        """.format(text=text, pre=pre, post=post)
+
+        animated = """convert \
+            -adjoin -delay 100 {text}_on.png {text}_off.png {text}_animated.gif
+        """.format(text=text)
+
+        with LocalShell(verbose=False) as local:
+            local.run(on)
+            local.run(off)
+            local.run(animated)
+            local.run('bash -c "rm -f {text}_on.png {text}_off.png"'.format(text=text))
+
+        return "{text}_animated.gif".format(text=text)
+
+    @task()
+    def display_logo():
+        """generate neon_versio.png"""
+        logo_file = _neon(Project.name)
+        with LocalShell(verbose=False) as local:
+            local.run('bash -c "display {logo_file} &"'.format(logo_file=logo_file))
+
+    @task()
+    def sphinx_logo():
+        """create the logo used in the sphinx documentation"""
+        logo_file = _neon(Project.name)
+        shutil.copyfile(logo_file, os.path.join(Project.docs_dir, '_static', logo_file))
+        quick_edit(os.path.join(Project.docs_dir, 'conf.py'),
+                   {r'(\s*html_logo\s*=\s*\".*?\").*':
+                    ["html_logo = \"{logo}\"".format(logo=logo_file)]})

@@ -7,14 +7,15 @@ Add the following to your *requirements.txt* file:
 * ordereddict
 
 """
-from herring.herring_file import HerringFile
 
 __docformat__ = 'restructuredtext en'
 
-if HerringFile.packagesRequired(['ordereddict']):
+from project_settings import packages_required
+
+if packages_required(['ordereddict']):
     from ordereddict import OrderedDict
 
-    def compressList(src_list):
+    def compress_list(src_list):
         """
         Removes None or empty items from the list
 
@@ -25,7 +26,7 @@ if HerringFile.packagesRequired(['ordereddict']):
         """
         return [item for item in src_list if item]
 
-    def uniqueList(src_list):
+    def unique_list(src_list):
         """
         returns a new list without any duplicates
 

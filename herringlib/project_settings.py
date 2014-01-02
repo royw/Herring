@@ -14,30 +14,29 @@ Each project must define it's metadata and directory structure.  This is usually
             'name': 'Herring',
             'package': 'herring',
             'author': 'Roy Wright',
-            'author_email': 'roy.wright@hp.com',
+            'author_email': 'roy@wright.org',
             'description': '',
             'script': 'herring',
             'main': 'herring_app.py',
             'version': version,
-            'distHost': 'tpcvm143.austin.hp.com',
-            'pypiDir': '/var/pypi/dev',
-            'user': os.environ['USER'],
+            'dist_host': env('LOCAL_PYPI_HOST'),
+            'pypi_path': env('LOCAL_PYPI_PATH'),
+            'user': env('USER'),
+            'password': None,
+            'port': 22,
             'pylintrc': os.path.join(HerringFile.directory, 'pylint.rc'),
-            'pythonPath': ".:%s" % HerringFile.directory
-        })
+            'python_path': ".:%s" % HerringFile.directory,
 
-    Project.dirMap(
-        {
-            'quality': 'quality',
-            'docs': 'docs',
-            'uml': 'docs/_src/uml',
-            'api': 'docs/api',
-            'templates': 'docs/_templates',
-            'report': 'report',
-            'tests': 'tests',
-            'dist': 'dist',
-            'build': 'build',
-            'egg': "%s.egg-info" % Project.name
+            'quality_dir': 'quality',
+            'docs_dir': 'docs',
+            'uml_dir': 'docs/_src/uml',
+            'api_dir': 'docs/api',
+            'templates_dir': 'docs/_templates',
+            'report_dir': 'report',
+            'tests_dir': 'tests',
+            'dist_dir': 'dist',
+            'build_dir': 'build',
+            'egg_dir': "%s.egg-info" % Project.name
         }
     )
 
@@ -72,8 +71,8 @@ Tasks may access the project attributes with:
 
     print("Project Name: %s" % Project.name)
 
-Project directories are accessed using a 'Dir' suffix.  For example the 'docs' directory would be accessed
-with *Project.docsDir*.
+Project directories are accessed using a '_dir' suffix.  For example the 'docs' directory would be accessed
+with *Project.docs_dir*.
 
 """
 
@@ -83,13 +82,44 @@ import fnmatch
 import os
 import re
 import shutil
-from herring.herring_app import HerringFile, task
-from herring.support.simple_logger import debug, info, error
+from herring.herring_app import task
+from simple_logger import debug, info, error
+from local_shell import LocalShell
 
 __author__ = 'wrighroy'
 
-if HerringFile.packagesRequired(['ordereddict']):
-    from herringlib.list_helper import compressList, uniqueList
+
+installed_packages = None
+
+
+def packages_required(package_names):
+    """
+    Check that the give packages are installed.
+
+    :param package_names: the package names
+    :type package_names: list
+    :return: asserted if all the packages are installed
+    :rtype: bool
+    """
+    result = True
+
+    with LocalShell() as local:
+        packages = local.run(['yolk', '-l'], verbose=False).split("\n")
+        global installed_packages
+        if installed_packages is None:
+            installed_packages = [name.split()[0].lower() for name in packages if name]
+
+        # info("installed_packages: %s" % repr(cls.installed_packages))
+
+        for pkg_name in package_names:
+            if pkg_name.lower() not in installed_packages:
+                print(pkg_name + " not installed!")
+                result = False
+    return result
+
+
+if packages_required(['ordereddict']):
+    from list_helper import compress_list, unique_list
 
     class ProjectSettings(object):
         """
@@ -108,32 +138,22 @@ if HerringFile.packagesRequired(['ordereddict']):
             debug("metadata(%s)" % repr(data_dict))
             for key, value in data_dict.items():
                 self.__setattr__(key, value)
+                if key.endswith('_dir'):
+                    self.__directory(value)
+
             required = {'name': 'ProjectName',
                         'package': 'package',
                         'author': 'Author Name',
                         'author_email': 'author@example.com',
-                        'description': 'Describe the project here.'}
+                        'description': 'Describe the project here.',
+                        }
             for key in required:
                 if key not in self.__dict__:
                     self.__setattr__(key, required[key])
 
-        def dirMap(self, dir_dict):
-            """
-            Set the project's directory structure
-
-            The dirDict keys are appended with a 'Dir' suffix to form attribute names while
-            the dirDict values are project root relative paths to the directories.
-
-            :param dir_dict: the project's directory attributes
-             :type dir_dict: dict
-            """
-            debug("dirMap(%s)" % repr(dir_dict))
-            for key, value in dir_dict.items():
-                self.__setattr__(key + 'Dir', self.__directory(value))
-
         def __directory(self, relative_name):
             """return the full path from the given path relative to the herringfile directory"""
-            directory_name = os.path.join(HerringFile.directory, relative_name)
+            directory_name = os.path.join(self.herringfile_dir, relative_name)
             return self.__makedirs(directory_name)
 
         def __makedirs(self, directory_name):
@@ -145,7 +165,7 @@ if HerringFile.packagesRequired(['ordereddict']):
                     raise
             return directory_name
 
-        def requiredFiles(self):
+        def required_files(self):
             """
             Create required files.  Note, will not overwrite any files.
 
@@ -159,7 +179,7 @@ if HerringFile.packagesRequired(['ordereddict']):
             Note, be sure to escape curly brackets ('{', '}') with double curly brackets ('{{', '}}').
             """
             debug("requiredFiles")
-            template_dir = os.path.abspath(os.path.join(HerringFile.directory, 'herringlib', 'templates'))
+            template_dir = os.path.abspath(os.path.join(self.herringfile_dir, 'herringlib', 'templates'))
 
             for root_dir, dirs, files in os.walk(template_dir):
                 for file_name in files:
@@ -175,12 +195,12 @@ if HerringFile.packagesRequired(['ordereddict']):
                         # info('root: %s' % root)
                         if ext == '.template':
                             if not os.path.exists(root):
-                                self.__createFromTemplate(template_filename, root)
+                                self.__create_from_template(template_filename, root)
                         else:
                             if not os.path.exists(dest_filename):
                                 shutil.copyfile(template_filename, dest_filename)
 
-        def __createFromTemplate(self, src_filename, dest_filename):
+        def __create_from_template(self, src_filename, dest_filename):
             """
             render the destination file from the source template file
 
@@ -205,6 +225,7 @@ if HerringFile.packagesRequired(['ordereddict']):
                     # pylint: disable=W0703
                     except Exception as ex:
                         error(ex)
+
     def get_module_docstring(file_path):
         """
         Get module-level docstring of Python module at filepath, e.g. 'path/to/file.py'.
@@ -221,8 +242,7 @@ if HerringFile.packagesRequired(['ordereddict']):
             docstring = None
         return docstring
 
-
-    def getRequirements(doc_string):
+    def get_requirements(doc_string):
         """
         Extract the required packages from the docstring.
 
@@ -239,7 +259,7 @@ if HerringFile.packagesRequired(['ordereddict']):
             return []
         requirements = []
         contiguous = False
-        for line in compressList(doc_string.split("\n")):
+        for line in compress_list(doc_string.split("\n")):
             if 'requirements.txt' in line:
                 contiguous = True
                 continue
@@ -251,20 +271,19 @@ if HerringFile.packagesRequired(['ordereddict']):
                     contiguous = False
         return requirements
 
-
     @task()
-    def checkRequirements():
+    def check_requirements():
         """Checks that herringfile and herringlib/* required packages are in requirements.txt file"""
         files = [os.path.join(dir_path, f)
-                 for dir_path, dir_names, files in os.walk(os.path.join(HerringFile.directory, 'herringlib'))
+                 for dir_path, dir_names, files in os.walk(os.path.join(Project.herringfile_dir, 'herringlib'))
                  for f in fnmatch.filter(files, '*.py')]
-        files.append(os.path.join(HerringFile.directory, 'herringfile'))
+        files.append(os.path.join(Project.herringfile_dir, 'herringfile'))
         requirements = []
         for file_ in files:
-            requirements += getRequirements(get_module_docstring(file_))
-        needed = sorted(compressList(uniqueList(requirements)))
+            requirements += get_requirements(get_module_docstring(file_))
+        needed = sorted(compress_list(unique_list(requirements)))
 
-        requirements_filename = os.path.join(HerringFile.directory, 'requirements.txt')
+        requirements_filename = os.path.join(Project.herringfile_dir, 'requirements.txt')
         if not os.path.exists(requirements_filename):
             info("Missing: " + requirements_filename)
             return
@@ -272,7 +291,7 @@ if HerringFile.packagesRequired(['ordereddict']):
         with open(requirements_filename, 'r') as in_file:
             requirements = [re.split("<|>|=|!", line)[0] for line in [line.strip() for line in in_file.readlines()]
                             if line and not line.startswith('#')]
-            required = sorted(compressList(uniqueList(requirements)))
+            required = sorted(compress_list(unique_list(requirements)))
 
         diff = sorted(set(needed) - set(required))
         if not diff:

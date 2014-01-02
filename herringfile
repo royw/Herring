@@ -15,14 +15,26 @@ Add the following to your *requirements.txt* file:
 
 import os
 from herring.herring_app import task, HerringFile
-from herring.support.simple_logger import info
+from herring.support.simple_logger import info, warning
 
-from herringlib.project_settings import ProjectSettings, Project
-from herringlib.version import getProjectVersion
+from herringlib.project_settings import Project
+
+herringfile_dir = os.path.dirname(__file__)
+Project.herringfile_dir = herringfile_dir
 
 
-version = getProjectVersion(project_package='herring')
-info("version: %s" % version)
+def env(name, default_value=None):
+    """
+    Safely get value from environment variable, get default value if not defined in environment
+    :param name: The environment variable name
+    :param default_value:  the value to return if the variable is not in the environment
+    """
+    if name in os.environ:
+        return os.environ[name]
+    warning("The \"{name}\" environment variable is not set".format(name=name))
+    return default_value
+
+
 Project.metadata(
     {
         'name': 'Herring',
@@ -32,29 +44,37 @@ Project.metadata(
         'description': '',
         'script': 'herring',
         'main': 'herring_main.py',
-        'version': version,
-        'distHost': 'tpcvm143.austin.hp.com',
-        'pypiDir': '/var/pypi/dev',
-        'user': os.environ['USER'],
+        'version': None,
+        'dist_host': env('LOCAL_PYPI_HOST'),
+        'pypi_path': env('LOCAL_PYPI_PATH'),
+        'user': env('USER'),
+        'password': None,
+        'port': 22,
         'pylintrc': os.path.join(HerringFile.directory, 'pylint.rc'),
-        'pythonPath': ".:%s" % HerringFile.directory
-    })
+        'pythonPath': ".:%s" % HerringFile.directory,
 
-Project.dirMap(
-    {
-        'quality': 'quality',
-        'docs': 'docs',
-        'uml': 'docs/_src/uml',
-        'api': 'docs/api',
-        'templates': 'docs/_templates',
-        'report': 'report',
-        'tests': 'tests',
-        'dist': 'dist',
-        'build': 'build',
-        'features': 'features',
-        'egg': "%s.egg-info" % Project.name
+        'quality_dir': 'quality',
+        'docs_dir': 'docs',
+        'uml_dir': 'docs/_src/uml',
+        'api_dir': 'docs/api',
+        'templates_dir': 'docs/_templates',
+        'docs_html_dir': 'build/docs',
+        'report_dir': 'report',
+        'tests_dir': 'tests',
+        'dist_dir': 'dist',
+        'build_dir': 'build',
+        'features_dir': 'features',
+        'egg_dir': "Herring.egg-info",
     }
 )
+
+Project.required_files()
+
+
+from herringlib.version import get_project_version
+version = get_project_version(project_package='herring')
+info("version: %s" % version)
+Project.version = version
 
 if HerringFile.uninstalled_packages:
     print("You have missing packages.  You may install using the following command:")
@@ -62,7 +82,7 @@ if HerringFile.uninstalled_packages:
 
 
 @task()
-def initProject():
+def init_project():
     """Initializes a project by creating setup.py and required files"""
     Project.requiredFiles()
 
@@ -87,7 +107,7 @@ def show():
 
 
 @task(help='You may show arguments using:  -a value  or:  --arg value')
-def argsDemo():
+def args_demo():
     """ echos that task's arguments """
     info("argv: %s" % repr(task.argv))
     info("kwargs: %s" % repr(task.kwargs))
