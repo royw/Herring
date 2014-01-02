@@ -13,7 +13,7 @@ from setuptools import setup
 VERSION_REGEX = r'__version__\s*=\s*[\'\"](\S+)[\'\"]'
 
 
-def getProjectVersion():
+def get_project_version():
     """
     Get the version from __init__.py with a line: /^__version__\s*=\s*(\S+)/
     If it doesn't exist try to load it from the VERSION.txt file.
@@ -48,7 +48,7 @@ def getProjectVersion():
 
 setup(
     name='Herring',
-    version=getProjectVersion(),
+    version=get_project_version(),
     author='Roy Wright',
     author_email='roy@wright.org',
     url='http://herring.example.com',
