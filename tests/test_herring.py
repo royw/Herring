@@ -8,6 +8,7 @@ import os
 import shutil
 from tempfile import mkdtemp
 from unittest import TestCase
+from unipath import Path
 from herring.argument_helper import ArgumentHelper
 from herring.herring_app import HerringApp
 from herring.herring_cli import HerringCLI
@@ -231,7 +232,7 @@ class TestHerring(TestCase):
                 with open(file_, 'w'):
                     pass
 
-            expected = list([os.path.join(base_dir, f) for f in [
+            expected = list([Path(f) for f in [
                 'herringlib/f1.py',
                 'herringlib/f2.py',
                 'herringlib/f4/f5.py'
