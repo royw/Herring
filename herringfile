@@ -40,7 +40,7 @@ Project.metadata(
         'name': 'Herring',
         'package': 'herring',
         'author': 'Roy Wright',
-        'author_email': 'roy.wright@hp.com',
+        'author_email': 'roy@wright.org',
         'description': '',
         'script': 'herring',
         'main': 'herring_main.py',
