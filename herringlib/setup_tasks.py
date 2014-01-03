@@ -16,9 +16,8 @@ from version import bump, get_project_version
 from project_settings import Project
 from local_shell import LocalShell
 from remote_shell import RemoteShell
-from simple_logger import error, info
+from simple_logger import error
 from query import query_yes_no
-from cd import cd
 
 
 # cleaning is necessary to remove stale .pyc files, particularly after
@@ -79,6 +78,14 @@ def deploy():
 
 
 @task()
+def changes_since_last_tag():
+    """show the changes since the last tag"""
+    with LocalShell(verbose=False) as local:
+        last_tag = local.run('git describe --tags --abbrev=0').strip()
+        print("\n" + local.run(['git', 'log', '{tag}..HEAD'.format(tag=last_tag), '--oneline']))
+
+
+@task()
 def release_github():
     """tag it with the current version"""
     with LocalShell() as local:
@@ -107,21 +114,22 @@ def release_pypi_live():
 @task()
 def upload_docs():
     """upload docs to http://pythonhosted.org"""
-    # TODO this should work but doesn't:
-    # with LocalShell() as local:
-    #     local.run('python setup.py upload_docs --upload-dir={dir}'.format(dir=Project.docs_html_dir))
-    # so instead we zip the docs then the user must manually upload
-    zip_name = '../{name}-docs-{ver}.zip'.format(
-        name=Project.package,
-        ver=get_project_version(Project.package))
-    with cd(Project.docs_html_dir):
-        with LocalShell() as local:
-            local.run('zip -r {zip}'.format(zip=zip_name))
-    info("""\
-    Please log on to https://pypi.python.org/pypi
-    Then select "{name}" under "Your packages".
-    Next use the "Browse" button to select "{zip}" and press "Upload Documentation".
-    """.format(name=Project.name))
+    # This should work with SetupTools >= 2.0.1:
+    with LocalShell() as local:
+        local.run('python setup.py upload_docs --upload-dir={dir}'.format(dir=Project.docs_html_dir))
+    # If not, then here's the manual steps
+    # we zip the docs then the user must manually upload
+    # zip_name = '../{name}-docs-{ver}.zip'.format(
+    #     name=Project.package,
+    #     ver=get_project_version(Project.package))
+    # with cd(Project.docs_html_dir):
+    #     with LocalShell() as local:
+    #         local.run('zip -r {zip}'.format(zip=zip_name))
+    # info("""\
+    # Please log on to https://pypi.python.org/pypi
+    # Then select "{name}" under "Your packages".
+    # Next use the "Browse" button to select "{zip}" and press "Upload Documentation".
+    # """.format(name=Project.name))
 
 
 @task()

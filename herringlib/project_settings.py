@@ -109,7 +109,7 @@ def packages_required(package_names):
         if installed_packages is None:
             installed_packages = [name.split()[0].lower() for name in packages if name]
 
-        info("installed_packages: %s" % repr(installed_packages))
+        # info("installed_packages: %s" % repr(cls.installed_packages))
 
         for pkg_name in package_names:
             if pkg_name.lower() not in installed_packages:
