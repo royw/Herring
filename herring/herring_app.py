@@ -27,6 +27,7 @@ task = TaskWithArgs
 run = HerringFile.run
 
 
+# noinspection PyMethodMayBeStatic
 class HerringApp(object):
     """
     This is the application class.
@@ -135,7 +136,7 @@ class HerringApp(object):
     def library_files(herringfile, lib_base_name='herringlib',
                       pattern='*.py'):
         """
-        Yield any .herring files located in herringlib subdirectory in the
+        Yield any .py files located in herringlib subdirectory in the
         same directory as the given herringfile.  Ignore package __init__.py
         files, .svn and templates sub-directories.
 
@@ -157,9 +158,11 @@ class HerringApp(object):
                 if file_path.name == '__init__.py':
                     continue
                 debug("loading from herringlib:  %s" % file_path)
-                yield herring_path.rel_path_to(file_path)
+                rel_path = herring_path.rel_path_to(file_path)
+                yield rel_path
 
     def load_plugin(self, plugin, paths):
+        """load a plugin module if we haven't yet loaded it"""
         import imp
 
         # check if we haven't loaded it already
