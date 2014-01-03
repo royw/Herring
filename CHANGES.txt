@@ -1,1 +1,5 @@
-v0.0.1, 2 April 2003 -- Initial release.
+Change Log
+==========
+
+Initial release
+

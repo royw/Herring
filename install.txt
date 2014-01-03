@@ -3,8 +3,3 @@ Installation
 
 pip install Herring
 
-or
-
-tar xzf herring-*.tar.gz
-python setup.py install
-
