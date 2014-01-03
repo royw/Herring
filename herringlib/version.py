@@ -63,7 +63,7 @@ def get_version_from_file(project_package=None):
         parts = [Project.herringfile_dir, project_package, 'VERSION.txt']
         version_file = os.path.join(*[f for f in parts if f is not None])
         Project.version_file = version_file
-        print "version_file => %s" % version_file
+        print("version_file => %s" % version_file)
         with open(version_file, 'r') as file_:
             return str(Version(file_.read().strip()))
     except IOError:

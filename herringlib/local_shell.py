@@ -10,6 +10,7 @@ import os
 import fcntl
 import sys
 import subprocess
+# noinspection PyPackageRequirements
 import pexpect
 from collections import OrderedDict
 

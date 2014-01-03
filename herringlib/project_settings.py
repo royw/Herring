@@ -109,7 +109,7 @@ def packages_required(package_names):
         if installed_packages is None:
             installed_packages = [name.split()[0].lower() for name in packages if name]
 
-        # info("installed_packages: %s" % repr(cls.installed_packages))
+        info("installed_packages: %s" % repr(installed_packages))
 
         for pkg_name in package_names:
             if pkg_name.lower() not in installed_packages:
@@ -121,6 +121,7 @@ def packages_required(package_names):
 if packages_required(['ordereddict']):
     from list_helper import compress_list, unique_list
 
+    # noinspection PyMethodMayBeStatic,PyArgumentEqualDefault
     class ProjectSettings(object):
         """
         Dynamically creates attributes.
@@ -271,6 +272,7 @@ if packages_required(['ordereddict']):
                     contiguous = False
         return requirements
 
+    # noinspection PyArgumentEqualDefault
     @task()
     def check_requirements():
         """Checks that herringfile and herringlib/* required packages are in requirements.txt file"""
