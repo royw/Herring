@@ -45,6 +45,13 @@ def get_project_version():
     # no joy again, so return default
     return '0.0.0'
 
+# find first README.{rst|md|txt} that exists and load into long_description.
+readmes = [readme for readme in [os.path.join(os.getcwd(), 'README.{ext}'.format(ext=ext))
+                                 for ext in ['.rst', '.md', '.txt']] if os.path.exists(readme)]
+
+long_description = ''
+if readmes:
+    long_description = open(readmes[0]).read()
 
 setup(
     name='Herring',
@@ -57,7 +64,7 @@ setup(
     package_data={'herring': ['*.txt']},
     license='license.txt',
     description='Just a python make utility.',
-    long_description=open('README.txt').read(),
+    long_description=long_description,
     install_requires=[
         "argparse",
         'yolk',
@@ -67,4 +74,5 @@ setup(
     ],
     entry_points={
         'console_scripts': ['herring = herring.herring_main:main']
-    })
+    },
+    test_suite="tests")

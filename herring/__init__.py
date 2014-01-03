@@ -133,7 +133,7 @@ Start with a new virtual environment::
 
 Now install Herring::
 
-    ➤ pip install -i http://tpcvm143.austin.hp.com/pypi/simple Herring
+    ➤ pip install Herring
     ...
     Successfully installed Herring
     Cleaning up...

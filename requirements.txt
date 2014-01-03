@@ -26,4 +26,5 @@ sphinxcontrib-plantuml
 sphinxcontrib-seqdiag
 tox
 unipath
+Versio
 yolk
