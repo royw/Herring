@@ -3,6 +3,7 @@
 """
 The command line interface for the herring application.
 """
+from herring.support.terminalsize import get_terminal_size
 
 __docformat__ = 'restructuredtext en'
 
@@ -11,6 +12,7 @@ import os
 import re
 import sys
 import textwrap
+import json
 from herring.argument_helper import ArgumentHelper
 from herring.support.simple_logger import info, Logger
 from herring.task_with_args import TaskWithArgs
@@ -39,10 +41,13 @@ HELP = {
     #'init': "Initialize a new project to use Herring.  Creates herringfile and herringlib in the given directory.",
     #'update': "Update the herringlib tasks in an existing project.",
     'quiet': 'Suppress herring output.',
-    'debug': 'Display debug messages'
+    'debug': 'Display debug messages.',
+    'longhelp': 'Long help about Herring.',
+    'json': 'Output list tasks (--tasks, --usage, --depends, --all) in JSON format.'
 }
 
 
+# noinspection PyMethodMayBeStatic,PyArgumentEqualDefault
 class HerringCLI(object):
     """Command Line Interface for the Herring App"""
 
@@ -83,9 +88,9 @@ class HerringCLI(object):
         parser.add_argument('-v', '--version', dest='version',
                             action='store_true', help=HELP['version'])
         parser.add_argument('-l', '--longhelp', dest='longhelp', action='store_true',
-                            help='Long help about Herring')
-        #parser.add_argument('--init', metavar='DIRSPEC', default=None, help=HELP['init'])
-        #parser.add_argument('--update', metavar='DIRSPEC', default=None, help=HELP['update'])
+                            help=HELP['longhelp'])
+        parser.add_argument('-j', '--json', dest='json', action='store_true',
+                            help=HELP['json'])
         parser.add_argument('tasks', nargs='*', help=HELP['tasks'])
         return parser.parse_known_args()
 
@@ -117,12 +122,6 @@ class HerringCLI(object):
         if settings.version:
             info("Herring version %s" % self._load_version())
             exit(0)
-
-        #if settings.init:
-        #    exit(NewProject(settings.init).populate())
-        #
-        #if settings.update:
-        #    exit(NewProject(settings.update).update())
 
         return settings
 
@@ -165,7 +164,7 @@ class HerringCLI(object):
         # no joy again, so return default
         return 'Unknown'
 
-    def show_tasks(self, tasks, herring_tasks):
+    def show_tasks(self, tasks, herring_tasks, settings):
         """
         Shows the tasks.
 
@@ -173,14 +172,21 @@ class HerringCLI(object):
         :type tasks: iterator
         :param herring_tasks: all of the herring tasks
         :type herring_tasks: dict
+        :param settings: the application settings
         :return: None
         """
-        self._header("Show tasks")
-        for name, description, dependencies, width in tasks:
-            self._row(name=name, description=description.strip().splitlines()[0], max_name_length=width)
-        self._footer(herring_tasks)
+        if settings.json:
+            info('[')
+            for name, description, dependencies, width in tasks:
+                info(json.dumps({'name': name, 'description': description, 'dependencies': dependencies}))
+            info(']')
+        else:
+            self._header("Show tasks")
+            for name, description, dependencies, width in tasks:
+                self._row(name=name, description=description.strip().splitlines()[0], max_name_length=width)
+            self._footer(herring_tasks)
 
-    def show_task_usages(self, tasks, herring_tasks):
+    def show_task_usages(self, tasks, herring_tasks, settings):
         """
         Shows the tasks.
 
@@ -188,17 +194,24 @@ class HerringCLI(object):
         :type tasks: iterator
         :param herring_tasks: all of the herring tasks
         :type herring_tasks: dict
+        :param settings: the application settings
         :return: None
         """
-        self._header("Show task usages")
-        for name, description, dependencies, width in tasks:
-            info("#" * 40)
-            info("# herring %s" % name)
-            info(textwrap.dedent(description).replace("\n\n", "\n").strip())
-            info('')
-        self._footer(herring_tasks)
+        if settings.json:
+            info('[')
+            for name, description, dependencies, width in tasks:
+                info(json.dumps({'name': name, 'description': description, 'dependencies': dependencies}))
+            info(']')
+        else:
+            self._header("Show task usages")
+            for name, description, dependencies, width in tasks:
+                info("#" * 40)
+                info("# herring %s" % name)
+                info(textwrap.dedent(description).replace("\n\n", "\n").strip())
+                info('')
+            self._footer(herring_tasks)
 
-    def show_depends(self, tasks, herring_tasks):
+    def show_depends(self, tasks, herring_tasks, settings):
         """
         Shows the tasks and their dependencies.
 
@@ -206,15 +219,22 @@ class HerringCLI(object):
         :type tasks: iterator
         :param herring_tasks: all of the herring tasks
         :type herring_tasks: dict
+        :param settings: the application settings
         :return: None
         """
-        self._header("Show tasks and their dependencies")
-        for name, description, dependencies, width in tasks:
-            self._row(name=name,
-                      description=description.strip().splitlines()[0],
-                      dependencies=dependencies,
-                      max_name_length=width)
-        self._footer(herring_tasks)
+        if settings.json:
+            info('[')
+            for name, description, dependencies, width in tasks:
+                info(json.dumps({'name': name, 'description': description, 'dependencies': dependencies}))
+            info(']')
+        else:
+            self._header("Show tasks and their dependencies")
+            for name, description, dependencies, width in tasks:
+                self._row(name=name,
+                          description=description.strip().splitlines()[0],
+                          dependencies=dependencies,
+                          max_name_length=width)
+            self._footer(herring_tasks)
 
     def _header(self, message):
         """
@@ -224,8 +244,9 @@ class HerringCLI(object):
          :type message: str
         :return: None
         """
+        (console_width, console_height) = get_terminal_size()
         info(message)
-        info("=" * 80)
+        info("=" * console_width)
 
     def _footer(self, tasks):
         tasks_help = []
@@ -258,8 +279,10 @@ class HerringCLI(object):
         if dependencies is None:
             dependencies = []
 
+        (console_width, console_height) = get_terminal_size()
+
         c1_width = max_name_length + 8
-        c2_width = 80 - 5 - c1_width
+        c2_width = console_width - 5 - c1_width
 
         self._row_list('herring ' + name, description, c1_width, c2_width)
         if dependencies:

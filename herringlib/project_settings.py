@@ -104,12 +104,12 @@ def packages_required(package_names):
     result = True
 
     with LocalShell() as local:
-        packages = local.run(['yolk', '-l'], verbose=False).split("\n")
+        # noinspection PyArgumentEqualDefault
+        yolk_output = local.run(['yolk', '-l'], verbose=False)
+        packages = yolk_output.split("\n")
         global installed_packages
         if installed_packages is None:
             installed_packages = [name.split()[0].lower() for name in packages if name]
-
-        # info("installed_packages: %s" % repr(cls.installed_packages))
 
         for pkg_name in package_names:
             if pkg_name.lower() not in installed_packages:

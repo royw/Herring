@@ -13,7 +13,7 @@ import sys
 
 from operator import itemgetter
 from herring.support.toposort2 import toposort2
-from herring.support.simple_logger import debug, info, error, fatal, Logger
+from herring.support.simple_logger import debug, info, fatal, Logger
 from herring.herring_file import HerringFile
 from herring.support.utils import findFiles
 from herring.task_with_args import TaskWithArgs, HerringTasks
@@ -79,11 +79,11 @@ class HerringApp(object):
             self._load_tasks(herring_file)
             task_list = list(self._get_tasks_list(HerringTasks, settings.list_all_tasks))
             if settings.list_tasks:
-                cli.show_tasks(self._get_tasks(task_list), HerringTasks)
+                cli.show_tasks(self._get_tasks(task_list), HerringTasks, settings)
             elif settings.list_task_usages:
-                cli.show_task_usages(self._get_tasks(task_list), HerringTasks)
+                cli.show_task_usages(self._get_tasks(task_list), HerringTasks, settings)
             elif settings.list_dependencies:
-                cli.show_depends(self._get_tasks(task_list), HerringTasks)
+                cli.show_depends(self._get_tasks(task_list), HerringTasks, settings)
             else:
                 try:
                     self._run_tasks(settings.tasks)
@@ -131,7 +131,6 @@ class HerringApp(object):
             debug("mod_name = {name}".format(name=mod_name))
             __import__(mod_name)
 
-
     @staticmethod
     def library_files(herringfile, lib_base_name='herringlib',
                       pattern='*.py'):
@@ -162,7 +161,10 @@ class HerringApp(object):
                 yield rel_path
 
     def load_plugin(self, plugin, paths):
-        """load a plugin module if we haven't yet loaded it"""
+        """load a plugin module if we haven't yet loaded it
+        :param plugin: the herringlib plugin to load
+        :param paths: the herringlib path
+        """
         import imp
 
         # check if we haven't loaded it already
