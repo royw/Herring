@@ -2,6 +2,11 @@
 
 """
 Run external scripts and programs.
+
+Add the following to your *requirements.txt* file:
+
+* pexpect
+
 """
 
 __docformat__ = 'restructuredtext en'
@@ -13,9 +18,9 @@ import subprocess
 # noinspection PyPackageRequirements
 import pexpect
 from collections import OrderedDict
-
-from graceful_interrupt_handler import GracefulInterruptHandler
-from ashell import AShell, CR, MOVEMENT
+from time import sleep
+from herringlib.ashell import AShell, MOVEMENT, CR
+from herringlib.graceful_interrupt_handler import GracefulInterruptHandler
 
 __all__ = ('LocalShell', 'run', 'system', 'script')
 
@@ -87,7 +92,8 @@ class LocalShell(AShell):
         return ''.join(output).split("\n")
 
     def run(self, cmd_args, out_stream=sys.stdout, env=None, verbose=False,
-            prefix=None, postfix=None, accept_defaults=False, pattern_response=None, timeout=120):
+            prefix=None, postfix=None, accept_defaults=False, pattern_response=None,
+            timeout=0, timeout_interval=1, debug=False):
         """
         Runs the command and returns the output, writing each the output to out_stream if verbose is True.
 
@@ -108,7 +114,7 @@ class LocalShell(AShell):
         if isinstance(cmd_args, str):
             cmd_args = pexpect.split_command_line(cmd_args)
 
-        self.display("run(%s, %s)\n\n" % (cmd_args, env), out_stream=out_stream, verbose=verbose)
+        self.display("run(%s, %s)\n\n" % (cmd_args, env), out_stream=out_stream, verbose=debug)
         if pattern_response:
             return self.run_pattern_response(cmd_args, out_stream=out_stream, verbose=verbose,
                                              prefix=prefix, postfix=postfix,
@@ -119,12 +125,13 @@ class LocalShell(AShell):
                                              pattern_response=None)
         lines = []
         for line in self.run_generator(cmd_args, out_stream=out_stream, env=env, verbose=verbose,
-                                       prefix=prefix, postfix=postfix):
+                                       prefix=prefix, postfix=postfix,
+                                       timeout=timeout, timeout_interval=timeout_interval, debug=debug):
             lines.append(line)
         return ''.join(lines)
 
     def run_generator(self, cmd_args, out_stream=sys.stdout, env=None, verbose=True,
-                      prefix=None, postfix=None):
+                      prefix=None, postfix=None, timeout=0, timeout_interval=1, debug=False):
         """
         Runs the command and yields on each line of output, writing each the output to out_stream if verbose is True.
 
@@ -139,17 +146,19 @@ class LocalShell(AShell):
         :param prefix: list of command arguments to prepend to the command line
         :type prefix: list
         """
-        self.display("run_generator(%s, %s)\n\n" % (cmd_args, env), out_stream=out_stream, verbose=verbose)
+        self.display("run_generator(%s, %s)\n\n" % (cmd_args, env), out_stream=out_stream, verbose=debug)
         args = self.expand_args(cmd_args, prefix=prefix, postfix=postfix)
 
         command_line = ' '.join(args)
         self.display("{line}\n\n".format(line=command_line), out_stream=out_stream, verbose=verbose)
 
-        for line in self.run_process(args, env=env, out_stream=out_stream, verbose=verbose):
+        for line in self.run_process(args, env=env, out_stream=out_stream, verbose=debug,
+                                     timeout=timeout, timeout_interval=timeout_interval):
             self.display(line, out_stream=out_stream, verbose=verbose)
             yield line
 
-    def run_process(self, cmd_args, env=None, out_stream=sys.stdout, verbose=True):
+    def run_process(self, cmd_args, env=None, out_stream=sys.stdout, verbose=True,
+                    timeout=0, timeout_interval=1):
         """
         Run the process yield for each output line from the process.
 
@@ -167,6 +176,7 @@ class LocalShell(AShell):
             for key, value in env.iteritems():
                 sub_env[key] = value
 
+        timeout_seconds = timeout
         with GracefulInterruptHandler() as handler:
             process = subprocess.Popen(cmd_args,
                                        stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
@@ -179,6 +189,16 @@ class LocalShell(AShell):
                     if not line:
                         break
                     yield line
+                if timeout:
+                    if timeout_seconds > 0:
+                        sleep(timeout_interval)
+                        timeout_seconds -= timeout_interval
+                    else:
+                        process.kill()
+
+            line = self._non_block_read(process.stdout)
+            if line:
+                yield line.decode()
 
     def _non_block_read(self, output):
         fd = output.fileno()
