@@ -3,6 +3,7 @@
 """
     http://regebro.wordpress.com/2010/12/13/python-implementing-rich-comparison-the-correct-way/
 """
+__docformat__ = 'restructuredtext en'
 
 
 class ComparableMixin(object):
