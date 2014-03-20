@@ -62,8 +62,8 @@ Example::
 
     @task()
     def argDemo():
-        print "argv: %s" % repr(task.argv)
-        print "kwargs: %s" % repr(task.kwargs)
+        print("argv: %s" % repr(task.argv))
+        print("kwargs: %s" % repr(task.kwargs))
 
     herring argDemo --delta=3 --flag
 

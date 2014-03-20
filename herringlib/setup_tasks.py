@@ -12,17 +12,56 @@ import os
 from getpass import getpass
 
 from herring.herring_app import task
-from version import bump, get_project_version
-from project_settings import Project
-from local_shell import LocalShell
-from remote_shell import RemoteShell
-from simple_logger import error
-from query import query_yes_no
+from herringlib.version import bump, get_project_version
+from herringlib.project_settings import Project
+from herringlib.local_shell import LocalShell
+from herringlib.simple_logger import error
+from herringlib.query import query_yes_no
+
+# noinspection PyBroadException
+try:
+    from herringlib.remote_shell import RemoteShell
+
+    @task()
+    def deploy():
+        """ copy latest sdist tar ball to server """
+        version = Project.version
+        project_version_name = "{name}-{version}.tar.gz".format(name=Project.name, version=version)
+        project_latest_name = "{name}-latest.tar.gz".format(name=Project.name)
+
+        pypi_dir = Project.pypi_path
+        dist_host = Project.dist_host
+        dist_dir = '{dir}/{name}'.format(dir=pypi_dir, name=Project.name)
+        # dist_url = '{host}:{path}/'.format(host=dist_host, path=dist_dir)
+        dist_version = '{dir}/{file}'.format(dir=dist_dir, file=project_version_name)
+        dist_latest = '{dir}/{file}'.format(dir=dist_dir, file=project_latest_name)
+        dist_file = os.path.join(Project.herringfile_dir, 'dist', project_version_name)
+
+        password = Project.password or getpass("password for {user}@{host}: ".format(user=Project.user,
+                                                                                     host=Project.dist_host))
+        Project.password = password
+
+        with RemoteShell(user=Project.user, password=password, host=dist_host, verbose=True) as remote:
+            remote.run('mkdir -p {dir}'.format(dir=dist_dir))
+            remote.run('rm {path}'.format(path=dist_latest))
+            remote.put(dist_file, dist_dir)
+            remote.run('ln -s {src} {dest}'.format(src=dist_version, dest=dist_latest))
+            remote.run('sudo chown www-data:www-data {dest}'.format(dest=dist_version),
+                       accept_defaults=True, timeout=10)
+            remote.run('sudo chown www-data:www-data {dest}'.format(dest=dist_latest),
+                       accept_defaults=True, timeout=10)
+            remote.run('sudo chmod 777 {dest}'.format(dest=dist_version),
+                       accept_defaults=True, timeout=10)
+            remote.run('sudo chmod 777 {dest}'.format(dest=dist_latest),
+                       accept_defaults=True, timeout=10)
+
+except:
+    pass
 
 
 # cleaning is necessary to remove stale .pyc files, particularly after
 # refactoring.
-@task(depends=['doc_post_clean'])
+@task(depends=['doc::post_clean'])
 def build():
     """ build the project as a source distribution """
     if Project.version == '0.0.0':
@@ -49,32 +88,6 @@ def uninstall():
         else:
             # try uninstalling with pip
             local.run(['pip', 'uninstall', Project.herringfile_dir.split(os.path.sep)[-1]])
-
-
-@task()
-def deploy():
-    """ copy latest sdist tar ball to server """
-    version = Project.version
-    project_version_name = "{name}-{version}.tar.gz".format(name=Project.name, version=version)
-    project_latest_name = "{name}-latest.tar.gz".format(name=Project.name)
-
-    pypi_dir = Project.pypi_path
-    dist_host = Project.dist_host
-    dist_dir = '{dir}/{name}'.format(dir=pypi_dir, name=Project.name)
-    # dist_url = '{host}:{path}/'.format(host=dist_host, path=dist_dir)
-    dist_version = '{dir}/{file}'.format(dir=dist_dir, file=project_version_name)
-    dist_latest = '{dir}/{file}'.format(dir=dist_dir, file=project_latest_name)
-    dist_file = os.path.join(Project.herringfile_dir, 'dist', project_version_name)
-
-    password = Project.password or getpass("password for {user}@{host}: ".format(user=Project.user,
-                                                                                 host=Project.dist_host))
-    Project.password = password
-
-    with RemoteShell(user=Project.user, password=password, host=dist_host, verbose=True) as remote:
-        remote.run('mkdir -p {dir}'.format(dir=dist_dir))
-        remote.run('rm {path}'.format(path=dist_latest))
-        remote.put(dist_file, dist_dir)
-        remote.run('ln -s {src} {dest}'.format(src=dist_version, dest=dist_latest))
 
 
 @task()

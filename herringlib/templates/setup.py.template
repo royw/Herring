@@ -6,7 +6,7 @@ from setuptools import setup
 from sys import version
 
 if version < '2.2.3':
-    print '{name} requires python 2.6 or newer'
+    print('{name} requires python 2.6 or newer')
     exit(-1)
 
 
@@ -59,7 +59,7 @@ setup(
                   '': ['*.rst', '*.txt', '*.rc', '*.in']}},
     license='license.txt',
     description='{description}',
-    long_description=open('README.txt').read(),
+    long_description=open('README.rst').read(),
     # use keywords relevant to the application
     keywords=[],
     # use classifiers from:  https://pypi.python.org/pypi?%3Aaction=list_classifiers
@@ -78,5 +78,5 @@ setup(
         # "Foo >= 1.2.3"
     ],
     entry_points={{
-        'console_scripts': ['{package} = {package}.{package}_app:main']
+        'console_scripts': ['{package} = {package}.{package}_main:main']
     }})

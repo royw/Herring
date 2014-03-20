@@ -10,7 +10,7 @@ Add the following to your *requirements.txt* file:
 
 __docformat__ = 'restructuredtext en'
 
-from project_settings import packages_required
+from herringlib.project_settings import packages_required
 
 if packages_required(['ordereddict']):
     from ordereddict import OrderedDict

@@ -6,8 +6,8 @@ Helper for verifying that 3rd party applications are available for use.
 
 __docformat__ = 'restructuredtext en'
 
-from local_shell import LocalShell
-from simple_logger import warning
+from herringlib.local_shell import LocalShell
+from herringlib.simple_logger import warning
 
 HELP = {
     'pynsource': "pyNsource generates class diagrams.  "

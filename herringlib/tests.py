@@ -10,8 +10,8 @@ Add the following to your *requirements.txt* file:
 __docformat__ = 'restructuredtext en'
 
 from herring.herring_app import task
-from project_settings import Project, packages_required
-from local_shell import LocalShell
+from herringlib.project_settings import Project, packages_required
+from herringlib.local_shell import LocalShell
 
 
 required_packages = [

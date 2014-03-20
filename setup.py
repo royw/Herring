@@ -6,7 +6,7 @@ from setuptools import setup
 #from sys import version
 #
 #if version < '2.2.3':
-#    print 'herring requires python 2.6 or newer'
+#    print('herring requires python 2.6 or newer')
 #    exit(-1)
 
 

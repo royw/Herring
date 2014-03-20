@@ -1,31 +1,43 @@
 # coding=utf-8
 
 """
-Describe Me!
+Add the following to your *requirements.txt* file:
+
+* pexpect
+* paramiko
+* scp
+
 """
 
 __docformat__ = 'restructuredtext en'
 
-import sys
-import pexpect
-import paramiko
-import re
-from collections import OrderedDict
-from time import sleep
 
-from getpass import getpass
-from paramiko import SSHClient
-from pxssh import pxssh
-from scp import SCPClient
-
-from project_settings import Project, packages_required
-from ashell import AShell, CR, MOVEMENT
+from herringlib.project_settings import Project, packages_required
 
 required_packages = [
     'pexpect',
+    'paramiko',
+    'scp'
 ]
 
 if packages_required(required_packages):
+    import sys
+    import pexpect
+    import paramiko
+    import re
+    from collections import OrderedDict
+    from time import sleep
+    import sys
+    import pexpect
+    import paramiko
+    import re
+    from collections import OrderedDict
+    from time import sleep
+    from getpass import getpass
+    from paramiko import SSHClient
+    from pxssh import pxssh
+    from scp import SCPClient
+    from herringlib.ashell import AShell, CR, MOVEMENT
 
     class RemoteShell(AShell):
         """
@@ -133,7 +145,7 @@ if packages_required(required_packages):
                 try:
                     index = self.ssh.expect(patterns)
                     if index == patterns.index(pexpect.TIMEOUT):
-                        print "ssh.expect TIMEOUT"
+                        print("ssh.expect TIMEOUT")
                     else:
                         self._report(output, out_stream=out_stream, verbose=verbose)
                         if index == patterns.index(self.ssh.PROMPT):
@@ -243,7 +255,7 @@ if packages_required(required_packages):
 
             ftp = ssh.open_sftp()
             for name in names:
-                print name
+                print(name)
                 ftp.get(name, local_path)
 
             output = repr(names)

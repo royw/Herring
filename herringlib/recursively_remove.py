@@ -8,7 +8,7 @@ __docformat__ = 'restructuredtext en'
 
 import fnmatch
 import os
-from simple_logger import debug
+from herringlib.simple_logger import debug
 
 
 def recursively_remove(path, pattern):

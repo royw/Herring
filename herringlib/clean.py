@@ -14,9 +14,9 @@ __docformat__ = 'restructuredtext en'
 import os
 import shutil
 from herring.herring_app import task
-from simple_logger import debug
-from recursively_remove import recursively_remove
-from project_settings import Project
+from herringlib.simple_logger import debug
+from herringlib.recursively_remove import recursively_remove
+from herringlib.project_settings import Project
 
 
 @task()
@@ -27,7 +27,7 @@ def clean():
     debug(repr(Project.__dict__))
 
     dirs = [Project.dist_dir, Project.egg_dir]
-    # print "dirs => %s" % repr(dirs)
+    # print("dirs => %s" % repr(dirs))
 
     for dir_name in dirs:
         if os.path.exists(dir_name):

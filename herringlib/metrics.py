@@ -17,13 +17,13 @@ Add the following to your *requirements.txt* file:
 * pymetrics
 
 """
-from executables import executables_available
+from herringlib.executables import executables_available
 
 __docformat__ = 'restructuredtext en'
 
 import os
 from herring.herring_app import task
-from project_settings import Project, packages_required
+from herringlib.project_settings import Project, packages_required
 
 required_packages = [
     'Cheesecake',
@@ -35,7 +35,7 @@ required_packages = [
 ]
 
 if packages_required(required_packages):
-    from local_shell import LocalShell
+    from herringlib.local_shell import LocalShell
 
     @task(depends=['cheesecake', 'lint', 'complexity'])
     def metrics():

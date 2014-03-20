@@ -83,8 +83,8 @@ import os
 import re
 import shutil
 from herring.herring_app import task
-from simple_logger import debug, info, error
-from local_shell import LocalShell
+from herringlib.simple_logger import debug, info, error
+from herringlib.local_shell import LocalShell
 
 __author__ = 'wrighroy'
 
@@ -111,6 +111,8 @@ def packages_required(package_names):
         if installed_packages is None:
             installed_packages = [name.split()[0].lower() for name in packages if name]
 
+        # info("installed_packages: %s" % repr(cls.installed_packages))
+
         for pkg_name in package_names:
             if pkg_name.lower() not in installed_packages:
                 print(pkg_name + " not installed!")
@@ -119,7 +121,7 @@ def packages_required(package_names):
 
 
 if packages_required(['ordereddict']):
-    from list_helper import compress_list, unique_list
+    from herringlib.list_helper import compress_list, unique_list
 
     # noinspection PyMethodMayBeStatic,PyArgumentEqualDefault
     class ProjectSettings(object):
@@ -201,6 +203,13 @@ if packages_required(['ordereddict']):
                             if not os.path.exists(dest_filename):
                                 shutil.copyfile(template_filename, dest_filename)
 
+            requirements_filename = os.path.join(Project.herringfile_dir, 'requirements.txt')
+            needed = find_missing_requirements(requirements_filename)
+            if needed:
+                with open(requirements_filename, 'a') as req_file:
+                    for need in needed:
+                        req_file.write(need + "\n")
+
         def __create_from_template(self, src_filename, dest_filename):
             """
             render the destination file from the source template file
@@ -260,7 +269,7 @@ if packages_required(['ordereddict']):
             return []
         requirements = []
         contiguous = False
-        for line in compress_list(doc_string.split("\n")):
+        for line in compress_list([x.strip() for x in doc_string.split("\n")]):
             if 'requirements.txt' in line:
                 contiguous = True
                 continue
@@ -276,6 +285,15 @@ if packages_required(['ordereddict']):
     @task()
     def check_requirements():
         """Checks that herringfile and herringlib/* required packages are in requirements.txt file"""
+        requirements_filename = os.path.join(Project.herringfile_dir, 'requirements.txt')
+        needed = find_missing_requirements(requirements_filename)
+        if needed:
+            info("Please add the following to your %s:\n" % requirements_filename)
+            info("\n".join(needed))
+        else:
+            info("Your %s includes all known herringlib task requirements" % requirements_filename)
+
+    def find_missing_requirements(requirements_filename):
         files = [os.path.join(dir_path, f)
                  for dir_path, dir_names, files in os.walk(os.path.join(Project.herringfile_dir, 'herringlib'))
                  for f in fnmatch.filter(files, '*.py')]
@@ -296,11 +314,6 @@ if packages_required(['ordereddict']):
             required = sorted(compress_list(unique_list(requirements)))
 
         diff = sorted(set(needed) - set(required))
-        if not diff:
-            info("Your %s includes all known herringlib task requirements" % requirements_filename)
-            return
-
-        info("Please add the following to your %s:\n" % requirements_filename)
-        info("\n".join(diff))
+        return diff
 
     Project = ProjectSettings()

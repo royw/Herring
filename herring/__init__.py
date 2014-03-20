@@ -67,8 +67,8 @@ Example::
 
     @task()
     def argDemo():
-        print "argv: %s" % repr(task.argv)
-        print "kwargs: %s" % repr(task.kwargs)
+        print("argv: %s" % repr(task.argv))
+        print("kwargs: %s" % repr(task.kwargs))
 
     herring argDemo --delta=3 --flag
 
@@ -190,4 +190,4 @@ To display the help message::
 
 __docformat__ = 'restructuredtext en'
 
-__version__ = '0.1.1'
+__version__ = '0.1.3'

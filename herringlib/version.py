@@ -39,10 +39,10 @@ __docformat__ = 'restructuredtext en'
 import os
 import re
 from herring.herring_app import task
-from safe_edit import safe_edit
-from simple_logger import info, error, debug
+from herringlib.safe_edit import safe_edit
+from herringlib.simple_logger import info, error, debug
 from versio.version_scheme import Pep440VersionScheme
-from project_settings import Project
+from herringlib.project_settings import Project
 from versio.version import Version
 
 
