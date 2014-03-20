@@ -106,14 +106,14 @@ def show():
     os.path.walk('.', walker, None)
 
 
-@task(help='You may show arguments using:  -a value  or:  --arg value')
+@task(namespace='demo', help='You may show arguments using:  -a value  or:  --arg value')
 def args_demo():
     """ echos that task's arguments """
     info("argv: %s" % repr(task.argv))
     info("kwargs: %s" % repr(task.kwargs))
 
 
-@task()
+@task(namespace='demo')
 def bang():
     """test error handling"""
     raise RuntimeError('boom!')

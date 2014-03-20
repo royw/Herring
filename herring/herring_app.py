@@ -16,7 +16,7 @@ from herring.support.toposort2 import toposort2
 from herring.support.simple_logger import debug, info, fatal, Logger
 from herring.herring_file import HerringFile
 from herring.support.utils import findFiles
-from herring.task_with_args import TaskWithArgs, HerringTasks
+from herring.task_with_args import TaskWithArgs, HerringTasks, NameSpace
 
 
 __all__ = ("HerringApp", "task", "run", "HerringTasks")
@@ -25,6 +25,7 @@ __all__ = ("HerringApp", "task", "run", "HerringTasks")
 # pylint: disable=C0103
 task = TaskWithArgs
 run = HerringFile.run
+namespace = NameSpace
 
 
 # noinspection PyMethodMayBeStatic
@@ -292,10 +293,12 @@ class HerringApp(object):
         """
         dependencies = []
         for name in src_tasks:
-            dependencies.append(name)
-            tasks = self._find_dependencies(herring_tasks[name]['depends'],
-                                            herring_tasks)
-            dependencies.extend(tasks)
+            if name not in dependencies:
+                dependencies.append(name)
+                depend_tasks = herring_tasks[name]['depends']
+                tasks = self._find_dependencies([task_ for task_ in depend_tasks if task_ not in dependencies],
+                                                herring_tasks)
+                dependencies.extend(tasks)
         return dependencies
 
     def _resolve_dependencies(self, src_tasks, herring_tasks):

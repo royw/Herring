@@ -1,6 +1,22 @@
 TODO List
 =========
 
-* On exceptions in herringfile or it's imports, the exception trace shows the position in the eval string, not the
-  source file, making debugging difficult.  Need to correct this issue.
+* Add task namespace support.  Want to be able to group tasks by namespace on listings.  Also consider prefixing
+  the task name with the namespace.  For example::
+
+    @task('namespace'='foo')
+    def bar():
+        """The infamous foo bar task"""
+
+  Would list like::
+
+    foo::bar  # The infamous foo bar task
+
+  And be invoked like::
+
+    herring foo::bar
+
+  To invoke all tasks in a namespace::
+
+    herring foo::
 
