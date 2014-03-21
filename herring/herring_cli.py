@@ -3,11 +3,11 @@
 """
 The command line interface for the herring application.
 """
+from herring.herring_settings import HerringSettings
 from herring.support.terminalsize import get_terminal_size
 
 __docformat__ = 'restructuredtext en'
 
-import argparse
 import os
 import re
 import sys
@@ -20,31 +20,6 @@ from herring.task_with_args import TaskWithArgs
 
 VERSION_REGEX = r'__version__\s*=\s*[\'\"](\S+)[\'\"]'
 ROW_FORMAT = "{0:<{width1}s}  # {1:<{width2}s}"
-
-HELP = {
-    'herring': textwrap.dedent("""\
-        "Then, you must cut down the mightiest tree in the forrest... with... a herring!"
-
-        Herring is a simple python make utility.  You write tasks in python, and
-        optionally assign dependent tasks.  The command line interface lets you
-        easily list the tasks and run them.  See --longhelp for details.
-        """),
-    'herringfile': 'The herringfile to use, by default uses "herringfile".',
-    'list_tasks': 'Lists the tasks (with docstrings) in the herringfile.',
-    'list_task_usages': 'Shows the full docstring for the tasks (with docstrings) in the herringfile.',
-    'list_dependencies': 'Lists the tasks (with docstrings) with their '
-                         'dependencies in the herringfile.',
-    'list_all_tasks': 'Lists all tasks, even those without docstrings.',
-    'version': "Show herring's version.",
-    'tasks': "The tasks to run.  If none specified, tries to run the "
-             "'default' task.",
-    #'init': "Initialize a new project to use Herring.  Creates herringfile and herringlib in the given directory.",
-    #'update': "Update the herringlib tasks in an existing project.",
-    'quiet': 'Suppress herring output.',
-    'debug': 'Display debug messages.',
-    'longhelp': 'Long help about Herring.',
-    'json': 'Output list tasks (--tasks, --usage, --depends, --all) in JSON format.'
-}
 
 
 # noinspection PyMethodMayBeStatic,PyArgumentEqualDefault
@@ -61,39 +36,6 @@ class HerringCLI(object):
         settings = self.setup()
         app.execute(self, settings)
 
-    def _get_settings(self):
-        """
-        Parse the command line arguments.
-
-        :return: ArgumentParser instance
-        """
-        parser = argparse.ArgumentParser('Herring',
-                                         formatter_class=argparse.RawDescriptionHelpFormatter,
-                                         description=HELP['herring'])
-
-        parser.add_argument('-f', '--herringfile', metavar='FILESPEC',
-                            default='herringfile', help=HELP['herringfile'])
-        parser.add_argument('-T', '--tasks', dest='list_tasks',
-                            action="store_true", help=HELP['list_tasks'])
-        parser.add_argument('-U', '--usage', dest='list_task_usages',
-                            action="store_true", help=HELP['list_task_usages'])
-        parser.add_argument('-D', '--depends', dest='list_dependencies',
-                            action="store_true", help=HELP['list_dependencies'])
-        parser.add_argument('-a', '--all', dest='list_all_tasks',
-                            action='store_true', help=HELP['list_all_tasks'])
-        parser.add_argument('-q', '--quiet', dest='quiet', action='store_true',
-                            help=HELP['quiet'])
-        parser.add_argument('-d', '--debug', dest='debug',
-                            action='store_true', help=HELP['debug'])
-        parser.add_argument('-v', '--version', dest='version',
-                            action='store_true', help=HELP['version'])
-        parser.add_argument('-l', '--longhelp', dest='longhelp', action='store_true',
-                            help=HELP['longhelp'])
-        parser.add_argument('-j', '--json', dest='json', action='store_true',
-                            help=HELP['json'])
-        parser.add_argument('tasks', nargs='*', help=HELP['tasks'])
-        return parser.parse_known_args()
-
     def setup(self):
         """
         Command Line Interface.
@@ -107,7 +49,7 @@ class HerringCLI(object):
         :return: None
         """
 
-        settings, argv = self._get_settings()
+        parser, settings, argv = HerringSettings().parse()
 
         Logger.setVerbose(not settings.quiet)
         Logger.setDebug(settings.debug)

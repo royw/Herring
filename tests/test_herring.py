@@ -254,8 +254,8 @@ class TestHerring(TestCase):
                 'herringlib/f4/f5.py'
             ]])
 
-            herring_file = os.path.join(base_dir, 'herringfile')
-            found = list(HerringApp.library_files(herring_file))
+            lib_path = Path(base_dir, 'herringlib')
+            found = list(HerringApp.library_files(lib_path=lib_path))
 
             self.assertEqual(sorted(found), sorted(expected))
         finally:
