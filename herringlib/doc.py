@@ -18,6 +18,8 @@ Add the following to your *requirements.txt* file:
 * sphinxcontrib-actdiag
 * sphinxcontrib-nwdiag
 * sphinxcontrib-seqdiag
+* paramiko
+* scp
 
 """
 import shutil
@@ -171,11 +173,13 @@ if packages_required(required_packages):
                     out_file.write(".. inheritance-diagram:: %s\n" % value)
                 out_file.write("\n\n")
 
-        @task(depends=['clean'])
+        @task(depends=['clean', 'update_readme'])
         def api():
             """Generate API sphinx source files from code"""
             with cd(Project.docs_dir):
-                os.system("sphinx-apidoc -d 6 -o _src ../%s" % Project.package)
+                cmd_line = "sphinx-apidoc -d 6 -o _src ../%s" % Project.package
+                print(cmd_line)
+                os.system(cmd_line)
 
         def _customize_doc_src_files():
             """change the auto-api generated sphinx src files to be more what we want"""
@@ -297,13 +301,14 @@ if packages_required(required_packages):
             clean()
 
         @task()
-        def updateReadme():
+        def update_readme():
             """Update the README.txt from the application's --longhelp output"""
             with LocalShell() as local:
                 text = local.system("%s --longhelp" % os.path.join(Project.herringfile_dir,
                                                                    Project.package, Project.main))
-                with open("README.txt", 'w') as readme_file:
-                    readme_file.write(text)
+                if text:
+                    with open("README.rst", 'w') as readme_file:
+                        readme_file.write(text)
 
         @task(depends=['clean'])
         def rstlint():

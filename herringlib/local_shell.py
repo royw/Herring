@@ -198,7 +198,7 @@ class LocalShell(AShell):
 
             line = self._non_block_read(process.stdout)
             if line:
-                yield line.decode()
+                yield line
 
     def _non_block_read(self, output):
         fd = output.fileno()
@@ -206,7 +206,7 @@ class LocalShell(AShell):
         fcntl.fcntl(fd, fcntl.F_SETFL, fl | os.O_NONBLOCK)
         #noinspection PyBroadException
         try:
-            return output.read()
+            return output.read().decode()
         except:
             return ''
 

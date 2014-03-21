@@ -102,7 +102,7 @@ def quick_edit(file_name, regex_replacement_dict):
     with safe_edit(file_name) as files:
         for line in files['in'].readlines():
             out_line = _line_replacement(line, regex_replacement_dict)
-            files['out'].write(out_line)
+            files['out'].write(out_line.encode('utf-8'))
 
 
 def _line_replacement(line, regex_replacement_dict):

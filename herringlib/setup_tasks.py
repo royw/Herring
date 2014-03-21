@@ -11,7 +11,7 @@ __docformat__ = 'restructuredtext en'
 import os
 from getpass import getpass
 
-from herring.herring_app import task
+from herring.herring_app import task, namespace
 from herringlib.version import bump, get_project_version
 from herringlib.project_settings import Project
 from herringlib.local_shell import LocalShell
@@ -71,78 +71,79 @@ def build():
         # run("python setup.py bdist")
 
 
-@task(depends=['build'])
-def install():
-    """ install the project """
-    with LocalShell() as local:
-        local.system("python setup.py install --record install.record")
+with namespace('build'):
+    @task(depends=['build'])
+    def install():
+        """ install the project """
+        with LocalShell() as local:
+            local.system("python setup.py install --record install.record")
 
 
-@task()
-def uninstall():
-    """ uninstall the project"""
-    with LocalShell() as local:
-        if os.path.exists('install.record'):
-            local.system("cat install.record | xargs rm -rf")
-            os.remove('install.record')
-        else:
-            # try uninstalling with pip
-            local.run(['pip', 'uninstall', Project.herringfile_dir.split(os.path.sep)[-1]])
+    @task()
+    def uninstall():
+        """ uninstall the project"""
+        with LocalShell() as local:
+            if os.path.exists('install.record'):
+                local.system("cat install.record | xargs rm -rf")
+                os.remove('install.record')
+            else:
+                # try uninstalling with pip
+                local.run(['pip', 'uninstall', Project.herringfile_dir.split(os.path.sep)[-1]])
+
+with namespace('release'):
+    @task()
+    def changes_since_last_tag():
+        """show the changes since the last tag"""
+        with LocalShell(verbose=False) as local:
+            last_tag = local.run('git describe --tags --abbrev=0').strip()
+            print("\n" + local.run(['git', 'log', '{tag}..HEAD'.format(tag=last_tag), '--oneline']))
 
 
-@task()
-def changes_since_last_tag():
-    """show the changes since the last tag"""
-    with LocalShell(verbose=False) as local:
-        last_tag = local.run('git describe --tags --abbrev=0').strip()
-        print("\n" + local.run(['git', 'log', '{tag}..HEAD'.format(tag=last_tag), '--oneline']))
+    @task()
+    def github():
+        """tag it with the current version"""
+        with LocalShell() as local:
+            local.run('git tag {name}-{ver} -m "Adds a tag so we can put this on PyPI"'.format(
+                name=Project.package,
+                ver=get_project_version(Project.package)))
+            local.run('git push --tags origin master')
 
 
-@task()
-def release_github():
-    """tag it with the current version"""
-    with LocalShell() as local:
-        local.run('git tag {name}-{ver} -m "Adds a tag so we can put this on PyPI"'.format(
-            name=Project.package,
-            ver=get_project_version(Project.package)))
-        local.run('git push --tags origin master')
+    @task()
+    def pypi_test():
+        """register and upload package to pypi-test"""
+        with LocalShell() as local:
+            local.run('python setup.py register -r test')
+            local.run('python setup.py sdist upload -r test')
 
 
-@task()
-def release_pypi_test():
-    """register and upload package to pypi-test"""
-    with LocalShell() as local:
-        local.run('python setup.py register -r test')
-        local.run('python setup.py sdist upload -r test')
+    @task()
+    def pypi_live():
+        """register and upload package to pypi"""
+        with LocalShell() as local:
+            local.run('python setup.py register -r pypi')
+            local.run('python setup.py sdist upload -r pypi')
 
 
-@task()
-def release_pypi_live():
-    """register and upload package to pypi"""
-    with LocalShell() as local:
-        local.run('python setup.py register -r pypi')
-        local.run('python setup.py sdist upload -r pypi')
-
-
-@task()
-def upload_docs():
-    """upload docs to http://pythonhosted.org"""
-    # This should work with SetupTools >= 2.0.1:
-    with LocalShell() as local:
-        local.run('python setup.py upload_docs --upload-dir={dir}'.format(dir=Project.docs_html_dir))
-    # If not, then here's the manual steps
-    # we zip the docs then the user must manually upload
-    # zip_name = '../{name}-docs-{ver}.zip'.format(
-    #     name=Project.package,
-    #     ver=get_project_version(Project.package))
-    # with cd(Project.docs_html_dir):
-    #     with LocalShell() as local:
-    #         local.run('zip -r {zip}'.format(zip=zip_name))
-    # info("""\
-    # Please log on to https://pypi.python.org/pypi
-    # Then select "{name}" under "Your packages".
-    # Next use the "Browse" button to select "{zip}" and press "Upload Documentation".
-    # """.format(name=Project.name))
+    @task()
+    def upload_docs():
+        """upload docs to http://pythonhosted.org"""
+        # This should work with SetupTools >= 2.0.1:
+        with LocalShell() as local:
+            local.run('python setup.py upload_docs --upload-dir={dir}'.format(dir=Project.docs_html_dir))
+        # If not, then here's the manual steps
+        # we zip the docs then the user must manually upload
+        # zip_name = '../{name}-docs-{ver}.zip'.format(
+        #     name=Project.package,
+        #     ver=get_project_version(Project.package))
+        # with cd(Project.docs_html_dir):
+        #     with LocalShell() as local:
+        #         local.run('zip -r {zip}'.format(zip=zip_name))
+        # info("""\
+        # Please log on to https://pypi.python.org/pypi
+        # Then select "{name}" under "Your packages".
+        # Next use the "Browse" button to select "{zip}" and press "Upload Documentation".
+        # """.format(name=Project.name))
 
 
 @task()
@@ -154,8 +155,8 @@ def release():
               'Hint, do not use comments in your .pypirc')
         return
 
-    release_github()
-    release_pypi_test()
+    github()
+    pypi_test()
     if query_yes_no('Is the new package on pypi-test (http://testpypi.python.org/pypi)?'):
-        release_pypi_live()
+        pypi_live()
         upload_docs()

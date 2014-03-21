@@ -10,10 +10,13 @@ Add the following to your *requirements.txt* file:
 
 __docformat__ = 'restructuredtext en'
 
-from herringlib.project_settings import packages_required
 
-if packages_required(['ordereddict']):
-    from ordereddict import OrderedDict
+try:
+    # noinspection PyUnresolvedReferences
+    try:
+        from ordereddict import OrderedDict
+    except ImportError:
+        from collections import OrderedDict
 
     def compress_list(src_list):
         """
@@ -36,3 +39,7 @@ if packages_required(['ordereddict']):
         :rtype: list
         """
         return OrderedDict.fromkeys(src_list).keys()
+
+except ImportError:
+    print("ordereddict not installed!")
+    exit(1)

@@ -72,7 +72,7 @@ def check_syntax(fn, lines):
         code = code.replace('\r', '')
     try:
         compile(code, fn, 'exec')
-    except SyntaxError, err:
+    except SyntaxError as err:
         yield err.lineno, 'not compilable: %s' % err
 
 
@@ -201,7 +201,7 @@ Options:  -v       verbose (print all checked file names)
             try:
                 with open(fn, 'r') as f:
                     lines = list(f)
-            except (IOError, OSError), err:
+            except (IOError, OSError) as err:
                 print('%s: cannot open: %s' % (fn, err))
                 count[4] += 1
                 continue

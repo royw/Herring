@@ -38,7 +38,7 @@ __docformat__ = 'restructuredtext en'
 
 import os
 import re
-from herring.herring_app import task
+from herring.herring_app import task, namespace
 from herringlib.safe_edit import safe_edit
 from herringlib.simple_logger import info, error, debug
 from versio.version_scheme import Pep440VersionScheme
@@ -154,40 +154,38 @@ def set_project_version(version_str, project_package=None):
             version_file.write(version_str)
 
 
-@task()
-def bump():
-    """
-    Bumps the Tiny (Major.Minor.Tiny.Tiny2) version in VERSION file up by one.
-    If the VERSION file does not exist, then create it and initialize the version to '0.0.0'.
-    """
-    return bump_tiny()
+with namespace('version'):
+    @task()
+    def bump():
+        """
+        Bumps the Tiny (Major.Minor.Tiny.Tiny2) version in VERSION file up by one.
+        If the VERSION file does not exist, then create it and initialize the version to '0.0.0'.
+        """
+        return bump_tiny()
 
+    @task()
+    def bump_tiny():
+        """
+        Bumps the Minor (Major.Minor.Tiny.Tiny2) version in VERSION file up by one.
+        If the VERSION file does not exist, then create it and initialize the version to '0.0.0'.
+        """
+        return bump_field('Tiny')
 
-@task()
-def bump_tiny():
-    """
-    Bumps the Minor (Major.Minor.Tiny.Tiny2) version in VERSION file up by one.
-    If the VERSION file does not exist, then create it and initialize the version to '0.0.0'.
-    """
-    return bump_field('Tiny')
+    @task()
+    def bump_minor():
+        """
+        Bumps the Minor (Major.Minor.Tiny.Tiny2) version in VERSION file up by one.
+        If the VERSION file does not exist, then create it and initialize the version to '0.0.0'.
+        """
+        return bump_field('Minor')
 
-
-@task()
-def bump_minor():
-    """
-    Bumps the Minor (Major.Minor.Tiny.Tiny2) version in VERSION file up by one.
-    If the VERSION file does not exist, then create it and initialize the version to '0.0.0'.
-    """
-    return bump_field('Minor')
-
-
-@task()
-def bump_major():
-    """
-    Bumps the Major (Major.Minor.Tiny.Tiny2) version in VERSION file up by one.
-    If the VERSION file does not exist, then create it and initialize the version to '0.0.0'.
-    """
-    return bump_field('Major')
+    @task()
+    def bump_major():
+        """
+        Bumps the Major (Major.Minor.Tiny.Tiny2) version in VERSION file up by one.
+        If the VERSION file does not exist, then create it and initialize the version to '0.0.0'.
+        """
+        return bump_field('Major')
 
 
 def bump_field(field):

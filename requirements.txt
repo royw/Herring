@@ -1,5 +1,4 @@
 Pygments
-PyMetrics
 Sphinx
 Versio
 argparse
@@ -15,7 +14,7 @@ paramiko
 pycabehtml
 pylint
 pytest==2.3.5
-scp
+-e git+https://github.com/JohnyMoSwag/scp.py.git#egg=scp
 setuptools
 six
 sphinx-bootstrap-theme
@@ -27,9 +26,8 @@ sphinxcontrib-plantuml
 sphinxcontrib-seqdiag
 tox
 unipath
-wsgiref
-yolk
 behave
-herring
 pexpect
 pymetrics
+herring
+scp
