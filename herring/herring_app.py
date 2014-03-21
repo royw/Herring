@@ -125,9 +125,12 @@ class HerringApp(object):
         :return: None
         """
         herringfile_path = Path(herringfile).parent
-        sys.path.extend(herringfile_path)
+        lib_path = self._locate_library(herringfile_path)
+        sys.path.append(str(herringfile_path))
+        if lib_path is not None:
+            sys.path.append(str(lib_path))
         self._load_file(herringfile)
-        for file_name in self.library_files(herringfile, lib_path=self._locate_library(herringfile_path)):
+        for file_name in self.library_files(lib_path=lib_path):
             debug("file_name = {file}".format(file=file_name))
             mod_name = 'herringlib.' + Path(file_name).stem
             debug("mod_name = {name}".format(name=mod_name))
@@ -137,20 +140,20 @@ class HerringApp(object):
         if 'HERRINGLIB' in os.environ:
             lib_path = Path(os.environ['HERRINGLIB'])
             if lib_path.exists():
-                print("Using env[HERRINGLIB]: %s" % lib_path)
+                info("Using env[HERRINGLIB]: %s" % lib_path)
                 return lib_path
         lib_path = Path(herringfile_path, 'herringlib')
         if lib_path.exists():
-            print("Using herringlib: %s" % lib_path)
+            info("Using herringlib: %s" % lib_path)
             return lib_path
-        lib_path = Path(os.path.expanduser('~/.herringlib'))
+        lib_path = Path(os.path.expanduser('~/.herring'))
         if lib_path.exists():
-            print("Using ~/.herringlib: %s" % lib_path)
+            info("Using ~/.herringlib: %s" % lib_path)
             return lib_path
         return None
 
     @staticmethod
-    def library_files(herringfile, lib_path=None, pattern='*.py'):
+    def library_files(lib_path=None, pattern='*.py'):
         """
         Yield any .py files located in herringlib subdirectory in the
         same directory as the given herringfile.  Ignore package __init__.py
