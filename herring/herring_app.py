@@ -124,17 +124,33 @@ class HerringApp(object):
         :type herringfile: str
         :return: None
         """
-        sys.path.extend(os.path.dirname(herringfile))
+        herringfile_path = Path(herringfile).parent
+        sys.path.extend(herringfile_path)
         self._load_file(herringfile)
-        for file_name in self.library_files(herringfile):
+        for file_name in self.library_files(herringfile, lib_path=self._locate_library(herringfile_path)):
             debug("file_name = {file}".format(file=file_name))
             mod_name = 'herringlib.' + Path(file_name).stem
             debug("mod_name = {name}".format(name=mod_name))
             __import__(mod_name)
 
+    def _locate_library(self, herringfile_path):
+        if 'HERRINGLIB' in os.environ:
+            lib_path = Path(os.environ['HERRINGLIB'])
+            if lib_path.exists():
+                print("Using env[HERRINGLIB]: %s" % lib_path)
+                return lib_path
+        lib_path = Path(herringfile_path, 'herringlib')
+        if lib_path.exists():
+            print("Using herringlib: %s" % lib_path)
+            return lib_path
+        lib_path = Path(os.path.expanduser('~/.herringlib'))
+        if lib_path.exists():
+            print("Using ~/.herringlib: %s" % lib_path)
+            return lib_path
+        return None
+
     @staticmethod
-    def library_files(herringfile, lib_base_name='herringlib',
-                      pattern='*.py'):
+    def library_files(herringfile, lib_path=None, pattern='*.py'):
         """
         Yield any .py files located in herringlib subdirectory in the
         same directory as the given herringfile.  Ignore package __init__.py
@@ -142,23 +158,23 @@ class HerringApp(object):
 
         :param herringfile: the herringfile
         :type herringfile: str
-        :param lib_base_name: the base name of the library relative to the
-            directory where the herring_file is located
-        :type lib_base_name: str
+        :param lib_path: the path to the herringlib directory
+        :type lib_path: Path
         :param pattern: the file pattern (glob) to select
         :type pattern: str
         :return: iterator for path to a library herring file
         :rtype: iterator
         """
-        herring_path = Path(os.path.dirname(herringfile))
-        lib_dir = Path(herring_path, lib_base_name)
-        if lib_dir.isdir():
-            files = findFiles(lib_dir, excludes=['*/templates/*', '.svn'], includes=[pattern])
+        if lib_path is None:
+            return
+        parent_path = lib_path.parent
+        if lib_path.isdir():
+            files = findFiles(lib_path, excludes=['*/templates/*', '.svn'], includes=[pattern])
             for file_path in [Path(file_name) for file_name in files]:
                 if file_path.name == '__init__.py':
                     continue
                 debug("loading from herringlib:  %s" % file_path)
-                rel_path = herring_path.rel_path_to(file_path)
+                rel_path = parent_path.rel_path_to(file_path)
                 yield rel_path
 
     def load_plugin(self, plugin, paths):

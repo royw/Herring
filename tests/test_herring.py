@@ -3,12 +3,17 @@
 """
 Test the herring application.
 """
-from six import StringIO
 import os
 import shutil
 from tempfile import mkdtemp
 from unittest import TestCase
 from unipath import Path
+
+try:
+    from io import StringIO
+except ImportError:
+    from StringIO import StringIO
+
 from herring.argument_helper import ArgumentHelper
 from herring.herring_app import HerringApp
 from herring.herring_cli import HerringCLI
@@ -20,6 +25,7 @@ def dummy_task():
     pass
 
 
+# noinspection PyPep8Naming
 class TestHerring(TestCase):
     """
     Test suite for Herring application
@@ -52,13 +58,14 @@ class TestHerring(TestCase):
         verify that _tasksToDependDict creates the correct data structure
         """
 
+        # noinspection PyProtectedMember
         dataDict = self.herring_app._tasks_to_depend_dict(self.herring_tasks.keys(), self.herring_tasks)
-        self.assertEquals(dataDict['alpha'], set([]))
-        self.assertEquals(dataDict['beta'], set([]))
-        self.assertEquals(dataDict['gamma'], set(['alpha']))
-        self.assertEquals(dataDict['delta'], set(['beta', 'phi']))
-        self.assertEquals(dataDict['phi'], set([]))
-        self.assertEquals(dataDict['sigma'], set(['alpha', 'delta']))
+        self.assertEqual(dataDict['alpha'], set([]))
+        self.assertEqual(dataDict['beta'], set([]))
+        self.assertEqual(dataDict['gamma'], set(['alpha']))
+        self.assertEqual(dataDict['delta'], set(['beta', 'phi']))
+        self.assertEqual(dataDict['phi'], set([]))
+        self.assertEqual(dataDict['sigma'], set(['alpha', 'delta']))
         self.assertFalse(self._output_buf.getvalue())
 
     def verify_findDependencies(self, src_list, dest_list):
@@ -68,8 +75,9 @@ class TestHerring(TestCase):
         :param src_list: source list containing task names
         :param dest_list: output list containing task names
         """
+        # noinspection PyProtectedMember
         depends = self.herring_app._find_dependencies(src_list, self.herring_tasks)
-        self.assertEquals(depends, dest_list)
+        self.assertEqual(depends, dest_list)
 
     def test__find_dependencies(self):
         """ tasks are unordered """
@@ -87,8 +95,9 @@ class TestHerring(TestCase):
         :param src_list: source list containing task names
         :param dest_list: output list containing task names
         """
+        # noinspection PyProtectedMember
         depends = self.herring_app._resolve_dependencies(src_list, self.herring_tasks)
-        self.assertEquals(sorted(depends), sorted(dest_list))
+        self.assertEqual(sorted(depends), sorted(dest_list))
 
     def test__resolveDependencies(self):
         """ tasks are ordered """
@@ -108,8 +117,15 @@ class TestHerring(TestCase):
     #     -I got better..."
     #     "We are no longer the knights who say ni! We are now the knights who say ekki-ekki-ekki-pitang-zoom-boing!"
     #     "Nudge, nudge, wink, wink. Know what I mean?"
-    #     "And the Lord spake, saying, "First shalt thou take out the Holy Pin. Then shalt thou count to three, no more, no less. Three shall be the number thou shalt count, and the number of the counting shall be three. Four shalt thou not count, neither count thou two, excepting that thou then proceed to three. Five is right out. Once the number three, being the third number, be reached, then lobbest thou thy Holy Hand Grenade of Antioch towards thy foe, who, being naughty in my sight, shall snuff it."
-    #     "Jesus did. I was hopping along, when suddenly he comes and cures me. One minute I'm a leper with a trade, next moment me livelihood's gone. Not so much as a by your leave. Look. I'm not saying that being a leper was a bowl of cherries. But it was a living. I mean, you try waving muscular suntanned limbs in people's faces demanding compassion. It's a bloody disaster."
+    #     "And the Lord spake, saying, "First shalt thou take out the Holy Pin. Then shalt thou count to three,
+    # no more, no less. Three shall be the number thou shalt count, and the number of the counting shall be three.
+    # Four shalt thou not count, neither count thou two, excepting that thou then proceed to three. Five is right out
+    # . Once the number three, being the third number, be reached, then lobbest thou thy Holy Hand Grenade of Antioch
+    #  towards thy foe, who, being naughty in my sight, shall snuff it."
+    #     "Jesus did. I was hopping along, when suddenly he comes and cures me. One minute I'm a leper with a trade,
+    # next moment me livelihood's gone. Not so much as a by your leave. Look. I'm not saying that being a leper was a
+    #  bowl of cherries. But it was a living. I mean, you try waving muscular suntanned limbs in people's faces
+    # demanding compassion. It's a bloody disaster."
     #     "The Castle Aaahhhgggg - our quest is at an end."
     #     """
     #
@@ -123,17 +139,17 @@ class TestHerring(TestCase):
 
     def test_argvToDict_empty(self):
         """test with no arguments"""
-        self.assertEquals(ArgumentHelper.argv_to_dict([]), {})
+        self.assertEqual(ArgumentHelper.argv_to_dict([]), {})
 
     def test_argvToDict_flag(self):
         """test with just a single flag argument"""
-        self.assertEquals(ArgumentHelper.argv_to_dict(['--flag']),
-                          {'flag': True})
+        self.assertEqual(ArgumentHelper.argv_to_dict(['--flag']),
+                         {'flag': True})
 
     def test_argvToDict_pair(self):
         """test with just a single key value pair of arguments"""
-        self.assertEquals(ArgumentHelper.argv_to_dict(['--foo', 'bar']),
-                          {'foo': 'bar'})
+        self.assertEqual(ArgumentHelper.argv_to_dict(['--foo', 'bar']),
+                         {'foo': 'bar'})
 
     def test_argvToDict_mixed(self):
         """test with a mixture of arguments"""
@@ -146,26 +162,26 @@ class TestHerring(TestCase):
                            'foo': 'alpha beta',
                            'bar': 'delta'}
         kwargs = ArgumentHelper.argv_to_dict(argv)
-        self.assertEquals(kwargs, expected_kwargs)
+        self.assertEqual(kwargs, expected_kwargs)
 
     def test_argvToDict_value(self):
         """test with just a single value, i.e., no key argument"""
-        self.assertEquals(ArgumentHelper.argv_to_dict(['fubar']), {})
-        self.assertEquals(ArgumentHelper.argv_to_dict(['-fubar']), {})
+        self.assertEqual(ArgumentHelper.argv_to_dict(['fubar']), {})
+        self.assertEqual(ArgumentHelper.argv_to_dict(['-fubar']), {})
 
     def test_argvToDict_doubleHyphens(self):
         """test with just a -- argument"""
-        self.assertEquals(ArgumentHelper.argv_to_dict(['--']), {})
+        self.assertEqual(ArgumentHelper.argv_to_dict(['--']), {})
 
     def test_argvToDict_doubleHyphensEnd(self):
         """test with multiple arguments where the last argument is --"""
-        self.assertEquals(ArgumentHelper.argv_to_dict(['--flag', '--']),
-                          {'flag': True})
+        self.assertEqual(ArgumentHelper.argv_to_dict(['--flag', '--']),
+                         {'flag': True})
 
     def test_argvToDict_doubleHyphensBegin(self):
         """test with multiple arguments where the first argument is --"""
-        self.assertEquals(ArgumentHelper.argv_to_dict(['--', '--flag']),
-                          {'flag': True})
+        self.assertEqual(ArgumentHelper.argv_to_dict(['--', '--flag']),
+                         {'flag': True})
 
     def test_argvToDict_doubleHyphensMiddle(self):
         """
@@ -181,7 +197,7 @@ class TestHerring(TestCase):
                            'foo': 'alpha beta',
                            'bar': 'delta'}
         kwargs = ArgumentHelper.argv_to_dict(argv)
-        self.assertEquals(kwargs, expected_kwargs)
+        self.assertEqual(kwargs, expected_kwargs)
 
     def test_argvToDict_singleHyphens(self):
         """
@@ -193,17 +209,17 @@ class TestHerring(TestCase):
                 '-foo', 'alpha', 'beta',
                 '-bar', 'delta', '-charlie']
         kwargs = ArgumentHelper.argv_to_dict(argv)
-        self.assertEquals(kwargs, {})
+        self.assertEqual(kwargs, {})
 
     def test_argvToDict_equals(self):
         """test the --key=value syntax"""
-        self.assertEquals(ArgumentHelper.argv_to_dict(['--foo=bar']),
-                          {'foo': 'bar'})
+        self.assertEqual(ArgumentHelper.argv_to_dict(['--foo=bar']),
+                         {'foo': 'bar'})
 
     def test_argvToDict_doubleEquals(self):
         """test more than one equal sign in a key argument"""
-        self.assertEquals(ArgumentHelper.argv_to_dict(['--foo=bar=alpha']),
-                          {'foo': 'bar=alpha'})
+        self.assertEqual(ArgumentHelper.argv_to_dict(['--foo=bar=alpha']),
+                         {'foo': 'bar=alpha'})
 
     def test_library_files(self):
         """
@@ -241,6 +257,6 @@ class TestHerring(TestCase):
             herring_file = os.path.join(base_dir, 'herringfile')
             found = list(HerringApp.library_files(herring_file))
 
-            self.assertEquals(sorted(found), sorted(expected))
+            self.assertEqual(sorted(found), sorted(expected))
         finally:
             shutil.rmtree(base_dir)

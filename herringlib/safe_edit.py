@@ -1,4 +1,4 @@
-# coding=utf-8
+# =*- coding: utf-8 -*-
 
 """
 Safely edit a file by creating a backup which will be restored on any error.
@@ -36,8 +36,8 @@ def safe_edit(file_name):
     tf_name = None
     tmp_file = None
     try:
-        in_file = open(file_name, 'r')
-        tmp_file = NamedTemporaryFile(delete=False)
+        in_file = open(file_name, mode='r', encoding='utf-8')
+        tmp_file = NamedTemporaryFile(mode='w', delete=False, encoding='utf-8')
         tf_name = tmp_file.name
         yield {'in': in_file, 'out': tmp_file}
 
@@ -102,7 +102,7 @@ def quick_edit(file_name, regex_replacement_dict):
     with safe_edit(file_name) as files:
         for line in files['in'].readlines():
             out_line = _line_replacement(line, regex_replacement_dict)
-            files['out'].write(out_line.encode('utf-8'))
+            files['out'].write(out_line)
 
 
 def _line_replacement(line, regex_replacement_dict):
