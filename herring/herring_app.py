@@ -3,19 +3,17 @@
 """
 The main Herring application.
 """
-from imp import PY_SOURCE
-from unipath import Path
-
 __docformat__ = 'restructuredtext en'
 
 import os
 import sys
 
+from pathlib import Path
 from operator import itemgetter
 from herring.support.toposort2 import toposort2
 from herring.support.simple_logger import debug, info, fatal, Logger
 from herring.herring_file import HerringFile
-from herring.support.utils import findFiles
+from herring.support.utils import find_files
 from herring.task_with_args import TaskWithArgs, HerringTasks, NameSpace
 
 
@@ -44,8 +42,8 @@ class HerringApp(object):
         The Herring application.
         """
         # noinspection PyArgumentEqualDefault
-        Logger.setVerbose(True)
-        Logger.setDebug(False)
+        Logger.set_verbose(True)
+        Logger.set_debug(False)
 
     def execute(self, cli, settings):
         """
@@ -159,8 +157,6 @@ class HerringApp(object):
         same directory as the given herringfile.  Ignore package __init__.py
         files, .svn and templates sub-directories.
 
-        :param herringfile: the herringfile
-        :type herringfile: str
         :param lib_path: the path to the herringlib directory
         :type lib_path: Path
         :param pattern: the file pattern (glob) to select
@@ -171,13 +167,15 @@ class HerringApp(object):
         if lib_path is None:
             return
         parent_path = lib_path.parent
-        if lib_path.isdir():
-            files = findFiles(lib_path, excludes=['*/templates/*', '.svn'], includes=[pattern])
+        if lib_path.is_dir():
+            files = find_files(str(lib_path), excludes=['*/templates/*', '.svn'], includes=[pattern])
             for file_path in [Path(file_name) for file_name in files]:
                 if file_path.name == '__init__.py':
                     continue
+                debug("parent_path: %s" % str(parent_path))
                 debug("loading from herringlib:  %s" % file_path)
-                rel_path = parent_path.rel_path_to(file_path)
+                rel_path = file_path.relative_to(parent_path)
+                debug("relative path: %s" % str(rel_path))
                 yield rel_path
 
     def load_plugin(self, plugin, paths):
@@ -185,8 +183,6 @@ class HerringApp(object):
         :param plugin: the herringlib plugin to load
         :param paths: the herringlib path
         """
-        import imp
-
         # check if we haven't loaded it already
         try:
             return sys.modules[plugin]
@@ -195,12 +191,19 @@ class HerringApp(object):
         # ok, the load it
         #fp, filename, desc = imp.find_module(plugin, paths)
         filename = os.path.join(paths, plugin)
-        extension = os.path.splitext(filename)[1]
-        mode = 'r'
-        desc = (extension, mode, PY_SOURCE)
-        debug(repr(desc))
-        with open(filename, mode) as fp:
-            mod = imp.load_module(plugin, fp, filename, desc)
+        package = 'herringlib'
+        try:
+            from importlib import import_module
+            import_module('herringlib')
+            mod = import_module(plugin, package)
+        except ImportError:
+            from imp import load_module, PY_SOURCE
+            extension = os.path.splitext(filename)[1]
+            mode = 'r'
+            desc = (extension, mode, PY_SOURCE)
+            debug(repr(desc))
+            with open(filename, mode) as fp:
+                mod = load_module(plugin, fp, filename, desc)
         return mod
 
     def _load_file(self, file_name):

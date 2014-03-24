@@ -14,7 +14,7 @@ from contextlib import contextmanager
 
 # noinspection PyBroadException
 @contextmanager
-def safeEdit(file_name):
+def safe_edit(file_name):
     """
     Edit a file using a backup.  On any exception, restore the backup.
 
@@ -33,7 +33,7 @@ def safeEdit(file_name):
     backup_name = file_name + '~'
 
     in_file = None
-    tf_name = None
+    tf_name = ''
     tmp_file = None
     try:
         in_file = open(file_name, 'r')

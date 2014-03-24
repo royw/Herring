@@ -44,12 +44,12 @@ class GracefulInterruptHandler(object):
         self.original_handler = None
 
     def __enter__(self):
-
         self.interrupted = False
         self.released = False
 
         self.original_handler = signal.getsignal(self.sig)
 
+        # noinspection PyUnusedLocal
         def handler(signum, frame):
             """signal that an interrupt has occurred."""
             self.release()
@@ -59,6 +59,7 @@ class GracefulInterruptHandler(object):
 
         return self
 
+    # noinspection PyUnusedLocal
     def __exit__(self, type, value, tb):
         self.release()
 
@@ -72,4 +73,3 @@ class GracefulInterruptHandler(object):
         self.released = True
 
         return True
-

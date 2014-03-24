@@ -7,11 +7,11 @@ coverage
 logilab-astng
 logilab-common
 matplotlib
-nose
+#nose
 numpy
 ordereddict
 paramiko
-pycabehtml
+# pycabehtml
 pylint
 pytest==2.3.5
 -e git+https://github.com/JohnyMoSwag/scp.py.git#egg=scp
@@ -25,9 +25,11 @@ sphinxcontrib-nwdiag
 sphinxcontrib-plantuml
 sphinxcontrib-seqdiag
 tox
-unipath
+pathlib
 behave
 pexpect
 pymetrics
-herring
 scp
+herring
+nose
+pycabehtml

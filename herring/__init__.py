@@ -98,8 +98,18 @@ To show all tasks, including hidden tasks::
 Reusing Tasks
 -------------
 
-If you have a "herringlib" directory in the same directory as your herringfile,
-herring will attempt to load all .py files in it (glob: "herringlib/\*\*/\*.py").
+Herring supports loading files from a "herringlib" directory.  The search order
+for finding the "herringlib" to use is:
+
+1. the directory specified in the "HERRINGLIB" environment variable,
+2. a "herringlib" sub-directory to the directory that contains the "herringfile" file,
+3. the "~/.herring/herringlib" directory.
+
+The environment variable approach is good for using a common set of tasks among a group of projects.
+The sub-directory approach is good for using project specific tasks.
+The "~/.herring/herringlib" approach is good for having your own set of default tasks.
+
+Herring will attempt to load all .py files in the "herringlib" directory (glob: "herringlib/\*\*/\*.py").
 These .py files may include tasks just like the herringfile.
 
 You will probably want to include __init__.py in herringlib and it's sub-

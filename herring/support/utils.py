@@ -11,7 +11,7 @@ import os
 import re
 
 
-def findFiles(directory, includes=None, excludes=None):
+def find_files(directory, includes=None, excludes=None):
     """
     Find files given a starting directory and optionally a set of includes and/or excludes patterns.
 

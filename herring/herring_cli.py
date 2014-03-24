@@ -51,8 +51,8 @@ class HerringCLI(object):
 
         parser, settings, argv = HerringSettings().parse()
 
-        Logger.setVerbose(not settings.quiet)
-        Logger.setDebug(settings.debug)
+        Logger.set_verbose(not settings.quiet)
+        Logger.set_debug(settings.debug)
 
         TaskWithArgs.argv = argv
         TaskWithArgs.kwargs = ArgumentHelper.argv_to_dict(argv)

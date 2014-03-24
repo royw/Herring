@@ -16,6 +16,7 @@ class SimpleLogger(object):
 
     def __init__(self, out_stream=None):
         """Initialize"""
+        self.out_stream = out_stream
         self.current_component = None
         self.show_level = False
         self.log_outputter = {
@@ -26,7 +27,7 @@ class SimpleLogger(object):
             'fatal': [sys.stderr],
         }
 
-    def setVerbose(self, verbose=True):
+    def set_verbose(self, verbose=True):
         """
         Set verbose mode.
 
@@ -38,7 +39,7 @@ class SimpleLogger(object):
         else:
             self.log_outputter['info'] = []
 
-    def setDebug(self, enable_debug=True):
+    def set_debug(self, enable_debug=True):
         """
         Set debug logging mode.
     
@@ -51,7 +52,7 @@ class SimpleLogger(object):
         else:
             self.log_outputter['debug'] = []
 
-    def setComponent(self, component=None):
+    def set_component(self, component=None):
         """
         Set component label.
 
@@ -60,7 +61,7 @@ class SimpleLogger(object):
         """
         self.current_component = component
 
-    def setShowLevel(self, show_level=True):
+    def set_show_level(self, show_level=True):
         """
         Enable showing the logging level.
     
