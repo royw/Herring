@@ -1,4 +1,6 @@
-docs/
+docs/_src/
+docs/_tempates/
+docs/api/
 attic/
 quality/
 MANIFEST
