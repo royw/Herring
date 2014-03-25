@@ -124,18 +124,18 @@ class HerringApp(object):
         """
         herringfile_path = Path(herringfile).parent
         library_paths = self._locate_library(herringfile_path, settings)
-        info("library_paths: %s" % repr(library_paths))
-        if library_paths:
-            sys.path = [str(path.parent) for path in library_paths if path.parent != herringfile_path] + \
-                       [str(herringfile_path)] + sys.path
-        else:
-            sys.path = [str(herringfile_path)] + sys.path
-        info("sys.path: %s" % repr(sys.path))
+        debug("library_paths: %s" % repr(library_paths))
+        herringlib_paths = [str(path.parent) for path in library_paths if path.parent != herringfile_path] + \
+                           [str(herringfile_path)]
+        sys.path = herringlib_paths + sys.path
+        for path in herringlib_paths:
+            info("herringlib path: %s" % path)
+        debug("sys.path: %s" % repr(sys.path))
         self._load_file(herringfile)
         for file_name in self.library_files(library_paths=library_paths):
-            info("file_name = {file}".format(file=file_name))
+            debug("file_name = {file}".format(file=file_name))
             mod_name = 'herringlib.' + Path(file_name).stem
-            info("mod_name = {name}".format(name=mod_name))
+            debug("mod_name = {name}".format(name=mod_name))
             __import__(mod_name)
 
     def _locate_library(self, herringfile_path, settings):
@@ -173,7 +173,7 @@ class HerringApp(object):
         if library_paths is None:
             return
         for lib_path in library_paths:
-            info("lib_path: {path}".format(path=lib_path))
+            debug("lib_path: {path}".format(path=lib_path))
             parent_path = lib_path.parent
             if lib_path.is_dir():
                 files = find_files(str(lib_path), excludes=['*/templates/*', '.svn'], includes=[pattern])
@@ -196,7 +196,7 @@ class HerringApp(object):
             return sys.modules[plugin]
         except KeyError:
             pass
-        info("load_plugin({plugin}, {paths})".format(plugin=plugin, paths=paths))
+        debug("load_plugin({plugin}, {paths})".format(plugin=plugin, paths=paths))
         # ok, the load it
         #fp, filename, desc = imp.find_module(plugin, paths)
         try:
