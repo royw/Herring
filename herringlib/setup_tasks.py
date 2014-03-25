@@ -28,6 +28,7 @@ try:
         version = Project.version
         project_version_name = "{name}-{version}.tar.gz".format(name=Project.name, version=version)
         project_latest_name = "{name}-latest.tar.gz".format(name=Project.name)
+        project_wheel_name = "{name}-{version}-py2.py3-none-any.whl"
 
         pypi_dir = Project.pypi_path
         dist_host = Project.dist_host
@@ -36,6 +37,7 @@ try:
         dist_version = '{dir}/{file}'.format(dir=dist_dir, file=project_version_name)
         dist_latest = '{dir}/{file}'.format(dir=dist_dir, file=project_latest_name)
         dist_file = os.path.join(Project.herringfile_dir, 'dist', project_version_name)
+        dist_wheel = os.path.join(Project.herringfile_dir, 'dist', project_wheel_name)
 
         password = Project.password or getpass("password for {user}@{host}: ".format(user=Project.user,
                                                                                      host=Project.dist_host))
@@ -45,16 +47,20 @@ try:
             remote.run('mkdir -p {dir}'.format(dir=dist_dir))
             remote.run('rm {path}'.format(path=dist_latest))
             remote.put(dist_file, dist_dir)
+            remote.put(dist_wheel, dist_dir)
             remote.run('ln -s {src} {dest}'.format(src=dist_version, dest=dist_latest))
             remote.run('sudo chown www-data:www-data {dest}'.format(dest=dist_version),
+                       accept_defaults=True, timeout=10)
+            remote.run('sudo chown www-data:www-data {dest}'.format(dest=dist_wheel),
                        accept_defaults=True, timeout=10)
             remote.run('sudo chown www-data:www-data {dest}'.format(dest=dist_latest),
                        accept_defaults=True, timeout=10)
             remote.run('sudo chmod 777 {dest}'.format(dest=dist_version),
                        accept_defaults=True, timeout=10)
+            remote.run('sudo chmod 777 {dest}'.format(dest=dist_wheel),
+                       accept_defaults=True, timeout=10)
             remote.run('sudo chmod 777 {dest}'.format(dest=dist_latest),
                        accept_defaults=True, timeout=10)
-
 except:
     pass
 
@@ -64,11 +70,13 @@ except:
 @task(depends=['doc::post_clean'])
 def build():
     """ build the project as a source distribution """
+    # TODO build wheel
     if Project.version == '0.0.0':
         bump()
     with LocalShell() as local:
+        # builds source distribution
         local.system("python setup.py sdist")
-        # run("python setup.py bdist")
+        local.system("python setup.py bdist_wheel")
 
 
 with namespace('build'):
@@ -77,7 +85,6 @@ with namespace('build'):
         """ install the project """
         with LocalShell() as local:
             local.system("python setup.py install --record install.record")
-
 
     @task()
     def uninstall():
@@ -94,10 +101,9 @@ with namespace('release'):
     @task()
     def changes_since_last_tag():
         """show the changes since the last tag"""
-        with LocalShell(verbose=False) as local:
+        with LocalShell() as local:
             last_tag = local.run('git describe --tags --abbrev=0').strip()
             print("\n" + local.run(['git', 'log', '{tag}..HEAD'.format(tag=last_tag), '--oneline']))
-
 
     @task()
     def github():
@@ -108,22 +114,21 @@ with namespace('release'):
                 ver=get_project_version(Project.package)))
             local.run('git push --tags origin master')
 
-
     @task()
     def pypi_test():
         """register and upload package to pypi-test"""
+        # TODO use twine to upload to PyPI (https://pypi.python.org/pypi/twine)
         with LocalShell() as local:
             local.run('python setup.py register -r test')
             local.run('python setup.py sdist upload -r test')
 
-
     @task()
     def pypi_live():
         """register and upload package to pypi"""
+        # TODO use twine to upload to PyPI (https://pypi.python.org/pypi/twine)
         with LocalShell() as local:
             local.run('python setup.py register -r pypi')
             local.run('python setup.py sdist upload -r pypi')
-
 
     @task()
     def upload_docs():
