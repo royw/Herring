@@ -54,6 +54,7 @@ if readmes:
     long_description = open(readmes[0]).read()
 
 setup(
+    # TODO: how to specify wheel tags, ABIs, platform?
     name='Herring',
     version=get_project_version(),
     author='Roy Wright',
@@ -67,12 +68,27 @@ setup(
     long_description=long_description,
     install_requires=[
         "argparse",
-        'yolk',
+        'pathlib',
         'ordereddict',
-        'unipath',
+        'importlib',
         # "Foo >= 1.2.3"
     ],
     entry_points={
         'console_scripts': ['herring = herring.herring_main:main']
     },
+    classifiers=[
+        "Private :: Do Not Upload",     # TODO remove before publishing to PyPI
+        "Development Status :: 5 - Production/Stable",
+        "Environment :: Console",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: MIT License",
+        "Natural Language :: English",
+        "Operating System :: MacOS :: MacOS X",
+        "Operating System :: POSIX",
+        "Operating System :: Unix",
+        "Programming Language :: Python :: 2.6",
+        "Programming Language :: Python :: 2.7",
+        "Programming Language :: Python :: 3",
+        "Topic :: Software Development :: Build Tools"
+    ],
     test_suite="tests")
