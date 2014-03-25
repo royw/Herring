@@ -270,7 +270,7 @@ if packages_required(required_packages):
             """Generate sphinx API documents"""
             _customize_doc_src_files()
             with cd(Project.docs_dir):
-                os.system('PYTHONPATH={pythonpath} sphinx-build -v -v -b html -d _build/doctrees -w docs.log '
+                os.system('PYTHONPATH={pythonpath} sphinx-build -v -b html -d _build/doctrees -w docs.log '
                           '-a -E -n . ../{htmldir}'.format(pythonpath=Project.pythonPath,
                                                            htmldir=Project.docs_html_dir))
                 clean_doc_log('docs.log')

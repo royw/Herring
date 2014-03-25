@@ -316,9 +316,9 @@ def packages_required(package_names):
 
     with LocalShell() as local:
         lines = local.run('pip list').split("\n")
-        names = [line.split(" ")[0] for line in lines]
+        names = [line.split(" ")[0].lower() for line in lines]
         for pkg_name in package_names:
-            if pkg_name not in names:
+            if pkg_name.lower() not in names:
                 try:
                     __import__(pkg_name)
                 except ImportError:

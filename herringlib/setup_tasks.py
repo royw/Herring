@@ -28,7 +28,7 @@ try:
         version = Project.version
         project_version_name = "{name}-{version}.tar.gz".format(name=Project.name, version=version)
         project_latest_name = "{name}-latest.tar.gz".format(name=Project.name)
-        project_wheel_name = "{name}-{version}-py2.py3-none-any.whl"
+        project_wheel_name = "{name}-{version}-py2.py3-none-any.whl".format(name=Project.name, version=version)
 
         pypi_dir = Project.pypi_path
         dist_host = Project.dist_host

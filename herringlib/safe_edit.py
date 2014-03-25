@@ -13,6 +13,7 @@ from tempfile import NamedTemporaryFile
 from contextlib import contextmanager
 
 
+# noinspection PyArgumentEqualDefault
 @contextmanager
 def safe_edit(file_name):
     """
@@ -36,8 +37,15 @@ def safe_edit(file_name):
     tf_name = None
     tmp_file = None
     try:
-        in_file = open(file_name, mode='r', encoding='utf-8')
-        tmp_file = NamedTemporaryFile(mode='w', delete=False, encoding='utf-8')
+        try:
+            in_file = open(file_name, mode='r', encoding='utf-8')
+        except TypeError:
+            in_file = open(file_name, mode='r')
+        try:
+            # noinspection PyArgumentList
+            tmp_file = NamedTemporaryFile(mode='w', delete=False, encoding='utf-8')
+        except TypeError:
+            tmp_file = NamedTemporaryFile(mode='w', delete=False)
         tf_name = tmp_file.name
         yield {'in': in_file, 'out': tmp_file}
 

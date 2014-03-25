@@ -37,10 +37,6 @@ required_packages = [
 if packages_required(required_packages):
     from herringlib.local_shell import LocalShell
 
-    @task(depends=['cheesecake', 'lint', 'complexity'])
-    def metrics():
-        """ Quality metrics """
-
     with namespace('metrics'):
         @task()
         def cheesecake():
@@ -83,3 +79,8 @@ if packages_required(required_packages):
                              (Project.package, complexity_txt))
                 local.system("pycabehtml.py -i %s -o %s -a %s -g %s" %
                              (complexity_txt, metrics_html, acc, graph))
+
+    @task(depends=['metrics::cheesecake', 'metrics::lint', 'metrics::complexity'])
+    def metrics():
+        """ Quality metrics """
+        pass
