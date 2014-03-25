@@ -75,7 +75,7 @@ class HerringApp(object):
 
             info("Using: %s" % herring_file)
 
-            self._load_tasks(herring_file)
+            self._load_tasks(herring_file, settings)
             task_list = list(self._get_tasks_list(HerringTasks, settings.list_all_tasks))
             if settings.list_tasks:
                 cli.show_tasks(self._get_tasks(task_list), HerringTasks, settings)
@@ -114,7 +114,7 @@ class HerringApp(object):
                 cwd = os.sep.join(cwd.split(os.sep)[0:-1])
         raise ValueError("Unable to find %s" % herringfile)
 
-    def _load_tasks(self, herringfile):
+    def _load_tasks(self, herringfile, settings):
         """
         Loads the given herringfile then loads any herringlib files.
 
@@ -123,60 +123,68 @@ class HerringApp(object):
         :return: None
         """
         herringfile_path = Path(herringfile).parent
-        lib_path = self._locate_library(herringfile_path)
-        sys.path.append(str(herringfile_path))
-        if lib_path is not None:
-            sys.path.append(str(lib_path))
+        library_paths = self._locate_library(herringfile_path, settings)
+        info("library_paths: %s" % repr(library_paths))
+        if library_paths:
+            sys.path = [str(path.parent) for path in library_paths if path.parent != herringfile_path] + \
+                       [str(herringfile_path)] + sys.path
+        else:
+            sys.path = [str(herringfile_path)] + sys.path
+        info("sys.path: %s" % repr(sys.path))
         self._load_file(herringfile)
-        for file_name in self.library_files(lib_path=lib_path):
-            debug("file_name = {file}".format(file=file_name))
+        for file_name in self.library_files(library_paths=library_paths):
+            info("file_name = {file}".format(file=file_name))
             mod_name = 'herringlib.' + Path(file_name).stem
-            debug("mod_name = {name}".format(name=mod_name))
+            info("mod_name = {name}".format(name=mod_name))
             __import__(mod_name)
 
-    def _locate_library(self, herringfile_path):
-        if 'HERRINGLIB' in os.environ:
-            lib_path = Path(os.environ['HERRINGLIB'])
-            if lib_path.exists():
-                info("Using env[HERRINGLIB]: %s" % lib_path)
-                return lib_path
-        lib_path = Path(herringfile_path, 'herringlib')
-        if lib_path.exists():
-            info("Using herringlib: %s" % lib_path)
-            return lib_path
-        lib_path = Path(os.path.expanduser('~/.herring'))
-        if lib_path.exists():
-            info("Using ~/.herringlib: %s" % lib_path)
-            return lib_path
-        return None
+    def _locate_library(self, herringfile_path, settings):
+        """
+        locate and validate the paths to the herringlib directories
+
+        :param settings: the application settings
+        :param herringfile_path: the herringfile path
+        :type herringfile_path: str
+        :return: library path
+        :rtype: list(Path)
+        """
+        paths = []
+        for lib_path in [Path(os.path.expanduser(lib_dir)) for lib_dir in settings.herringlib]:
+            if not lib_path.is_absolute():
+                lib_path = Path(herringfile_path, str(lib_path))
+            if lib_path.is_dir():
+                paths.append(lib_path)
+        return paths
 
     @staticmethod
-    def library_files(lib_path=None, pattern='*.py'):
+    def library_files(library_paths=None, pattern='*.py'):
         """
         Yield any .py files located in herringlib subdirectory in the
         same directory as the given herringfile.  Ignore package __init__.py
         files, .svn and templates sub-directories.
 
-        :param lib_path: the path to the herringlib directory
-        :type lib_path: Path
+        :param library_paths: the path to the herringlib directory
+        :type library_paths: list(Path)
         :param pattern: the file pattern (glob) to select
         :type pattern: str
         :return: iterator for path to a library herring file
         :rtype: iterator
         """
-        if lib_path is None:
+        if library_paths is None:
             return
-        parent_path = lib_path.parent
-        if lib_path.is_dir():
-            files = find_files(str(lib_path), excludes=['*/templates/*', '.svn'], includes=[pattern])
-            for file_path in [Path(file_name) for file_name in files]:
-                if file_path.name == '__init__.py':
-                    continue
-                debug("parent_path: %s" % str(parent_path))
-                debug("loading from herringlib:  %s" % file_path)
-                rel_path = file_path.relative_to(parent_path)
-                debug("relative path: %s" % str(rel_path))
-                yield rel_path
+        for lib_path in library_paths:
+            info("lib_path: {path}".format(path=lib_path))
+            parent_path = lib_path.parent
+            if lib_path.is_dir():
+                files = find_files(str(lib_path), excludes=['*/templates/*', '.svn'], includes=[pattern])
+                for file_path in [Path(file_name) for file_name in files]:
+                    if file_path.name == '__init__.py':
+                        continue
+                    debug("parent_path: %s" % str(parent_path))
+                    debug("loading from herringlib:  %s" % file_path)
+                    rel_path = file_path.relative_to(parent_path)
+                    debug("relative path: %s" % str(rel_path))
+                    yield rel_path
 
     def load_plugin(self, plugin, paths):
         """load a plugin module if we haven't yet loaded it
@@ -188,16 +196,20 @@ class HerringApp(object):
             return sys.modules[plugin]
         except KeyError:
             pass
+        info("load_plugin({plugin}, {paths})".format(plugin=plugin, paths=paths))
         # ok, the load it
         #fp, filename, desc = imp.find_module(plugin, paths)
-        filename = os.path.join(paths, plugin)
-        package = 'herringlib'
         try:
+            # python3
+            # noinspection PyUnresolvedReferences
             from importlib import import_module
-            import_module('herringlib')
+            package = 'herringlib'
+            import_module(package)
             mod = import_module(plugin, package)
         except ImportError:
+            # python2
             from imp import load_module, PY_SOURCE
+            filename = os.path.join(paths, plugin)
             extension = os.path.splitext(filename)[1]
             mode = 'r'
             desc = (extension, mode, PY_SOURCE)

@@ -3,6 +3,7 @@
 """
 HarvesterSettings adds application specific information to the generic ApplicationSettings class.
 """
+import os
 import textwrap
 
 __docformat__ = 'restructuredtext en'
@@ -27,8 +28,7 @@ class HerringSettings(ApplicationSettings):
 
         'config_group': '',
         'herringfile': 'The herringfile name to use, by default uses "herringfile".',
-        'herringlib': 'The location of the herringlib directory to use.',
-        'config_file': 'The location of the config file to use',
+        'herringlib': 'The location of the herringlib directory to use (default: {dirs}).',
 
         'task_group': '',
         'list_tasks': 'Lists the tasks (with docstrings) in the herringfile.',
@@ -53,6 +53,10 @@ class HerringSettings(ApplicationSettings):
 
     def __init__(self):
         super(HerringSettings, self).__init__('Herring', 'herring', ['Herring'], self.HELP)
+        self._herringlib_path = ['herringlib']
+        if 'HERRINGLIB' in os.environ:
+            self._herringlib_path.append(os.environ['HERRINGLIB'])
+        self._herringlib_path.append('~/.herring/herringlib')
 
     def _cli_options(self, parser):
         """
@@ -64,8 +68,8 @@ class HerringSettings(ApplicationSettings):
         config_group = parser.add_argument_group(title="Config Group", description=self._help['config_group'])
         config_group.add_argument('-f', '--herringfile', metavar='FILESPEC',
                                   default='herringfile', help=self._help['herringfile'])
-        config_group.add_argument('--herringlib', metavar='DIRECTORY', help=self._help['herringlib'])
-        config_group.add_argument('--config_file', metavar='FILESPEC', help=self._help['config_file'])
+        config_group.add_argument('--herringlib', metavar='DIRECTORY', nargs='*', default=self._herringlib_path,
+                                  help=self._help['herringlib'].format(dirs=self._herringlib_path))
 
         task_group = parser.add_argument_group(title='Task Commands', description=self._help['task_group'])
         task_group.add_argument('-T', '--tasks', dest='list_tasks',
