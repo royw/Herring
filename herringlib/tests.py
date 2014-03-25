@@ -16,7 +16,7 @@ from herringlib.local_shell import LocalShell
 
 required_packages = [
     'coverage',
-    'nose'
+    'pytest'
 ]
 
 if packages_required(required_packages):
