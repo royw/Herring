@@ -8,7 +8,6 @@ string task names which are task dependencies.
 
 Add the following to your *requirements.txt* file:
 
-* herring
 * argparse
 
 """

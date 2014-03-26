@@ -36,8 +36,9 @@ try:
         # dist_url = '{host}:{path}/'.format(host=dist_host, path=dist_dir)
         dist_version = '{dir}/{file}'.format(dir=dist_dir, file=project_version_name)
         dist_latest = '{dir}/{file}'.format(dir=dist_dir, file=project_latest_name)
+        dist_wheel = '{dir}/{file}'.format(dir=dist_dir, file=project_wheel_name)
         dist_file = os.path.join(Project.herringfile_dir, 'dist', project_version_name)
-        dist_wheel = os.path.join(Project.herringfile_dir, 'dist', project_wheel_name)
+        dist_wheel_file = os.path.join(Project.herringfile_dir, 'dist', project_wheel_name)
 
         password = Project.password or getpass("password for {user}@{host}: ".format(user=Project.user,
                                                                                      host=Project.dist_host))
@@ -47,7 +48,7 @@ try:
             remote.run('mkdir -p {dir}'.format(dir=dist_dir))
             remote.run('rm {path}'.format(path=dist_latest))
             remote.put(dist_file, dist_dir)
-            remote.put(dist_wheel, dist_dir)
+            remote.put(dist_wheel_file, dist_dir)
             remote.run('ln -s {src} {dest}'.format(src=dist_version, dest=dist_latest))
             remote.run('sudo chown www-data:www-data {dest}'.format(dest=dist_version),
                        accept_defaults=True, timeout=10)

@@ -84,7 +84,7 @@ import os
 import re
 import shutil
 from herring.herring_app import task
-from herringlib.simple_logger import debug, info, error
+from herringlib.simple_logger import debug, info, error, warning
 from herringlib.local_shell import LocalShell
 from herringlib.list_helper import compress_list, unique_list
 
@@ -178,9 +178,13 @@ class ProjectSettings(object):
         requirements_filename = os.path.join(Project.herringfile_dir, 'requirements.txt')
         needed = find_missing_requirements(requirements_filename)
         if needed:
-            with open(requirements_filename, 'a') as req_file:
-                for need in needed:
-                    req_file.write(need + "\n")
+            try:
+                with open(requirements_filename, 'a') as req_file:
+                    for need in needed:
+                        req_file.write(need + "\n")
+            except IOError as ex:
+                warning("Can not add the following to the requirements.txt file: {needed}\n{err}".format(
+                    needed=repr(needed), err=str(ex)))
 
     def __create_from_template(self, src_filename, dest_filename):
         """
@@ -279,7 +283,10 @@ def find_missing_requirements(requirements_filename):
     files.append(os.path.join(Project.herringfile_dir, 'herringfile'))
     requirements = []
     for file_ in files:
-        requirements += get_requirements(get_module_docstring(file_))
+        requires = get_requirements(get_module_docstring(file_))
+        if requires:
+            debug("{file} requires: {requires}".format(file=file_, requires=requires))
+        requirements += requires
     needed = sorted(compress_list(unique_list(requirements)))
 
     requirements_filename = os.path.join(Project.herringfile_dir, 'requirements.txt')
@@ -288,8 +295,14 @@ def find_missing_requirements(requirements_filename):
         return
 
     with open(requirements_filename, 'r') as in_file:
-        requirements = [re.split("<|>|=|!", line)[0] for line in [line.strip() for line in in_file.readlines()]
-                        if line and not line.startswith('#')]
+        requirements = []
+        for line in [line.strip() for line in in_file.readlines()]:
+            if line and not line.startswith('#'):
+                match = re.match("-e .*?#egg=(\S+)", line)
+                if match:
+                    requirements.append(match.group(1))
+                else:
+                    requirements.append(re.split("<|>|=|!", line)[0])
         required = sorted(compress_list(unique_list(requirements)))
 
     diff = sorted(set(needed) - set(required))

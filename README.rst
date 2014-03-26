@@ -1,5 +1,4 @@
 
-=======
 Herring
 =======
 
@@ -14,7 +13,7 @@ the middle. ("A path! A path!") Then, you must cut down the mightiest tree in
 the forrest... with... a herring!"
 
 Usage
-=====
+-----
 
 Tasks are defined by using a @task decorator on a function definition in the
 project's herringfile::

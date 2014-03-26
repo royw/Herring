@@ -3,7 +3,7 @@
 Add the following to your *requirements.txt* file:
 
 * coverage
-* nose
+* pytest
 
 """
 

@@ -44,6 +44,7 @@ class HerringApp(object):
         # noinspection PyArgumentEqualDefault
         Logger.set_verbose(True)
         Logger.set_debug(False)
+        self.__sys_path = sys.path[:]
 
     def execute(self, cli, settings):
         """
@@ -125,18 +126,32 @@ class HerringApp(object):
         herringfile_path = Path(herringfile).parent
         library_paths = self._locate_library(herringfile_path, settings)
         debug("library_paths: %s" % repr(library_paths))
+
         herringlib_paths = [str(path.parent) for path in library_paths if path.parent != herringfile_path] + \
                            [str(herringfile_path)]
+        # herringlib_paths = [str(path.parent) for path in library_paths]
         sys.path = herringlib_paths + sys.path
+
         for path in herringlib_paths:
             info("herringlib path: %s" % path)
         debug("sys.path: %s" % repr(sys.path))
+
         self._load_file(herringfile)
-        for file_name in self.library_files(library_paths=library_paths):
-            debug("file_name = {file}".format(file=file_name))
-            mod_name = 'herringlib.' + Path(file_name).stem
-            debug("mod_name = {name}".format(name=mod_name))
-            __import__(mod_name)
+        try:
+            __import__('herringlib')
+        except ImportError:
+            pass
+
+        for lib_path in library_paths:
+            sys.path = [lib_path] + self.__sys_path
+            debug("sys.path: %s" % repr(sys.path))
+            for file_name in self.library_files(library_paths=[lib_path]):
+                mod_name = 'herringlib.' + Path(file_name).stem
+                try:
+                    __import__(mod_name)
+                except ImportError:
+                    pass
+        sys.path = self.__sys_path[:]
 
     def _locate_library(self, herringfile_path, settings):
         """
