@@ -8,6 +8,7 @@ from setuptools import setup
 #if version < '2.2.3':
 #    print('herring requires python 2.6 or newer')
 #    exit(-1)
+import sys
 
 
 VERSION_REGEX = r'__version__\s*=\s*[\'\"](\S+)[\'\"]'
@@ -53,6 +54,21 @@ long_description = ''
 if readmes:
     long_description = open(readmes[0]).read()
 
+# all versions of python
+import_requires = [
+    'six',
+    'versio',
+]
+
+# python 2.x
+if sys.version_info < (3, 0):
+    import_requires.extend([
+        "argparse",
+        'importlib',
+        'ordereddict',
+        'pathlib',
+    ])
+
 setup(
     # TODO: how to specify wheel tags, ABIs, platform?
     name='Herring',
@@ -66,13 +82,7 @@ setup(
     license='license.txt',
     description='Just a python make utility.',
     long_description=long_description,
-    install_requires=[
-        "argparse",
-        'pathlib',
-        'ordereddict',
-        'importlib',
-        # "Foo >= 1.2.3"
-    ],
+    install_requires=import_requires,
     entry_points={
         'console_scripts': ['herring = herring.herring_main:main']
     },
