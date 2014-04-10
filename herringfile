@@ -13,7 +13,7 @@ Add the following to your *requirements.txt* file:
 """
 
 import os
-from herring.herring_app import task, HerringFile
+from herring.herring_app import task, HerringFile, task_execute
 from herring.support.simple_logger import info, warning
 
 from herringlib.project_settings import Project
@@ -113,7 +113,33 @@ def args_demo():
 
 
 @task(namespace='demo')
+def the():
+    """test dependency"""
+    print('The')
+
+
+@task(namespace='demo', depends=['demo::the'])
 def bang():
     """test error handling"""
-    raise RuntimeError('boom!')
+    print('bang!')
 
+
+@task(namespace='demo')
+def big():
+    """test running namespace tasks"""
+    print('big')
+    task_execute('demo::bang')
+
+
+@task(namespace='demo', depends=['demo::the'])
+def bigger():
+    """test running namespace tasks"""
+    print('bigger')
+    task_execute(['demo::bang'])
+
+
+@task(namespace='demo')
+def boom():
+    """test calling method"""
+    bigger()
+    print('Boom!')

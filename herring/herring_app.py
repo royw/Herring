@@ -2,7 +2,16 @@
 
 """
 The main Herring application.
+
+For use in your herringfile or task files the following functions are exported:
+
+* task - the task decorator
+* namespace - the namespace decorator
+* task_execute - execute the named (including namespace) task(s) including dependencies
+* run - a simplistic shell runner.  Not recommended.
 """
+from herring.support.list_helper import is_sequence
+
 __docformat__ = 'restructuredtext en'
 
 import os
@@ -17,7 +26,7 @@ from herring.support.utils import find_files
 from herring.task_with_args import TaskWithArgs, HerringTasks, NameSpace
 
 
-__all__ = ("HerringApp", "task", "run", "HerringTasks")
+__all__ = ("HerringApp", "task", "run", "HerringTasks", "task_execute")
 
 # Alias for task decorator just makes the herringfiles a little cleaner.
 # pylint: disable=C0103
@@ -86,7 +95,7 @@ class HerringApp(object):
                 cli.show_depends(self._get_tasks(task_list), HerringTasks, settings)
             else:
                 try:
-                    self._run_tasks(settings.tasks)
+                    HerringApp.run_tasks(settings.tasks)
                 except ValueError as ex:
                     fatal(ex)
         except ValueError as ex:
@@ -218,12 +227,14 @@ class HerringApp(object):
             # python3
             # noinspection PyUnresolvedReferences
             from importlib import import_module
+
             package = 'herringlib'
             import_module(package)
             mod = import_module(plugin, package)
         except ImportError:
             # python2
             from imp import load_module, PY_SOURCE
+
             filename = os.path.join(paths, plugin)
             extension = os.path.splitext(filename)[1]
             mode = 'r'
@@ -281,7 +292,8 @@ class HerringApp(object):
         for item in sorted(task_list, key=itemgetter('name')):
             yield item['name'], item['description'], item['dependencies'], width
 
-    def _get_default_tasks(self):
+    @staticmethod
+    def _get_default_tasks():
         """
         Get a list of default task names (@task(default=True)).
 
@@ -292,7 +304,8 @@ class HerringApp(object):
             return ['default']
         return []
 
-    def _verify_tasks_exists(self, task_list):
+    @staticmethod
+    def _verify_tasks_exists(task_list):
         """
         If a given task does not exist, then raise a ValueError exception.
 
@@ -300,7 +313,7 @@ class HerringApp(object):
         :raises ValueError:
         """
         if not task_list:
-            task_list = self._get_default_tasks()
+            task_list = HerringApp._get_default_tasks()
         if not task_list:
             raise ValueError("No tasks given")
         for name in task_list:
@@ -311,7 +324,8 @@ class HerringApp(object):
                                  (name, str(task_names)))
         return task_list
 
-    def _tasks_to_depend_dict(self, src_tasks, herring_tasks):
+    @staticmethod
+    def _tasks_to_depend_dict(src_tasks, herring_tasks):
         """
         Builds dictionary used by toposort2 from HerringTasks
 
@@ -328,7 +342,8 @@ class HerringApp(object):
             data[name] = set(herring_tasks[name]['depends'])
         return data
 
-    def _find_dependencies(self, src_tasks, herring_tasks):
+    @staticmethod
+    def _find_dependencies(src_tasks, herring_tasks):
         """
         Finds the dependent tasks for the given source tasks, building up an
         unordered list of tasks.
@@ -345,12 +360,13 @@ class HerringApp(object):
             if name not in dependencies:
                 dependencies.append(name)
                 depend_tasks = herring_tasks[name]['depends']
-                tasks = self._find_dependencies([task_ for task_ in depend_tasks if task_ not in dependencies],
-                                                herring_tasks)
+                tasks = HerringApp._find_dependencies([task_ for task_ in depend_tasks if task_ not in dependencies],
+                                                      herring_tasks)
                 dependencies.extend(tasks)
         return dependencies
 
-    def _resolve_dependencies(self, src_tasks, herring_tasks):
+    @staticmethod
+    def _resolve_dependencies(src_tasks, herring_tasks):
         """
         Resolve the dependencies for the given list of task names.
 
@@ -361,24 +377,31 @@ class HerringApp(object):
         :return: list of resolved (including dependencies) task names
         :rtype: list
         """
-        tasks = self._find_dependencies(src_tasks, herring_tasks)
+        tasks = HerringApp._find_dependencies(src_tasks, herring_tasks)
         task_list = []
-        depend_dict = self._tasks_to_depend_dict(tasks, herring_tasks)
+        depend_dict = HerringApp._tasks_to_depend_dict(tasks, herring_tasks)
         for task_group in toposort2(depend_dict):
             task_list.extend(list(task_group))
         return task_list
 
-    def _run_tasks(self, task_list):
+    @staticmethod
+    def run_tasks(task_list):
         """
         Runs the tasks given on the command line.
 
-        :param task_list: the list of task names to run
-        :type task_list: list
+        :param task_list: a task name or a list of task names to run
+        :type task_list: str|list
         :return: None
         """
-        verified_task_list = self._verify_tasks_exists(task_list)
-        for task_name in self._resolve_dependencies(verified_task_list,
-                                                    HerringTasks):
+        if not is_sequence(task_list):
+            task_list = [task_list]
+
+        verified_task_list = HerringApp._verify_tasks_exists(task_list)
+        for task_name in HerringApp._resolve_dependencies(verified_task_list,
+                                                          HerringTasks):
             info("Running: {name} ({description})".format(name=task_name,
                                                           description=HerringTasks[task_name]['description']))
             HerringTasks[task_name]['task']()
+
+
+task_execute = HerringApp.run_tasks
