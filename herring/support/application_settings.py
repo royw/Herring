@@ -231,6 +231,7 @@ class ApplicationSettings(object):
         # trying __init__.py first
         try:
             file_name = os.path.join(path, '__init__.py')
+            # noinspection PyArgumentEqualDefault
             with open(file_name, 'r') as in_file:
                 for line in in_file.readlines():
                     match = re.match(self.VERSION_REGEX, line)
@@ -243,6 +244,7 @@ class ApplicationSettings(object):
         try:
             # noinspection PyUnresolvedReferences
             file_name = os.path.join(path, 'VERSION.txt')
+            # noinspection PyArgumentEqualDefault
             with open(file_name, 'r') as in_file:
                 return in_file.read().strip()
         except IOError:

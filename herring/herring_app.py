@@ -8,7 +8,6 @@ For use in your herringfile or task files the following functions are exported:
 * task - the task decorator
 * namespace - the namespace decorator
 * task_execute - execute the named (including namespace) task(s) including dependencies
-* run - a simplistic shell runner.  Not recommended.
 """
 from herring.support.list_helper import is_sequence
 
@@ -17,7 +16,6 @@ __docformat__ = 'restructuredtext en'
 import os
 import sys
 
-from pathlib import Path
 from operator import itemgetter
 from herring.support.toposort2 import toposort2
 from herring.support.simple_logger import debug, info, fatal, Logger
@@ -26,13 +24,39 @@ from herring.support.utils import find_files
 from herring.task_with_args import TaskWithArgs, HerringTasks, NameSpace
 
 
-__all__ = ("HerringApp", "task", "run", "HerringTasks", "task_execute")
+__all__ = ("HerringApp", "task", "HerringTasks", "task_execute")
 
 # Alias for task decorator just makes the herringfiles a little cleaner.
 # pylint: disable=C0103
 task = TaskWithArgs
-run = HerringFile.run
 namespace = NameSpace
+
+
+# noinspection PyDocstring
+class Path(object):
+    def __init__(self, *path_parts):
+        self.__path = os.path.join(*path_parts)
+        self.name = os.path.basename(self.__path)
+        self.parent = os.path.dirname(self.__path)
+        self.stem = os.path.splitext(self.name)[0]
+
+    def is_absolute(self):
+        return os.path.isabs(self.__path)
+
+    def is_relative(self):
+        return not self.is_absolute()
+
+    def relative_to(self, parent_path):
+        return os.path.relpath(self.__path, parent_path)
+
+    def is_dir(self):
+        return os.path.isdir(self.__path)
+
+    def __str__(self):
+        return self.__path
+
+    def __repr__(self):
+        return repr(self.__path)
 
 
 # noinspection PyMethodMayBeStatic
@@ -136,12 +160,11 @@ class HerringApp(object):
         library_paths = self._locate_library(herringfile_path, settings)
         debug("library_paths: %s" % repr(library_paths))
 
-        herringlib_paths = [str(path.parent) for path in library_paths if path.parent != herringfile_path] + \
-                           [str(herringfile_path)]
-        # herringlib_paths = [str(path.parent) for path in library_paths]
-        sys.path = herringlib_paths + sys.path
+        HerringFile.herringlib_paths = [str(path.parent) for path in library_paths
+                                        if path.parent != herringfile_path] + [str(herringfile_path)]
+        sys.path = HerringFile.herringlib_paths + sys.path
 
-        for path in herringlib_paths:
+        for path in HerringFile.herringlib_paths:
             info("herringlib path: %s" % path)
         debug("sys.path: %s" % repr(sys.path))
 

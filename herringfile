@@ -8,7 +8,7 @@ string task names which are task dependencies.
 
 Add the following to your *requirements.txt* file:
 
-* argparse
+* argparse if sys.version_info < (3, 2)
 
 """
 

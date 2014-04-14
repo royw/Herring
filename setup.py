@@ -1,19 +1,23 @@
-# from distutils.core import setup
+# coding=utf-8
+
+"""
+Setup for Herring.
+"""
+
 import os
 import re
+import sys
 from setuptools import setup
 
-#from sys import version
-#
-#if version < '2.2.3':
-#    print('herring requires python 2.6 or newer')
-#    exit(-1)
-import sys
+if sys.version_info < (2, 6):
+    print('herring requires python 2.6 or newer')
+    exit(-1)
 
 
 VERSION_REGEX = r'__version__\s*=\s*[\'\"](\S+)[\'\"]'
 
 
+# noinspection PyArgumentEqualDefault
 def get_project_version():
     """
     Get the version from __init__.py with a line: /^__version__\s*=\s*(\S+)/
@@ -55,22 +59,33 @@ if readmes:
     long_description = open(readmes[0]).read()
 
 # all versions of python
-import_requires = [
+required_imports = [
     'six',
     'versio',
 ]
 
-# python 2.x
-if sys.version_info < (3, 0):
-    import_requires.extend([
-        "argparse",
-        'importlib',
-        'ordereddict',
-        'pathlib',
+# libraries that have been moved into python
+print("Python (%s)" % sys.version)
+if sys.version_info < (3, 1):
+    required_imports.extend([
+        'importlib',    # new in py31
+        'ordereddict',  # new in py31
     ])
 
+if sys.version_info < (3, 2):
+    required_imports.extend([
+        "argparse",  # new in py32
+    ])
+
+if sys.version_info < (3, 4):
+    required_imports.extend([
+        'pathlib',  # new in py34
+    ])
+
+print("required_imports: %s" % repr(required_imports))
+
 setup(
-    # TODO: how to specify wheel tags, ABIs, platform?
+    # Note:  wheel python tags, ABIs, platform should be declared in setup.cfg
     name='Herring',
     version=get_project_version(),
     author='Roy Wright',
@@ -82,7 +97,7 @@ setup(
     license='license.txt',
     description='Just a python make utility.',
     long_description=long_description,
-    install_requires=import_requires,
+    install_requires=required_imports,
     entry_points={
         'console_scripts': ['herring = herring.herring_main:main']
     },
@@ -98,7 +113,8 @@ setup(
         "Operating System :: Unix",
         "Programming Language :: Python :: 2.6",
         "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3",
+        "Programming Language :: Python :: 3.3",
+        "Programming Language :: Python :: 3.4",
         "Topic :: Software Development :: Build Tools"
     ],
     test_suite="tests")

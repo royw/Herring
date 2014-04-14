@@ -1,8 +1,0 @@
-include *.rst
-include *.txt
-include MANIFEST.in
-recursive-include {package} *.txt
-recursive-include {package} *.js
-recursive-include {package} *.html
-recursive-include {package} *.css
-recursive-include tests *

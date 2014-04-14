@@ -20,7 +20,7 @@ import os
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 #sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(1, os.path.abspath('..'))
-print "sys.path => %s" % sys.path
+print("sys.path => %s" % sys.path)
 
 # -- General configuration -----------------------------------------------------
 
@@ -74,6 +74,7 @@ copyright_ = u'2013, Roy Wright'
 VERSION_REGEX = r'__version__\s*=\s*[\'\"](\S+)[\'\"]'
 
 
+# noinspection PyPep8Naming,PyArgumentEqualDefault,PyUnusedLocal
 def getProjectVersion(project_package=None):
     """
     Get the version from __init__.py with a line: /^__version__\s*=\s*(\S+)/
@@ -449,5 +450,4 @@ texinfo_documents = [
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {'http://docs.python.org/': None}
-intersphinx_mapping = {'python': ('http://docs.python.org/2.6', None)}
-
+# intersphinx_mapping = {'python': ('http://docs.python.org/2.6', None)}
