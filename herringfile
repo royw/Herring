@@ -52,6 +52,9 @@ Project.metadata(
         'pylintrc': os.path.join(HerringFile.directory, 'pylint.rc'),
         'pythonPath': ".:%s" % HerringFile.directory,
 
+        'sdist_python_version': '34',
+        'wheel_python_versions': ('34', '33', '27', '26'),
+
         'quality_dir': 'quality',
         'docs_dir': 'docs',
         'uml_dir': 'docs/_src/uml',
