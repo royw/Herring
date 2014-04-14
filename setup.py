@@ -77,11 +77,6 @@ if sys.version_info < (3, 2):
         "argparse",  # new in py32
     ])
 
-if sys.version_info < (3, 4):
-    required_imports.extend([
-        'pathlib',  # new in py34
-    ])
-
 print("required_imports: %s" % repr(required_imports))
 
 setup(
