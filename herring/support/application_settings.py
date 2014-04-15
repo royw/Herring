@@ -126,6 +126,7 @@ class ApplicationSettings(object):
 
         self._cli_options(parser)
         settings, leftover_argv = parser.parse_known_args(remaining_argv)
+        settings.config_files = config_files
 
         return parser, settings, leftover_argv
 

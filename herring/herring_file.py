@@ -12,6 +12,7 @@ __all__ = ('HerringFile',)
 class HerringFile(object):
     """Run helper"""
     directory = ''
+    settings = None
     herringlib_paths = []
 
     uninstalled_packages = []

@@ -99,6 +99,7 @@ class HerringApp(object):
         :return: None
         """
         try:
+            HerringFile.settings = settings
             herring_file = self._find_herring_file(settings.herringfile)
             HerringFile.directory = str(os.path.realpath(os.path.dirname(herring_file)))
             sys.path.insert(1, HerringFile.directory)
