@@ -9,10 +9,11 @@ From:
 http://stackoverflow.com/a/10972804
 https://gist.github.com/nonZero/2907502
 """
-
 __docformat__ = 'restructuredtext en'
 
 import signal
+
+__all__ = ('GracefulInterruptHandler',)
 
 
 class GracefulInterruptHandler(object):
@@ -21,18 +22,18 @@ class GracefulInterruptHandler(object):
 
         with GracefulInterruptHandler() as h1:
             while True:
-                print("(1)...")
+                print "(1)..."
                 time.sleep(1)
                 with GracefulInterruptHandler() as h2:
                     while True:
-                        print("\t(2)...")
+                        print "\t(2)..."
                         time.sleep(1)
                         if h2.interrupted:
-                            print("\t(2) interrupted!")
+                            print "\t(2) interrupted!"
                             time.sleep(2)
                             break
                 if h1.interrupted:
-                    print("(1) interrupted!")
+                    print "(1) interrupted!"
                     time.sleep(2)
                     break
     """
@@ -44,14 +45,21 @@ class GracefulInterruptHandler(object):
         self.original_handler = None
 
     def __enter__(self):
+        return self.capture()
+
+    def capture(self):
+        """ Capture the signal handler """
         self.interrupted = False
         self.released = False
 
         self.original_handler = signal.getsignal(self.sig)
 
-        # noinspection PyUnusedLocal
+        #noinspection PyUnusedLocal
         def handler(signum, frame):
-            """signal that an interrupt has occurred."""
+            """ signal that an interrupt has occurred.
+            :param signum: signal number
+            :param frame:
+            """
             self.release()
             self.interrupted = True
 
@@ -59,7 +67,7 @@ class GracefulInterruptHandler(object):
 
         return self
 
-    # noinspection PyUnusedLocal
+    #noinspection PyUnusedLocal,PyShadowingBuiltins
     def __exit__(self, type, value, tb):
         self.release()
 

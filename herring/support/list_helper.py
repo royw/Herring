@@ -48,5 +48,5 @@ def is_sequence(item):
     :rtype: bool
     """
     return (not hasattr(item, "strip") and
-            hasattr(item, "__getitem__") or
-            hasattr(item, "__iter__"))
+            (hasattr(item, "__getitem__") or
+            hasattr(item, "__iter__")))

@@ -5,6 +5,8 @@ HarvesterSettings adds application specific information to the generic Applicati
 """
 import os
 import textwrap
+import shutil
+from herring.support.simple_logger import warning
 
 __docformat__ = 'restructuredtext en'
 
@@ -57,6 +59,31 @@ class HerringSettings(ApplicationSettings):
         if 'HERRINGLIB' in os.environ:
             self._herringlib_path.append(os.environ['HERRINGLIB'])
         self._herringlib_path.append('~/.herring/herringlib')
+
+        herring_conf = os.path.expanduser('~/.herring/herring.conf')
+        if not os.path.isfile(herring_conf):
+            herring_conf_dir = os.path.dirname(herring_conf)
+            try:
+                os.makedirs(herring_conf_dir)
+            except IOError:
+                pass
+            user = 'nobody'
+            if 'USER' in os.environ:
+                user = os.environ['USER']
+            email = '{user}@localhost'.format(user=user)
+            try:
+                with open(herring_conf, 'w', encoding="utf-8") as conf_file:
+                    conf_file.write(textwrap.dedent("""\
+                    [Herring]
+
+                    [project]
+                    author: {author}
+                    author_email: {email}
+                    dist_host: localhost
+                    pypi_path: /var/pypi/dev
+                    """.format(author=user, email=email)))
+            except IOError as ex:
+                warning("Could not create ~/.herring/herring.conf", ex)
 
     def _cli_options(self, parser):
         """

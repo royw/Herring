@@ -17,20 +17,25 @@ This base class adds the following features to ArgumentParser:
 
 * display the application's longhelp which is the module docstring in app_package/__init__.py.
 """
+import os
+import re
+import argparse
+
 try:
-    from ConfigParser import ConfigParser, NoSectionError
-except ImportError:
+    # python3
+    # noinspection PyUnresolvedReferences
     from configparser import ConfigParser, NoSectionError
+except ImportError:
+    # python2
+    # noinspection PyUnresolvedReferences
+    from ConfigParser import ConfigParser, NoSectionError
+
+from herring.support.terminalsize import get_terminal_size
 
 import herring
 from herring.support.simple_logger import info
 
 __docformat__ = 'restructuredtext en'
-
-import os
-import re
-import argparse
-
 __all__ = ("ApplicationSettings",)
 
 
@@ -117,9 +122,15 @@ class ApplicationSettings(object):
             except NoSectionError:
                 pass
 
+        # HACK:  ArgumentParser by default uses env['COLUMNS'] which is always 80, so we get the terminal
+        # size and pass the console width into the HelpFormatter as the width.
+        # TODO:  Currently hard coded the max_help_position.  This really should be dynamically calculated.
+        (console_width, console_height) = get_terminal_size()
         parser = argparse.ArgumentParser(self.__app_name,
                                          parents=[conf_parser],
-                                         formatter_class=argparse.RawDescriptionHelpFormatter,
+                                         formatter_class=lambda prog: argparse.HelpFormatter(prog,
+                                                                                             max_help_position=30,
+                                                                                             width=console_width),
                                          description=self._help[self.__app_name])
 
         parser.set_defaults(**defaults)
@@ -132,7 +143,7 @@ class ApplicationSettings(object):
 
     def _config_files(self):
         """
-        Defines the default set of config files to try to use.  The set is ".{__app_package}rc" in the current
+        Defines the default set of config files to try to use.  The set is ".{package}rc" in the current
         directory and in the user's home directory.
 
         You may override this method if you want to use a different set of config files.
@@ -231,7 +242,7 @@ class ApplicationSettings(object):
 
         # trying __init__.py first
         try:
-            file_name = os.path.join(path, '__init__.py')
+            file_name = os.path.join(path, '../__init__.py')
             # noinspection PyArgumentEqualDefault
             with open(file_name, 'r') as in_file:
                 for line in in_file.readlines():

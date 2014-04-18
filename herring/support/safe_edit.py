@@ -3,16 +3,17 @@
 """
 Safely edit a file by creating a backup which will be restored on any error.
 """
-
 __docformat__ = 'restructuredtext en'
 
+import re
 import os
 import shutil
 from tempfile import NamedTemporaryFile
 from contextlib import contextmanager
 
+__all__ = ('safe_edit', 'quick_edit')
 
-# noinspection PyBroadException
+
 @contextmanager
 def safe_edit(file_name):
     """
@@ -33,12 +34,11 @@ def safe_edit(file_name):
     backup_name = file_name + '~'
 
     in_file = None
-    tf_name = ''
-    tmp_file = None
+    tmp_file = NamedTemporaryFile(delete=False)
+    tf_name = tmp_file.name
     try:
+        # noinspection PyArgumentEqualDefault
         in_file = open(file_name, 'r')
-        tmp_file = NamedTemporaryFile(delete=False)
-        tf_name = tmp_file.name
         yield {'in': in_file, 'out': tmp_file}
 
     # intentionally catching any exceptions
@@ -60,6 +60,7 @@ def safe_edit(file_name):
         if tf_name:
             # ideally this block would be thread locked at os level
             # remove previous backup file if it exists
+            # noinspection PyBroadException
             try:
                 os.remove(backup_name)
             except:
@@ -71,4 +72,60 @@ def safe_edit(file_name):
             shutil.move(file_name, backup_name)
 
             # put new file in place
+            # noinspection PyTypeChecker
             shutil.move(tf_name, file_name)
+
+
+def quick_edit(file_name, regex_replacement_dict):
+    """
+    This handles replacing text by using regular expressions.
+
+    The simple case of replacing the first occurrence in each line of 'foo' with 'bar' is::
+
+        quick_edit(file_name, {'foo': ['bar']})
+        quick_edit(file_name, {r'.*?(foo).*': ['bar']})
+
+    To replace 'foo' with 'bar' and 'car' with 'dog' in each line::
+
+        quick_edit(file_name, {'foo': ['bar'],
+                               'car': ['dog']})
+
+    You can use multiple groups like:
+
+        quick_edit(file_name, {r'.*?(foo).*?(car).*': ['bar', 'dog']})
+
+
+    WARNING, there are probably gotchas here.
+
+    :param file_name: file to edit
+    :param regex_replacement_dict:
+    """
+    with safe_edit(file_name) as files:
+        for line in files['in'].readlines():
+            out_line = _line_replacement(line, regex_replacement_dict)
+            files['out'].write(out_line)
+
+
+def _line_replacement(line, regex_replacement_dict):
+    for regex in regex_replacement_dict.keys():
+        line = _single_replacement(line, regex, regex_replacement_dict[regex])
+    return line
+
+
+def _single_replacement(line, regex, values):
+    newline = line
+    if '(' not in regex:
+        regex = '.*(' + regex + ').*'
+    match = re.match(regex, line)
+    if match:
+        newline = ''
+        postfix = ''
+        for group in range(1, len(match.groups()) + 1):
+            a = 0
+            if group > 1:
+                a = match.end(group - 1)
+            newline += line[a:match.start(group)]
+            newline += values[group - 1]
+            postfix = line[match.end(group):]
+        newline += postfix
+    return newline

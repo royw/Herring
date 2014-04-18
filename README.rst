@@ -26,25 +26,76 @@ project's herringfile::
 Task decorators can take optional keywords::
 
     :depends: List of task names as strings.
-    :help: Text that will be shown as notes when showing tasks.
+    :help: Text that will be shown as notes when showing tasks (ex: running "herring -T").
+    :namespace: The namespace for the task.
 
-Example::
+This example defines task "test::bar" that is dependent on task "foo"::
 
-    @task(depends=['foo'], help="doesn't do anything")
+    @task(namespace='test', depends=['foo'], help="doesn't do anything")
     def bar():
         """ The bar for foo """
+
+Namespaces
+----------
+
+Namespaces are a grouping mechanism for tasks, not to be confused with python
+namespace/packages.  The purpose is so you can easily group related tasks
+without using a naming convention.
+
+For example say you had the following three documentation tasks::
+
+    @task(depends=['doc_generate_icon'])
+    def doc_sphinx():
+        pass
+
+    @task()
+    def doc_generate_icon()
+        pass
+
+    @task(depends=['doc_sphinx'])
+    def doc()
+        pass
+
+Using namespaces you could have something like:
+
+    with namespace('doc'):
+
+        @task(depends=['doc::generate_icon'])
+        def sphinx():
+            pass
+
+        @task()
+        def generate_icon()
+            pass
+
+    @task(depends=['doc::sphinx'])
+    def doc()
+        pass
+
+Note that you may use multiple namespaces within the same module or even have tasks from different
+modules in the same namespace.
+
+Also that namespaces do not affect directly calling a method.  So you may simply call the **generate_icon()**
+method directly.  Calling the method directly does not run the task's dependencies.  To run a task with it's
+dependencies, use the **task_execute()** function.  For example::
+
+    task_execute('doc')
+
+will run the doc::sphinx dependency then the doc() task.
+
+You may run multiple tasks by giving task_execute a list of tasks::
+
+    task_execute(['generate_icon', 'sphinx'])
 
 Running a Task
 --------------
 
 To run a task, simply be in the directory with your herringfile or one of it's
-sub-directories and to run the foo task, type::
+sub-directories and to run the **doc** task, type::
 
-    herring foo
+    herring doc
 
-And this will run the foo task then the bar task::
-
-    herring bar
+this will run the **doc::generate_icon** task then the **doc::sphinx** task then the **doc** task::
 
 
 Command Line Arguments
@@ -126,36 +177,54 @@ Here's an example session showing the quick project initialization.
 
 Start with a new virtual environment::
 
-    ➤ virtualenv --no-site-packages foobar
-    The --no-site-packages flag is deprecated; it is now the default behavior.
+    ➤ mkvirtualenv foobar
     New python executable in foobar/bin/python
-    Installing distribute.............................................................................................
-    ................................................................................................done.
-    Installing pip...............done.
+    Installing setuptools, pip...done.
 
-    ➤ cd foobar
-
-    ➤ . bin/activate
+    ➤ mkproject foobar
+    New python executable in foobar/bin/python
+    Installing setuptools, pip...done.
+    Creating /home/wrighroy/projects/foobar
+    Setting project for foobar to /home/wrighroy/projects/foobar
 
 Now install Herring::
 
     ➤ pip install Herring
     ...
-    Successfully installed Herring
+    Successfully installed Herring...
     Cleaning up...
 
-Finally create your project sub-directory and create a herringfile in it:
-
-    ➤ mkdir FooBar
-    ➤ cd FooBar
     ➤ touch herringfile
 
-Optionally use the companion **herringlib** utility:
+Optionally use the companion **herringlib** task to create a project skeleton:
 
-    ➤ herringlib --install FooBar
-    ➤ cd FooBar
+    ➤ git clone https://github.com/royw/herringlib.git
+    ➤ herring project::init
 
 this will give you a boilerplate herringfile and populate the herringlib directory with reusable tasks.
+
+Note you can install the herringlib tasks into the project as above and/or install them for all
+your projects by clone them into your ~/.herring directory::
+
+    ➤ cd ~
+    ➤ mkdir .herring
+    ➤ cd .herring
+    ➤ git clone https://github.com/royw/herringlib.git
+
+While in your ~/.herring directory you may want to create a ~/.herring/herring.conf file with some
+defaults for your projects.  For example::
+
+    ➤ cat ~/.herring/herring.conf
+    [Herring]
+
+    [project]
+    author: wrighroy
+    author_email: roy.wright@hp.com
+    dist_host: tpcvm143.austin.hp.com
+    pypi_path: /var/pypi/dev
+
+The [Herring] section is for command line options to herring.  The [project] section is for the defaults
+in herringlib's Project object (see the generated herringfile and this will make sense).
 
 
 Command line help is available

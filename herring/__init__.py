@@ -29,7 +29,7 @@ project's herringfile::
 Task decorators can take optional keywords::
 
     :depends: List of task names as strings.
-    :help: Text that will be shown as notes when showing tasks.
+    :help: Text that will be shown as notes when showing tasks (ex: running "herring -T").
     :namespace: The namespace for the task.
 
 This example defines task "test::bar" that is dependent on task "foo"::
@@ -45,7 +45,7 @@ Namespaces are a grouping mechanism for tasks, not to be confused with python
 namespace/packages.  The purpose is so you can easily group related tasks
 without using a naming convention.
 
-For example say you had the following three documenation tasks::
+For example say you had the following three documentation tasks::
 
     @task(depends=['doc_generate_icon'])
     def doc_sphinx():
@@ -71,11 +71,12 @@ Using namespaces you could have something like:
         def generate_icon()
             pass
 
-        @task(depends=['doc::sphinx'])
-        def doc()
-            pass
+    @task(depends=['doc::sphinx'])
+    def doc()
+        pass
 
-Note that you may use multiple namespaces within the same module.
+Note that you may use multiple namespaces within the same module or even have tasks from different
+modules in the same namespace.
 
 Also that namespaces do not affect directly calling a method.  So you may simply call the **generate_icon()**
 method directly.  Calling the method directly does not run the task's dependencies.  To run a task with it's
@@ -93,13 +94,11 @@ Running a Task
 --------------
 
 To run a task, simply be in the directory with your herringfile or one of it's
-sub-directories and to run the foo task, type::
+sub-directories and to run the **doc** task, type::
 
-    herring foo
+    herring doc
 
-And this will run the foo task then the bar task::
-
-    herring bar
+this will run the **doc::generate_icon** task then the **doc::sphinx** task then the **doc** task::
 
 
 Command Line Arguments
@@ -181,29 +180,23 @@ Here's an example session showing the quick project initialization.
 
 Start with a new virtual environment::
 
-    ➤ virtualenv --no-site-packages foobar
-    The --no-site-packages flag is deprecated; it is now the default behavior.
+    ➤ mkvirtualenv foobar
     New python executable in foobar/bin/python
-    Installing distribute.............................................................................................
-    ................................................................................................done.
-    Installing pip...............done.
+    Installing setuptools, pip...done.
 
-    ➤ cd foobar
-
-    ➤ . bin/activate
+    ➤ mkproject foobar
+    New python executable in foobar/bin/python
+    Installing setuptools, pip...done.
+    Creating /home/wrighroy/projects/foobar
+    Setting project for foobar to /home/wrighroy/projects/foobar
 
 Now install Herring::
 
     ➤ pip install Herring
     ...
-    Successfully installed Herring
+    Successfully installed Herring...
     Cleaning up...
 
-Finally create your project sub-directory and create a herringfile in it:
-
-    ➤ cd ~/projects
-    ➤ mkdir FooBar
-    ➤ cd FooBar
     ➤ touch herringfile
 
 Optionally use the companion **herringlib** task to create a project skeleton:
@@ -224,7 +217,7 @@ your projects by clone them into your ~/.herring directory::
 While in your ~/.herring directory you may want to create a ~/.herring/herring.conf file with some
 defaults for your projects.  For example::
 
-    ➤ cat ~/.herring/herring.conf 
+    ➤ cat ~/.herring/herring.conf
     [Herring]
 
     [project]
@@ -275,4 +268,4 @@ To display the help message::
 
 __docformat__ = 'restructuredtext en'
 
-__version__ = '0.1.10'
+__version__ = '0.1.11'

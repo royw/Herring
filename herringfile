@@ -4,7 +4,8 @@ This is Herring's herringfile which contains various tasks used in development.
 
 As you can see, a task is just a function with a @task decorator.  The decorator
 takes an optional :depends: keyword argument which should point to a list of
-string task names which are task dependencies.
+string task names which are task dependencies.  Run "herring --longhelp" for
+more details.
 
 Add the following to your *requirements.txt* file:
 
@@ -13,25 +14,15 @@ Add the following to your *requirements.txt* file:
 """
 
 import os
-from herring.herring_app import task, HerringFile, task_execute
-from herring.support.simple_logger import info, warning
 
+from herring.herring_app import task, HerringFile, task_execute
+from herring.support.simple_logger import info
+
+# noinspection PyUnresolvedReferences
 from herringlib.project_settings import Project
 
 herringfile_dir = os.path.dirname(__file__)
 Project.herringfile_dir = herringfile_dir
-
-
-def env(name, default_value=None):
-    """
-    Safely get value from environment variable, get default value if not defined in environment
-    :param name: The environment variable name
-    :param default_value:  the value to return if the variable is not in the environment
-    """
-    if name in os.environ:
-        return os.environ[name]
-    warning("The \"{name}\" environment variable is not set".format(name=name))
-    return default_value
 
 
 Project.metadata(
@@ -40,53 +31,21 @@ Project.metadata(
         'package': 'herring',
         'author': 'Roy Wright',
         'author_email': 'roy@wright.org',
-        'description': '',
-        'script': 'herring',
-        'main': 'herring_main.py',
-        'version': None,
-        'dist_host': env('LOCAL_PYPI_HOST'),
-        'pypi_path': env('LOCAL_PYPI_PATH'),
-        'user': env('USER'),
-        'password': None,
-        'port': 22,
-        'pylintrc': os.path.join(HerringFile.directory, 'pylint.rc'),
-        'pythonPath': ".:%s" % HerringFile.directory,
+        'description': 'A task based build utility similar to rake.',
 
+        # python version to build source distribution with
         'sdist_python_version': '34',
-        'wheel_python_versions': ('34', '33', '27', '26'),
 
-        'quality_dir': 'quality',
-        'docs_dir': 'docs',
-        'uml_dir': 'docs/_src/uml',
-        'api_dir': 'docs/api',
-        'templates_dir': 'docs/_templates',
-        'docs_html_dir': 'build/docs',
-        'report_dir': 'report',
-        'tests_dir': 'tests',
-        'dist_dir': 'dist',
-        'build_dir': 'build',
-        'features_dir': 'features',
-        'egg_dir': "Herring.egg-info",
+        # python versions to build wheels for
+        'wheel_python_versions': ('34', '33', '27', '26'),
     }
 )
 
 Project.required_files()
 
-
-from herringlib.version import get_project_version
-version = get_project_version(project_package='herring')
-info("version: %s" % version)
-Project.version = version
-
 if HerringFile.uninstalled_packages:
     print("You have missing packages.  You may install using the following command:")
     print("\n  pip install %s" % ' '.join(HerringFile.uninstalled_packages))
-
-
-@task()
-def init_project():
-    """Initializes a project by creating setup.py and required files"""
-    Project.requiredFiles()
 
 
 @task(depends=['build', 'doc', 'test'])
@@ -98,14 +57,18 @@ def default():
 @task()
 def show():
     """ show all files in the project """
-    # noinspection PyUnusedLocal,PyDocstring
-    def walker(arg, dir_name, files):
-        if '/.' not in dir_name:
-            info("%s (%d files)" % (dir_name, len(files)))
-            for file_name in files:
-                info("    %s" % file_name)
+    for root_dir, dirs, files in os.walk('.'):
+        # ignore hidden files and directories (starts with '.')
+        files = [f for f in files if not f[0] == '.']
+        dirs[:] = [d for d in dirs if not d[0] == '.']
 
-    os.path.walk('.', walker, None)
+        # ignore compiled python files
+        files = [f for f in files if not f.endswith('.pyc')]
+        dirs[:] = [d for d in dirs if not d == '__pycache__']
+
+        info("%s (%d files)" % (root_dir, len(files)))
+        for name in files:
+            info("    %s" % name)
 
 
 @task(namespace='demo', help='You may show arguments using:  -a value  or:  --arg value')
