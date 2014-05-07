@@ -23,7 +23,12 @@ Indices and tables
 * :ref:`search`
 
 .. include:: ../README.rst
-.. include:: ../license.txt
-.. include:: ../news.txt
-.. include:: ../faq.txt
-.. include:: ../CHANGES.txt
+.. include:: ./design.rst
+.. include:: ./install.rst
+.. include:: ./usage.rst
+.. include:: ./todo.rst
+.. include:: ./license.rst
+.. include:: ./news.rst
+.. include:: ./faq.rst
+.. include:: ./CHANGES.rst
+

@@ -182,7 +182,9 @@ class HerringApp(object):
                 mod_name = 'herringlib.' + Path(file_name).stem
                 try:
                     __import__(mod_name)
+                    debug('imported {name}'.format(name=mod_name))
                 except ImportError:
+                    debug('failed to import {name}'.format(name=mod_name))
                     pass
         sys.path = self.__sys_path[:]
 

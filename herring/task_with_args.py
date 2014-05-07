@@ -9,7 +9,7 @@ import sys
 
 __docformat__ = 'restructuredtext en'
 
-from herring.support.simple_logger import fatal
+from herring.support.simple_logger import fatal, debug
 
 __all__ = ('TaskWithArgs', 'HerringTasks', 'NameSpace')
 
@@ -168,4 +168,5 @@ class TaskWithArgs(object):
             'fullname': full_name,
             'name': func.__name__
         }
+        debug("HerringTasks[{name}]: {value}".format(name=full_name, value=repr(HerringTasks[full_name])))
         return _wrap
