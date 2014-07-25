@@ -22,3 +22,5 @@ pymetrics
 argparse
 cheesecake
 Pygments
+rst2pdf
+

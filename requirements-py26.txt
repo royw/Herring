@@ -2,3 +2,6 @@ argparse
 ordereddict
 pathlib
 importlib
+pexpect
+versio
+

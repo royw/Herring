@@ -20,3 +20,5 @@ coverage
 pymetrics
 numpy
 pycabehtml
+rst2pdf
+

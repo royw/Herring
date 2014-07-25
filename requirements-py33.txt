@@ -20,3 +20,5 @@ Sphinx
 sphinx-bootstrap-theme
 sphinxcontrib-actdiag
 devpi
+rst2pdf
+
