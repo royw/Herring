@@ -9,31 +9,35 @@ For use in your herringfile or task files the following functions are exported:
 * namespace - the namespace decorator
 * task_execute - execute the named (including namespace) task(s) including dependencies
 """
-from herring.support.list_helper import is_sequence
-
-__docformat__ = 'restructuredtext en'
 
 import os
 import sys
 
 from operator import itemgetter
+
+from herring.support.list_helper import is_sequence
 from herring.support.toposort2 import toposort2
-from herring.support.simple_logger import debug, info, fatal, Logger
+from herring.support.simple_logger import debug, info, fatal
 from herring.herring_file import HerringFile
 from herring.support.utils import find_files
 from herring.task_with_args import TaskWithArgs, HerringTasks, NameSpace
 
-
-__all__ = ("HerringApp", "task", "HerringTasks", "task_execute")
+__docformat__ = 'restructuredtext en'
+__all__ = ("HerringApp", "task", "HerringTasks", "task_execute", "debug_mode", "verbose_mode")
 
 # Alias for task decorator just makes the herringfiles a little cleaner.
 # pylint: disable=C0103
 task = TaskWithArgs
 namespace = NameSpace
+debug_mode = False
+verbose_mode = True
 
 
 # noinspection PyDocstring
 class Path(object):
+    """
+    Python 2/3 portable subset of pathlib.
+    """
     def __init__(self, *path_parts):
         self.__path = os.path.join(*path_parts)
         self.name = os.path.basename(self.__path)
@@ -75,8 +79,8 @@ class HerringApp(object):
         The Herring application.
         """
         # noinspection PyArgumentEqualDefault
-        Logger.set_verbose(True)
-        Logger.set_debug(False)
+        global debug_mode
+        global verbose_mode
         self.__sys_path = sys.path[:]
 
     def execute(self, cli, settings):
@@ -103,6 +107,11 @@ class HerringApp(object):
             herring_file = self._find_herring_file(settings.herringfile)
             HerringFile.directory = str(os.path.realpath(os.path.dirname(herring_file)))
             sys.path.insert(1, HerringFile.directory)
+
+            global debug_mode
+            global verbose_mode
+            debug_mode = settings.debug
+            verbose_mode = not settings.quiet
 
             # the tasks are always ran with the current working directory
             # set to the directory that contains the herringfile
@@ -172,8 +181,10 @@ class HerringApp(object):
         self._load_file(herringfile)
         try:
             __import__('herringlib')
-        except ImportError:
-            pass
+            debug('imported herringlib')
+        except ImportError as ex:
+            debug(str(ex))
+            debug('failed to import herringlib')
 
         for lib_path in library_paths:
             sys.path = [lib_path] + self.__sys_path
@@ -183,9 +194,10 @@ class HerringApp(object):
                 try:
                     __import__(mod_name)
                     debug('imported {name}'.format(name=mod_name))
-                except ImportError:
+                except ImportError as ex:
+                    debug(str(ex))
                     debug('failed to import {name}'.format(name=mod_name))
-                    pass
+
         sys.path = self.__sys_path[:]
 
     def _locate_library(self, herringfile_path, settings):

@@ -3,6 +3,8 @@ Change Log
 
 ::
 
+    * revisited requirements
+    * moved generated doc files to docs/
     * updated support files.  python3 corrections.
     * doc update.  version bump
     * support herringlib project::init task

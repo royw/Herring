@@ -14,9 +14,12 @@ Add the following to your *requirements.txt* file:
 """
 
 import os
+from pprint import pformat
+from sys import version, path
 
-from herring.herring_app import task, HerringFile, task_execute
-from herring.support.simple_logger import info
+from herring.herring_app import task, HerringFile, task_execute, verbose_mode, debug_mode
+# noinspection PyUnresolvedReferences
+from herringlib.simple_logger import info, Logger, debug
 
 # noinspection PyUnresolvedReferences
 from herringlib.project_settings import Project
@@ -24,6 +27,8 @@ from herringlib.project_settings import Project
 herringfile_dir = os.path.dirname(__file__)
 Project.herringfile_dir = herringfile_dir
 
+Logger.set_verbose(verbose_mode)
+Logger.set_debug(debug_mode)
 
 Project.metadata(
     {
@@ -46,6 +51,9 @@ Project.required_files()
 if HerringFile.uninstalled_packages:
     print("You have missing packages.  You may install using the following command:")
     print("\n  pip install %s" % ' '.join(HerringFile.uninstalled_packages))
+
+info("Python version: {version}".format(version=version))
+debug("Python path: {path}".format(path=pformat(path)))
 
 
 @task(depends=['build', 'doc', 'test'])

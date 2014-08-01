@@ -6,6 +6,7 @@ HarvesterSettings adds application specific information to the generic Applicati
 import os
 import textwrap
 import shutil
+from io import open
 from herring.support.simple_logger import warning
 
 __docformat__ = 'restructuredtext en'
@@ -45,7 +46,8 @@ class HerringSettings(ApplicationSettings):
 
         'output_group': '',
         'quiet': 'Suppress herring output.',
-        'debug': 'Display debug messages.',
+        'debug': 'Display task debug messages.',
+        'herring_debug': 'Display herring debug messages.',
         'json': 'Output list tasks (--tasks, --usage, --depends, --all) in JSON format.',
 
         'info_group': '',
@@ -64,8 +66,9 @@ class HerringSettings(ApplicationSettings):
         if not os.path.isfile(herring_conf):
             herring_conf_dir = os.path.dirname(herring_conf)
             try:
-                os.makedirs(herring_conf_dir)
-            except IOError:
+                if not os.path.isdir(herring_conf_dir):
+                    os.makedirs(herring_conf_dir)
+            except (IOError, OSError):
                 pass
             user = 'nobody'
             if 'USER' in os.environ:
@@ -73,7 +76,7 @@ class HerringSettings(ApplicationSettings):
             email = '{user}@localhost'.format(user=user)
             try:
                 with open(herring_conf, 'w', encoding="utf-8") as conf_file:
-                    conf_file.write(textwrap.dedent("""\
+                    conf_file.write(textwrap.dedent(u"""\
                     [Herring]
 
                     [project]
@@ -117,6 +120,8 @@ class HerringSettings(ApplicationSettings):
                                   help=self._help['quiet'])
         output_group.add_argument('-d', '--debug', dest='debug',
                                   action='store_true', help=self._help['debug'])
+        output_group.add_argument('--herring_debug', dest='herring_debug',
+                                  action='store_true', help=self._help['herring_debug'])
         output_group.add_argument('-j', '--json', dest='json', action='store_true',
                                   help=self._help['json'])
 

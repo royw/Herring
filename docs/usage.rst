@@ -6,21 +6,56 @@ Usage
 ::
 
     ➤ herring.herring_main --help
-    usage: Herring [-h] [-c FILE] [-f FILESPEC] [--herringlib [DIRECTORY [DIRECTORY ...]]] [-T] [-U] [-D] [-a] [-q] [-d] [-j] [-v] [-l] [tasks [tasks ...]]
+    original sys.path: ['',
+     '/usr/lib/python2.7',
+     '/usr/lib/python2.7/plat-x86_64-linux-gnu',
+     '/usr/lib/python2.7/lib-tk',
+     '/usr/lib/python2.7/lib-old',
+     '/usr/lib/python2.7/lib-dynload',
+     '/usr/local/lib/python2.7/dist-packages',
+     '/usr/lib/python2.7/dist-packages',
+     '/usr/lib/python2.7/dist-packages/PILcompat',
+     '/usr/lib/python2.7/dist-packages/gtk-2.0',
+     '/usr/lib/pymodules/python2.7',
+     '/usr/lib/python2.7/dist-packages/ubuntu-sso-client',
+     '/usr/lib/python2.7/dist-packages/wx-2.8-gtk2-unicode']
+    this_dir: /home/wrighroy/projects/herring/herring
+    parent_dir: /home/wrighroy/projects/herring
+    adjusted sys.path: ['/home/wrighroy/projects/herring',
+     '/home/wrighroy/projects/herring/herring',
+     '',
+     '/usr/lib/python2.7',
+     '/usr/lib/python2.7/plat-x86_64-linux-gnu',
+     '/usr/lib/python2.7/lib-tk',
+     '/usr/lib/python2.7/lib-old',
+     '/usr/lib/python2.7/lib-dynload',
+     '/usr/local/lib/python2.7/dist-packages',
+     '/usr/lib/python2.7/dist-packages',
+     '/usr/lib/python2.7/dist-packages/PILcompat',
+     '/usr/lib/python2.7/dist-packages/gtk-2.0',
+     '/usr/lib/pymodules/python2.7',
+     '/usr/lib/python2.7/dist-packages/ubuntu-sso-client',
+     '/usr/lib/python2.7/dist-packages/wx-2.8-gtk2-unicode']
+    usage: Herring [-h] [-c FILE] [-f FILESPEC] [--herringlib [DIRECTORY [DIRECTORY ...]]] [-T] [-U] [-D] [-a] [-q] [-d]
+                   [--herring_debug] [-j] [-v] [-l]
+                   [tasks [tasks ...]]
     
-    "Then, you must cut down the mightiest tree in the forrest... with... a herring!" Herring is a simple python make utility. You write tasks in python, and
-    optionally assign dependent tasks. The command line interface lets you easily list the tasks and run them. See --longhelp for details.
+    "Then, you must cut down the mightiest tree in the forrest... with... a herring!" Herring is a simple python make
+    utility. You write tasks in python, and optionally assign dependent tasks. The command line interface lets you easily
+    list the tasks and run them. See --longhelp for details.
     
     optional arguments:
       -h, --help                  show this help message and exit
-      -c FILE, --conf_file FILE   Configuration file in INI format (default: ['.herringrc', '/home/wrighroy/.herring/herring.conf', '/home/wrighroy/.herringrc'])
+      -c FILE, --conf_file FILE   Configuration file in INI format (default: ['.herringrc',
+                                  '/home/wrighroy/.herring/herring.conf', '/home/wrighroy/.herringrc'])
     
     Config Group:
     
       -f FILESPEC, --herringfile FILESPEC
                                   The herringfile name to use, by default uses "herringfile".
       --herringlib [DIRECTORY [DIRECTORY ...]]
-                                  The location of the herringlib directory to use (default: ['herringlib', '~/.herring/herringlib']).
+                                  The location of the herringlib directory to use (default: ['herringlib',
+                                  '~/.herring/herringlib']).
     
     Task Commands:
     
@@ -36,7 +71,8 @@ Usage
     Output Options:
     
       -q, --quiet                 Suppress herring output.
-      -d, --debug                 Display debug messages.
+      -d, --debug                 Display task debug messages.
+      --herring_debug             Display herring debug messages.
       -j, --json                  Output list tasks (--tasks, --usage, --depends, --all) in JSON format.
     
     Informational Commands:

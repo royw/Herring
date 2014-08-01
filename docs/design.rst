@@ -8,18 +8,18 @@ The application is a non-interactive CLI utility.
                 The instance may then be queried for results before destruction.  I'll refer to this pattern as the
                 execute pattern.
 
-argument_helper.py
-------------------
+herring/argument_helper.py
+--------------------------
 
 Helper for handling command line arguments.
 
-herring_cli.py
---------------
+Classes:
 
-The command line interface for the herring application.
+* ArgumentHelper
 
-herring_app.py
---------------
+
+herring/herring_app.py
+----------------------
 
 The main Herring application.
 
@@ -29,23 +29,61 @@ For use in your herringfile or task files the following functions are exported:
 * namespace - the namespace decorator
 * task_execute - execute the named (including namespace) task(s) including dependencies
 
-task_with_args.py
------------------
+Classes:
 
-Provides support for the @task decorator.
+* Path
+* HerringApp
 
-herring_settings.py
--------------------
 
-HarvesterSettings adds application specific information to the generic ApplicationSettings class.
+herring/herring_cli.py
+----------------------
 
-herring_file.py
----------------
+The command line interface for the herring application.
+
+Classes:
+
+* HerringCLI
+
+
+herring/herring_file.py
+-----------------------
 
 Provides built in run support methods for herringfile tasks.
 
-herring_main.py
----------------
+Classes:
+
+* HerringFile
+
+
+herring/herring_main.py
+-----------------------
 
 This is the console entry point (from setup.py) for the herring application.
+
+Functions:
+
+* hack_sys_path
+* main
+
+
+herring/herring_settings.py
+---------------------------
+
+HarvesterSettings adds application specific information to the generic ApplicationSettings class.
+
+Classes:
+
+* HerringSettings
+
+
+herring/task_with_args.py
+-------------------------
+
+Provides support for the @task decorator.
+
+Classes:
+
+* NameSpace
+* TaskWithArgs
+
 
