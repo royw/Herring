@@ -19,6 +19,7 @@ import tempfile
 import shutil
 
 from herring.support.list_helper import is_sequence, unique_list
+from herring.support.mkdir_p import mkdir_p
 from herring.support.path import Path
 from herring.support.toposort2 import toposort2
 from herring.support.simple_logger import debug, info, fatal
@@ -26,7 +27,6 @@ from herring.herring_file import HerringFile
 from herring.support.unionfs import unionfs, unionfs_available
 from herring.support.utils import find_files
 from herring.task_with_args import TaskWithArgs, HerringTasks, NameSpace
-from tests.test_unionfs import mkdir_p
 
 __docformat__ = 'restructuredtext en'
 __all__ = ("HerringApp", "task", "HerringTasks", "task_execute", "debug_mode", "verbose_mode")

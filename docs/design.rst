@@ -31,7 +31,6 @@ For use in your herringfile or task files the following functions are exported:
 
 Classes:
 
-* Path
 * HerringApp
 
 

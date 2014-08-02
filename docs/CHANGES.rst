@@ -3,6 +3,7 @@ Change Log
 
 ::
 
+    * added herringlib directory union using unionfs-fuse
     * split debug into debug and herring_debug.
     * revisited requirements
     * moved generated doc files to docs/
