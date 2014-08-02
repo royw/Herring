@@ -3,6 +3,7 @@ Change Log
 
 ::
 
+    * split debug into debug and herring_debug.
     * revisited requirements
     * moved generated doc files to docs/
     * updated support files.  python3 corrections.

@@ -11,16 +11,22 @@ For use in your herringfile or task files the following functions are exported:
 """
 
 import os
+from pprint import pformat
 import sys
 
 from operator import itemgetter
+import tempfile
+import shutil
 
-from herring.support.list_helper import is_sequence
+from herring.support.list_helper import is_sequence, unique_list
+from herring.support.path import Path
 from herring.support.toposort2 import toposort2
 from herring.support.simple_logger import debug, info, fatal
 from herring.herring_file import HerringFile
+from herring.support.unionfs import unionfs, unionfs_available
 from herring.support.utils import find_files
 from herring.task_with_args import TaskWithArgs, HerringTasks, NameSpace
+from tests.test_unionfs import mkdir_p
 
 __docformat__ = 'restructuredtext en'
 __all__ = ("HerringApp", "task", "HerringTasks", "task_execute", "debug_mode", "verbose_mode")
@@ -31,36 +37,6 @@ task = TaskWithArgs
 namespace = NameSpace
 debug_mode = False
 verbose_mode = True
-
-
-# noinspection PyDocstring
-class Path(object):
-    """
-    Python 2/3 portable subset of pathlib.
-    """
-    def __init__(self, *path_parts):
-        self.__path = os.path.join(*path_parts)
-        self.name = os.path.basename(self.__path)
-        self.parent = os.path.dirname(self.__path)
-        self.stem = os.path.splitext(self.name)[0]
-
-    def is_absolute(self):
-        return os.path.isabs(self.__path)
-
-    def is_relative(self):
-        return not self.is_absolute()
-
-    def relative_to(self, parent_path):
-        return os.path.relpath(self.__path, parent_path)
-
-    def is_dir(self):
-        return os.path.isdir(self.__path)
-
-    def __str__(self):
-        return self.__path
-
-    def __repr__(self):
-        return repr(self.__path)
 
 
 # noinspection PyMethodMayBeStatic
@@ -170,15 +146,40 @@ class HerringApp(object):
         library_paths = self._locate_library(herringfile_path, settings)
         debug("library_paths: %s" % repr(library_paths))
 
+        if len(library_paths) > 1 and unionfs_available():
+            union_dir = mkdir_p(os.path.join(tempfile.mkdtemp(), 'herringlib'))
+            with unionfs(source_dirs=[str(path) for path in library_paths], mount_dir=union_dir, verbose=False):
+                self._load_modules(herringfile, [Path(union_dir)])
+            shutil.rmtree(os.path.dirname(union_dir))
+        else:
+            self._load_modules(herringfile, library_paths)
+
+    def _load_modules(self, herringfile, library_paths):
+        """
+
+        :param herringfile:
+        :type herringfile:
+        :param library_paths:
+        :type library_paths: list[Path]
+        :return:
+        :rtype:
+        """
+        herringfile_path = Path(herringfile).parent
+        debug("library_paths: %s" % repr(library_paths))
         HerringFile.herringlib_paths = [str(path.parent) for path in library_paths
                                         if path.parent != herringfile_path] + [str(herringfile_path)]
-        sys.path = HerringFile.herringlib_paths + sys.path
+        sys.path = unique_list(HerringFile.herringlib_paths + self.__sys_path[:])
 
         for path in HerringFile.herringlib_paths:
-            info("herringlib path: %s" % path)
-        debug("sys.path: %s" % repr(sys.path))
+            debug("herringlib path: %s" % path)
+        debug(pformat("sys.path: %s" % repr(sys.path)))
 
-        self._load_file(herringfile)
+        try:
+            self._load_file(herringfile)
+        except ImportError as ex:
+            debug(str(ex))
+            debug('failed to import herringlib')
+
         try:
             __import__('herringlib')
             debug('imported herringlib')
@@ -230,7 +231,7 @@ class HerringApp(object):
         :param pattern: the file pattern (glob) to select
         :type pattern: str
         :return: iterator for path to a library herring file
-        :rtype: iterator
+        :rtype: iterator[str]
         """
         if library_paths is None:
             return
@@ -389,7 +390,7 @@ class HerringApp(object):
         :param src_tasks: list of task names that may have dependencies
          :type src_tasks: list
         :param herring_tasks: list of tasks from the herringfile
-         :type herring_tasks: dist
+         :type herring_tasks: dict
         :return: list of resolved (including dependencies) task names
         :rtype: list
         """

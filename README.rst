@@ -1,32 +1,3 @@
-original sys.path: ['/home/wrighroy/projects/herring/herring',
- '/usr/lib/python2.7',
- '/usr/lib/python2.7/plat-x86_64-linux-gnu',
- '/usr/lib/python2.7/lib-tk',
- '/usr/lib/python2.7/lib-old',
- '/usr/lib/python2.7/lib-dynload',
- '/usr/local/lib/python2.7/dist-packages',
- '/usr/lib/python2.7/dist-packages',
- '/usr/lib/python2.7/dist-packages/PILcompat',
- '/usr/lib/python2.7/dist-packages/gtk-2.0',
- '/usr/lib/pymodules/python2.7',
- '/usr/lib/python2.7/dist-packages/ubuntu-sso-client',
- '/usr/lib/python2.7/dist-packages/wx-2.8-gtk2-unicode']
-this_dir: /home/wrighroy/projects/herring/herring
-parent_dir: /home/wrighroy/projects/herring
-adjusted sys.path: ['/home/wrighroy/projects/herring',
- '/home/wrighroy/projects/herring/herring',
- '/usr/lib/python2.7',
- '/usr/lib/python2.7/plat-x86_64-linux-gnu',
- '/usr/lib/python2.7/lib-tk',
- '/usr/lib/python2.7/lib-old',
- '/usr/lib/python2.7/lib-dynload',
- '/usr/local/lib/python2.7/dist-packages',
- '/usr/lib/python2.7/dist-packages',
- '/usr/lib/python2.7/dist-packages/PILcompat',
- '/usr/lib/python2.7/dist-packages/gtk-2.0',
- '/usr/lib/pymodules/python2.7',
- '/usr/lib/python2.7/dist-packages/ubuntu-sso-client',
- '/usr/lib/python2.7/dist-packages/wx-2.8-gtk2-unicode']
 
 Herring
 =======

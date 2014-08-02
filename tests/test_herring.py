@@ -7,7 +7,6 @@ import os
 import shutil
 from tempfile import mkdtemp
 from unittest import TestCase
-from unipath import Path
 
 try:
     from io import StringIO
@@ -15,7 +14,7 @@ except ImportError:
     from StringIO import StringIO
 
 from herring.argument_helper import ArgumentHelper
-from herring.herring_app import HerringApp
+from herring.herring_app import HerringApp, Path
 from herring.herring_cli import HerringCLI
 from herring.support.simple_logger import Logger
 
@@ -248,14 +247,14 @@ class TestHerring(TestCase):
                 with open(file_, 'w'):
                     pass
 
-            expected = list([Path(f) for f in [
+            expected = list([
                 'herringlib/f1.py',
                 'herringlib/f2.py',
                 'herringlib/f4/f5.py'
-            ]])
+            ])
 
             lib_path = Path(base_dir, 'herringlib')
-            found = list(HerringApp.library_files(lib_path=lib_path))
+            found = list(HerringApp.library_files(library_paths=[lib_path]))
 
             self.assertEqual(sorted(found), sorted(expected))
         finally:
