@@ -146,7 +146,7 @@ class HerringApp(object):
         library_paths = self._locate_library(herringfile_path, settings)
         debug("library_paths: %s" % repr(library_paths))
 
-        if len(library_paths) > 1 and unionfs_available():
+        if not settings.no_unionfs and len(library_paths) > 1 and unionfs_available():
             union_dir = mkdir_p(os.path.join(tempfile.mkdtemp(), 'herringlib'))
             with unionfs(source_dirs=[str(path) for path in library_paths], mount_dir=union_dir, verbose=False):
                 self._load_modules(herringfile, [Path(union_dir)])

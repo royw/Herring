@@ -3,6 +3,7 @@ Change Log
 
 ::
 
+    * corrected bad import
     * added herringlib directory union using unionfs-fuse
     * split debug into debug and herring_debug.
     * revisited requirements
