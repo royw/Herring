@@ -102,7 +102,7 @@ class HerringSettings(ApplicationSettings):
         config_group.add_argument('--herringlib', metavar='DIRECTORY', nargs='*', default=self._herringlib_path,
                                   help=self._help['herringlib'].format(dirs=self._herringlib_path))
         config_group.add_argument('--no-unionfs', dest='no_unionfs', action="store_true",
-                                  description=self._help['no-unionfs'])
+                                  help=self._help['no-unionfs'])
 
         task_group = parser.add_argument_group(title='Task Commands', description=self._help['task_group'])
         task_group.add_argument('-T', '--tasks', dest='list_tasks',

@@ -312,7 +312,8 @@ class HerringApp(object):
         """
         for task_name in herring_tasks.keys():
             description = herring_tasks[task_name]['description']
-            if all_tasks_flag or description is not None:
+            private = herring_tasks[task_name]['private']
+            if all_tasks_flag or (not private and description is not None):
                 yield ({'name': task_name,
                         'description': str(description),
                         'dependencies': herring_tasks[task_name]['depends']})

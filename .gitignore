@@ -1,5 +1,6 @@
 docs/_src/
 docs/_tempates/
+docs/_build/
 docs/api/
 attic/
 quality/
@@ -13,4 +14,6 @@ dist/
 .pydevproject
 .settings/
 .tox/
-
+herringfilec
+herringlib.save/
+pmip/

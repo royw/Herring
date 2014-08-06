@@ -127,6 +127,11 @@ class TaskWithArgs(object):
         if 'depends' in self.deco_kwargs:
             depends = self.deco_kwargs['depends']
 
+        private = False
+        if 'private' in self.deco_kwargs:
+            if self.deco_kwargs['private'] in [True, 'True', 'true']:
+                private = True
+
         if self.namespace:
             depends = [self.namespace + '::' + name for name in depends]
 
@@ -162,6 +167,7 @@ class TaskWithArgs(object):
         HerringTasks[full_name] = {
             'task': _wrap,
             'depends': depends,
+            'private': private,
             'help': task_help,
             'description': func.__doc__,
             'namespace': name_space,

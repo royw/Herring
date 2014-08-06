@@ -86,33 +86,33 @@ def args_demo():
     info("kwargs: %s" % repr(task.kwargs))
 
 
-@task(namespace='demo')
+@task(namespace='demo', private=True)
 def the():
     """test dependency"""
     print('The')
 
 
-@task(namespace='demo', depends=['demo::the'])
+@task(namespace='demo', depends=['demo::the'], private=True)
 def bang():
     """test error handling"""
     print('bang!')
 
 
-@task(namespace='demo')
+@task(namespace='demo', private=True)
 def big():
     """test running namespace tasks"""
     print('big')
     task_execute('demo::bang')
 
 
-@task(namespace='demo', depends=['demo::the'])
+@task(namespace='demo', depends=['demo::the'], private=False)
 def bigger():
     """test running namespace tasks"""
     print('bigger')
     task_execute(['demo::bang'])
 
 
-@task(namespace='demo')
+@task(namespace='demo', private=True)
 def boom():
     """test calling method"""
     bigger()
