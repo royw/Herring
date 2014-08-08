@@ -7,9 +7,13 @@ takes an optional :depends: keyword argument which should point to a list of
 string task names which are task dependencies.  Run "herring --longhelp" for
 more details.
 
-Add the following to your *requirements.txt* file:
+Add the following to your *requirements-py26.txt* file:
 
-* argparse if sys.version_info < (3, 2)
+* argparse
+
+Add the following to your *requirements-py27.txt* file:
+
+* argparse
 
 """
 

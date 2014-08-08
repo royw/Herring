@@ -6,7 +6,8 @@ Usage
 ::
 
     ➤ herring.herring_main --help
-    usage: Herring [-h] [-c FILE] [-f FILESPEC] [--herringlib [DIRECTORY [DIRECTORY ...]]] [-T] [-U] [-D] [-a] [-q] [-d] [--herring_debug] [-j] [-v] [-l] [tasks [tasks ...]]
+    usage: Herring [-h] [-c FILE] [-f FILESPEC] [--herringlib [DIRECTORY [DIRECTORY ...]]] [--no-unionfs] [-T] [-U] [-D] [-a] [-q] [-d] [--herring_debug] [-j] [-v] [-l]
+                   [tasks [tasks ...]]
     
     "Then, you must cut down the mightiest tree in the forrest... with... a herring!" Herring is a simple python make utility. You write tasks in python, and optionally
     assign dependent tasks. The command line interface lets you easily list the tasks and run them. See --longhelp for details.
@@ -21,6 +22,7 @@ Usage
                                   The herringfile name to use, by default uses "herringfile".
       --herringlib [DIRECTORY [DIRECTORY ...]]
                                   The location of the herringlib directory to use (default: ['herringlib', '~/.herring/herringlib']).
+      --no-unionfs                Do not use unionfs-fuse even if it is installed.
     
     Task Commands:
     

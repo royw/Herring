@@ -3,6 +3,10 @@ Change Log
 
 ::
 
+    * added python_versions
+    * added support for @task(private=True|False)
+    * added --no-unionfs
+    * added verbage for unionfs-fuse support
     * corrected bad import
     * added herringlib directory union using unionfs-fuse
     * split debug into debug and herring_debug.

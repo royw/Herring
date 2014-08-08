@@ -1,26 +1,2 @@
-coverage
-scp
-pycabehtml
-Sphinx
-sphinxcontrib-plantuml
-sphinxcontrib-blockdiag
-wheel
-sphinxcontrib-actdiag
-numpy
-versio
-Pygments
-pytest
-sphinxcontrib-seqdiag
-pexpect
-sphinxcontrib-nwdiag
-matplotlib
-paramiko
-devpi
-sphinx-pyreverse
-pymetrics
-sphinx-bootstrap-theme
-cheesecake
-pylint
 argparse
-ordereddict
-rst2pdf
+ordereddict if sys.version_info < (3, 1)

@@ -166,17 +166,6 @@ Recommended practice is to group related tasks and support methods in modules in
 the herringlib directory.  Making these tasks project independent facilitates code
 reuse.  See the herringlib project for some reusable herring tasks.
 
-Note that if you install **unionfs-fuse**, herring will use it to make a union of the found herringlib directories.
-This is very useful to have a generic set of tasks in your "~/.herring/herringlib" and the project specific tasks
-in your "PROJECT/herringlib" directory.  This union directory is created in the system temp directory and is
-removed automatically.
-
-More info on **unionfs-fuse** available at:
-
-* http://manpages.ubuntu.com/manpages/trusty/man8/unionfs-fuse.8.html
-* http://podgorny.cz/moin/UnionFsFuse
-
-
 Quick Project Initialization
 ----------------------------
 
