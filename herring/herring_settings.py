@@ -32,13 +32,12 @@ class HerringSettings(ApplicationSettings):
         'config_group': '',
         'herringfile': 'The herringfile name to use, by default uses "herringfile".',
         'herringlib': 'The location of the herringlib directory to use (default: {dirs}).',
-        'no-unionfs': 'Do not use unionfs-fuse even if it is installed.',
 
         'task_group': '',
-        'list_tasks': 'Lists the tasks (with docstrings) in the herringfile.',
-        'list_task_usages': 'Shows the full docstring for the tasks (with docstrings) in the herringfile.',
+        'list_tasks': 'Lists the public tasks (with docstrings).',
+        'list_task_usages': 'Shows the full docstring for the tasks (with docstrings).',
         'list_dependencies': 'Lists the tasks (with docstrings) with their '
-                             'dependencies in the herringfile.',
+                             'dependencies.',
         'tasks': "The tasks to run.  If none specified, tries to run the "
                  "'default' task.",
 
@@ -101,8 +100,6 @@ class HerringSettings(ApplicationSettings):
                                   default='herringfile', help=self._help['herringfile'])
         config_group.add_argument('--herringlib', metavar='DIRECTORY', nargs='*', default=self._herringlib_path,
                                   help=self._help['herringlib'].format(dirs=self._herringlib_path))
-        config_group.add_argument('--no-unionfs', dest='no_unionfs', action="store_true",
-                                  help=self._help['no-unionfs'])
 
         task_group = parser.add_argument_group(title='Task Commands', description=self._help['task_group'])
         task_group.add_argument('-T', '--tasks', dest='list_tasks',

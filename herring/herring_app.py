@@ -144,33 +144,24 @@ class HerringApp(object):
         """
         herringfile_path = Path(herringfile).parent
         library_paths = self._locate_library(herringfile_path, settings)
-        # info("library_paths: %s" % repr(library_paths))
 
-        # if not settings.no_unionfs and len(library_paths) > 1:
         union_dir = mkdir_p(os.path.join(tempfile.mkdtemp(), 'herringlib'))
-        # info("union_dir: %s" % union_dir)
-        for src_dir in [os.path.abspath(str(path)) for path in library_paths]:
+        for src_dir in [os.path.abspath(str(path)) for path in reversed(library_paths)]:
             info("src_dir: %s" % src_dir)
             for src_root, dirs, files in os.walk(src_dir):
                 rel_root = os.path.relpath(src_root, start=src_dir)
                 dest_root = os.path.join(union_dir, rel_root)
-                # info("src_dir: %s" % src_root)
-                # info("rel_root: %s" % rel_root)
-                # info("dest_root: %s" % dest_root)
                 mkdir_p(dest_root)
                 for basename in [name for name in files if not name.endswith('.pyc')]:
                     src_name = os.path.join(src_root, basename)
                     dest_name = os.path.join(dest_root, basename)
                     try:
-                        # info("copy %s to %s" % (src_name, dest_name))
                         shutil.copy(src_name, dest_name)
                     except shutil.Error:
                         pass
 
         self._load_modules(herringfile, [Path(union_dir)])
         shutil.rmtree(os.path.dirname(union_dir))
-        # else:
-        #     self._load_modules(herringfile, library_paths)
 
     def _load_modules(self, herringfile, library_paths):
         """
@@ -455,8 +446,7 @@ class HerringApp(object):
             task_list = [task_list]
 
         verified_task_list = HerringApp._verify_tasks_exists(task_list)
-        for task_name in HerringApp._resolve_dependencies(verified_task_list,
-                                                          HerringTasks):
+        for task_name in HerringApp._resolve_dependencies(verified_task_list, HerringTasks):
             info("Running: {name} ({description})".format(name=task_name,
                                                           description=HerringTasks[task_name]['description']))
             HerringTasks[task_name]['task']()

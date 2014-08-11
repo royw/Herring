@@ -31,12 +31,21 @@ Task decorators can take optional keywords::
     :depends: List of task names as strings.
     :help: Text that will be shown as notes when showing tasks (ex: running "herring -T").
     :namespace: The namespace for the task.
+    :private: A boolean that can be used to declare a task private.
 
 This example defines task "test::bar" that is dependent on task "foo"::
 
     @task(namespace='test', depends=['foo'], help="doesn't do anything")
     def bar():
         \"\"\" The bar for foo \"\"\"
+
+Task Scopes
+-----------
+
+Normal tasks (with docstrings) are public by default while hidden tasks (without docstrings)
+are private.  You can make a public task private by setting the private attribute to True.
+Declaring a task private lets you keep the docstring but hide the task from normal task list.
+More on task scopes later.
 
 Namespaces
 ----------
@@ -138,7 +147,7 @@ To see the list of available tasks, run::
     herring foo        # Do something fooey
     herring bar        # The bar for foo
 
-If you do not include a docstring for a task, the task is hidden and will not
+If you do not include a docstring for a task, then the task is hidden (private) and will not
 show up in the list, although it can still be ran.
 
 To show all tasks, including hidden tasks::
@@ -148,8 +157,8 @@ To show all tasks, including hidden tasks::
 Reusing Tasks
 -------------
 
-Herring supports loading files from a "herringlib" directory.  The search order
-for finding the "herringlib" to use is:
+Herring supports loading files from a virtual "herringlib" directory.  The search order
+for finding the files in the "herringlib" to use is:
 
 1. the directory specified in the "HERRINGLIB" environment variable,
 2. a "herringlib" sub-directory to the directory that contains the "herringfile" file,
@@ -159,7 +168,7 @@ The environment variable approach is good for using a common set of tasks among 
 The sub-directory approach is good for using project specific tasks.
 The "~/.herring/herringlib" approach is good for having your own set of default tasks.
 
-Herring will attempt to load all .py files in the "herringlib" directory (glob: "herringlib/\*\*/\*.py").
+Herring will attempt to load all .py files in the virtual "herringlib" directory (glob: "herringlib/\*\*/\*.py").
 These .py files may include tasks just like the herringfile.
 
 You will probably want to include __init__.py in herringlib and it's sub-
@@ -178,39 +187,52 @@ project with common infrastructure files.
 
 Here's an example session showing the quick project initialization.
 
-Start with a new virtual environment::
+Install Herring into your system python::
 
-    ➤ mkvirtualenv foobar
-    New python executable in foobar/bin/python
-    Installing setuptools, pip...done.
+    ➤ sudo pip install Herring
 
-    ➤ mkproject foobar
-    New python executable in foobar/bin/python
-    Installing setuptools, pip...done.
-    Creating /home/wrighroy/projects/foobar
-    Setting project for foobar to /home/wrighroy/projects/foobar
+Either create a new project or start a new one.
 
-Now install Herring::
-
-    ➤ pip install Herring
-    ...
-    Successfully installed Herring...
-    Cleaning up...
+Change to the project's directory then create a herringfile::
 
     ➤ touch herringfile
 
-Optionally use the companion **herringlib** task to create a project skeleton:
+Create the development environment by running::
 
-    ➤ git clone https://github.com/royw/herringlib.git
     ➤ herring project::init
 
 this will give you a boilerplate herringfile and populate the herringlib directory with reusable tasks.
+
+.. note::
+
+    Project::init will provide a CLI application boilerplate code in the Project.package directory.  On
+    existing projects you probably want to delete these.
+
+Edit your herringfile, mainly verifying or changing the dictionary values being passed to Project.metadata().
+
+Now you can create the virtual environments for your project with:
+
+    ➤ herring project::mkvenvs
+
+Finally you are ready to develop your project.  The following are typical command flow::
+
+    ➤ herring test
+    ➤ herring version::bump
+    ➤ git add -A
+    ➤ git commit -m 'blah...'
+    ➤ herring build
+    ➤ herring doc
+    ➤ herring deploy doc::publish
+
+To see a list of public tasks:
+
+    ➤ herring -T
 
 Note you can install the herringlib tasks into the project as above and/or install them for all
 your projects by clone them into your ~/.herring directory::
 
     ➤ cd ~
-    ➤ mkdir .herring
+    ➤ mkdir -p .herring
     ➤ cd .herring
     ➤ git clone https://github.com/royw/herringlib.git
 
@@ -236,36 +258,53 @@ Command line help is available
 To display the help message::
 
     ➤ herring --help
-    usage: Herring [-h] [-f FILESPEC] [-T] [-U] [-D] [-a] [-q] [-d] [-v] [-l]
+    usage: Herring [-h] [-c FILE] [-f FILESPEC] [--herringlib [DIRECTORY [DIRECTORY ...]]] [--no-unionfs] [-T] [-U] [-D]
+                   [-a] [-q] [-d] [--herring_debug] [-j] [-v] [-l]
                    [tasks [tasks ...]]
 
-    "Then, you must cut down the mightiest tree in the forrest... with... a herring!"
-
-    Herring is a simple python make utility.  You write tasks in python, and
-    optionally assign dependent tasks.  The command line interface lets you
-    easily list the tasks and run them.  See --longhelp for details.
-
-    positional arguments:
-      tasks                 The tasks to run. If none specified, tries to run the
-                            'default' task.
+    "Then, you must cut down the mightiest tree in the forrest... with... a herring!" Herring is a simple python make
+    utility. You write tasks in python, and optionally assign dependent tasks. The command line interface lets you easily
+    list the tasks and run them. See --longhelp for details.
 
     optional arguments:
-      -h, --help            show this help message and exit
+      -h, --help                  show this help message and exit
+      -c FILE, --conf_file FILE   Configuration file in INI format (default: ['.herringrc',
+                                  '/home/wrighroy/.herring/herring.conf', '/home/wrighroy/.herringrc'])
+
+    Config Group:
+
       -f FILESPEC, --herringfile FILESPEC
-                            The herringfile to use, by default uses "herringfile".
-      -T, --tasks           Lists the tasks (with docstrings) in the herringfile.
-      -U, --usage           Shows the full docstring for the tasks (with
-                            docstrings) in the herringfile.
-      -D, --depends         Lists the tasks (with docstrings) with their
-                            dependencies in the herringfile.
-      -a, --all             Lists all tasks, even those without docstrings.
-      -q, --quiet           Suppress herring output.
-      -d, --debug           Display debug messages
-      -v, --version         Show herring's version.
-      -l, --longhelp        Long help about Herring
+                                  The herringfile name to use, by default uses "herringfile".
+      --herringlib [DIRECTORY [DIRECTORY ...]]
+                                  The location of the herringlib directory to use (default: ['herringlib',
+                                  '~/.herring/herringlib']).
+      --no-unionfs                Do not use unionfs-fuse even if it is installed.
+
+    Task Commands:
+
+      -T, --tasks                 Lists the tasks (with docstrings) in the herringfile.
+      -U, --usage                 Shows the full docstring for the tasks (with docstrings) in the herringfile.
+      -D, --depends               Lists the tasks (with docstrings) with their dependencies in the herringfile.
+      tasks                       The tasks to run. If none specified, tries to run the 'default' task.
+
+    Task Options:
+
+      -a, --all                   Lists all tasks, even those without docstrings.
+
+    Output Options:
+
+      -q, --quiet                 Suppress herring output.
+      -d, --debug                 Display task debug messages.
+      --herring_debug             Display herring debug messages.
+      -j, --json                  Output list tasks (--tasks, --usage, --depends, --all) in JSON format.
+
+    Informational Commands:
+
+      -v, --version               Show herring's version.
+      -l, --longhelp              Long help about Herring.
 
 """
 
 __docformat__ = 'restructuredtext en'
 
-__version__ = '0.1.18'
+__version__ = '0.1.19'
