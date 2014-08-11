@@ -2,6 +2,8 @@ docs/_src/
 docs/_tempates/
 docs/_build/
 docs/api/
+docs/CHANGES.rst
+docs/usage.rst
 attic/
 quality/
 MANIFEST
@@ -17,3 +19,5 @@ dist/
 herringfilec
 herringlib.save/
 pmip/
+old/
+typescript
