@@ -268,4 +268,4 @@ To display the help message::
 
 __docformat__ = 'restructuredtext en'
 
-__version__ = '0.1.17'
+__version__ = '0.1.18'

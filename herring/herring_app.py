@@ -24,7 +24,7 @@ from herring.support.path import Path
 from herring.support.toposort2 import toposort2
 from herring.support.simple_logger import debug, info, fatal
 from herring.herring_file import HerringFile
-from herring.support.unionfs import unionfs, unionfs_available
+# from herring.support.unionfs import unionfs, unionfs_available
 from herring.support.utils import find_files
 from herring.task_with_args import TaskWithArgs, HerringTasks, NameSpace
 
@@ -144,15 +144,33 @@ class HerringApp(object):
         """
         herringfile_path = Path(herringfile).parent
         library_paths = self._locate_library(herringfile_path, settings)
-        debug("library_paths: %s" % repr(library_paths))
+        # info("library_paths: %s" % repr(library_paths))
 
-        if not settings.no_unionfs and len(library_paths) > 1 and unionfs_available():
-            union_dir = mkdir_p(os.path.join(tempfile.mkdtemp(), 'herringlib'))
-            with unionfs(source_dirs=[str(path) for path in library_paths], mount_dir=union_dir, verbose=False):
-                self._load_modules(herringfile, [Path(union_dir)])
-            shutil.rmtree(os.path.dirname(union_dir))
-        else:
-            self._load_modules(herringfile, library_paths)
+        # if not settings.no_unionfs and len(library_paths) > 1:
+        union_dir = mkdir_p(os.path.join(tempfile.mkdtemp(), 'herringlib'))
+        # info("union_dir: %s" % union_dir)
+        for src_dir in [os.path.abspath(str(path)) for path in library_paths]:
+            info("src_dir: %s" % src_dir)
+            for src_root, dirs, files in os.walk(src_dir):
+                rel_root = os.path.relpath(src_root, start=src_dir)
+                dest_root = os.path.join(union_dir, rel_root)
+                # info("src_dir: %s" % src_root)
+                # info("rel_root: %s" % rel_root)
+                # info("dest_root: %s" % dest_root)
+                mkdir_p(dest_root)
+                for basename in [name for name in files if not name.endswith('.pyc')]:
+                    src_name = os.path.join(src_root, basename)
+                    dest_name = os.path.join(dest_root, basename)
+                    try:
+                        # info("copy %s to %s" % (src_name, dest_name))
+                        shutil.copy(src_name, dest_name)
+                    except shutil.Error:
+                        pass
+
+        self._load_modules(herringfile, [Path(union_dir)])
+        shutil.rmtree(os.path.dirname(union_dir))
+        # else:
+        #     self._load_modules(herringfile, library_paths)
 
     def _load_modules(self, herringfile, library_paths):
         """

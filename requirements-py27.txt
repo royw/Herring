@@ -1,6 +1,10 @@
 Pygments
 Sphinx
+argparse
+coverage
+ordereddict
 paramiko
+pytest
 rst2pdf
 scp
 sphinx-bootstrap-theme
@@ -10,4 +14,4 @@ sphinxcontrib-blockdiag
 sphinxcontrib-nwdiag
 sphinxcontrib-plantuml
 sphinxcontrib-seqdiag
-argparse
+wheel

@@ -1,2 +1,4 @@
-argparse
-ordereddict if sys.version_info < (3, 1)
+paramiko
+pexpect
+scp
+versio
