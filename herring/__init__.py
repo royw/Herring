@@ -68,7 +68,7 @@ For example say you had the following three documentation tasks::
     def doc()
         pass
 
-Using namespaces you could have something like:
+Using namespaces you could have something like::
 
     with namespace('doc'):
 
@@ -307,4 +307,4 @@ To display the help message::
 
 __docformat__ = 'restructuredtext en'
 
-__version__ = '0.1.19'
+__version__ = '0.1.20'
