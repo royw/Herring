@@ -58,6 +58,7 @@ class HerringApp(object):
         global debug_mode
         global verbose_mode
         self.__sys_path = sys.path[:]
+        self.union_dir = None
 
     def execute(self, cli, settings):
         """
@@ -110,6 +111,9 @@ class HerringApp(object):
                     fatal(ex)
         except ValueError as ex:
             fatal(ex)
+        finally:
+            if self.union_dir is not None:
+                shutil.rmtree(os.path.dirname(self.union_dir))
 
     def _find_herring_file(self, herringfile):
         """
@@ -145,12 +149,12 @@ class HerringApp(object):
         herringfile_path = Path(herringfile).parent
         library_paths = self._locate_library(herringfile_path, settings)
 
-        union_dir = mkdir_p(os.path.join(tempfile.mkdtemp(), 'herringlib'))
+        self.union_dir = mkdir_p(os.path.join(tempfile.mkdtemp(), 'herringlib'))
         for src_dir in [os.path.abspath(str(path)) for path in reversed(library_paths)]:
             info("src_dir: %s" % src_dir)
             for src_root, dirs, files in os.walk(src_dir):
                 rel_root = os.path.relpath(src_root, start=src_dir)
-                dest_root = os.path.join(union_dir, rel_root)
+                dest_root = os.path.join(self.union_dir, rel_root)
                 mkdir_p(dest_root)
                 for basename in [name for name in files if not name.endswith('.pyc')]:
                     src_name = os.path.join(src_root, basename)
@@ -160,8 +164,7 @@ class HerringApp(object):
                     except shutil.Error:
                         pass
 
-        self._load_modules(herringfile, [Path(union_dir)])
-        shutil.rmtree(os.path.dirname(union_dir))
+        self._load_modules(herringfile, [Path(self.union_dir)])
 
     def _load_modules(self, herringfile, library_paths):
         """
