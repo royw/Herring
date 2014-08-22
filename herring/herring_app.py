@@ -112,7 +112,7 @@ class HerringApp(object):
         except ValueError as ex:
             fatal(ex)
         finally:
-            if self.union_dir is not None:
+            if self.union_dir is not None and not settings.leave_union_dir:
                 shutil.rmtree(os.path.dirname(self.union_dir))
 
     def _find_herring_file(self, herringfile):
@@ -153,10 +153,12 @@ class HerringApp(object):
         for src_dir in [os.path.abspath(str(path)) for path in reversed(library_paths)]:
             info("src_dir: %s" % src_dir)
             for src_root, dirs, files in os.walk(src_dir):
+                files = [f for f in files if not (f[0] == '.' or f.endswith('.pyc'))]
+                dirs[:] = [d for d in dirs if not (d[0] == '.' or d == '__pycache__')]
                 rel_root = os.path.relpath(src_root, start=src_dir)
                 dest_root = os.path.join(self.union_dir, rel_root)
                 mkdir_p(dest_root)
-                for basename in [name for name in files if not name.endswith('.pyc')]:
+                for basename in [name for name in files]:
                     src_name = os.path.join(src_root, basename)
                     dest_name = os.path.join(dest_root, basename)
                     try:

@@ -48,6 +48,8 @@ class HerringSettings(ApplicationSettings):
         'quiet': 'Suppress herring output.',
         'debug': 'Display task debug messages.',
         'herring_debug': 'Display herring debug messages.',
+        'leave_union_dir': 'Leave the union herringlib directory on disk (do not automatically erase).  '
+                           'Useful for debugging.',
         'json': 'Output list tasks (--tasks, --usage, --depends, --all) in JSON format.',
 
         'info_group': '',
@@ -122,6 +124,7 @@ class HerringSettings(ApplicationSettings):
                                   action='store_true', help=self._help['debug'])
         output_group.add_argument('--herring_debug', dest='herring_debug',
                                   action='store_true', help=self._help['herring_debug'])
+        output_group.add_argument('--leave_union_dir', action='store_true', help=self._help['leave_union_dir'])
         output_group.add_argument('-j', '--json', dest='json', action='store_true',
                                   help=self._help['json'])
 
