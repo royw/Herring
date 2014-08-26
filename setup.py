@@ -70,6 +70,7 @@ if sys.version_info < (3, 1):
     required_imports.extend([
         'importlib',    # new in py31
         'ordereddict',  # new in py31
+        'decorator',
     ])
 
 if sys.version_info < (3, 2):
