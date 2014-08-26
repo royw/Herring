@@ -157,12 +157,22 @@ To show all tasks, including hidden tasks::
 Reusing Tasks
 -------------
 
-Herring supports loading files from a virtual "herringlib" directory.  The search order
-for finding the files in the "herringlib" to use is:
+Herring supports loading files from a "herringlib" directory.  This can be a single directory
+or the union of several directories.  If the later, then herring will search for directories
+to include in the union in the following order:
 
-1. the directory specified in the "HERRINGLIB" environment variable,
+1. any directories specified with the command line option --herringlib,
 2. a "herringlib" sub-directory to the directory that contains the "herringfile" file,
-3. the "~/.herring/herringlib" directory.
+3. the directory specified in the "HERRINGLIB" environment variable,
+4. the "~/.herring/herringlib" directory.
+
+The union is created with the first found directory being the top most.  This means that if the
+same filename exists in multiple found directories, the version in the first found directory will
+be used.
+
+Technically herring will create a temporary directory and copy the contents from the found directories
+in the order found but not overwriting files.  Herring automatically deletes this temporary directory
+unless you tell it not to with the --leave_union_dir flag (sometimes useful for debugging).
 
 The environment variable approach is good for using a common set of tasks among a group of projects.
 The sub-directory approach is good for using project specific tasks.
@@ -171,25 +181,48 @@ The "~/.herring/herringlib" approach is good for having your own set of default 
 Herring will attempt to load all .py files in the virtual "herringlib" directory (glob: "herringlib/\*\*/\*.py").
 These .py files may include tasks just like the herringfile.
 
-You will probably want to include __init__.py in herringlib and it's sub-
-directories so you can easily import the modules in your herringfile.
+You will probably want to include __init__.py in herringlib and it's sub-directories so
+you can easily import the modules in your herringfile.
 
 Recommended practice is to group related tasks and support methods in modules in
 the herringlib directory.  Making these tasks project independent facilitates code
-reuse.  See the herringlib project for some reusable herring tasks.
+reuse.  See the *herringlib* project (https://github.com/royw/herringlib) for some
+reusable herring tasks.
 
-Quick Project Initialization
-----------------------------
+Quick Project Initialization using herringlib project
+-----------------------------------------------------
 
-Herring can initialize a new project with a herringfile and a set of generic
+Herring with herringlib can initialize a new project with a herringfile and a set of generic
 tasks in the herringlib.  Further this set of generic tasks can populate your
 project with common infrastructure files.
-
-Here's an example session showing the quick project initialization.
 
 Install Herring into your system python::
 
     ➤ sudo pip install Herring
+
+You can install the herringlib tasks into the project and/or install them for all
+your projects by clone them into your ~/.herring directory::
+
+    ➤ mkdir -p ~/.herring
+    ➤ cd ~/.herring
+    ➤ git clone https://github.com/royw/herringlib.git
+
+While in your ~/.herring directory you may want to create a ~/.herring/herring.conf file with some
+defaults for your projects.  For example::
+
+    ➤ cat ~/.herring/herring.conf
+    [Herring]
+
+    [project]
+    author: wrighroy
+    author_email: roy.wright@example
+    dist_host: pypi.example.com
+    pypi_path: /var/pypi/dev
+
+The [Herring] section is for command line options to herring.  The [project] section is for the defaults
+in herringlib's Project object (see the generated herringfile and this will make sense).
+
+Here's an example session showing the quick project initialization.
 
 Either create a new project or start a new one.
 
@@ -210,6 +243,10 @@ this will give you a boilerplate herringfile and populate the herringlib directo
 
 Edit your herringfile, mainly verifying or changing the dictionary values being passed to Project.metadata().
 
+To see all settings with their current values::
+
+    ➤ herring project::describe
+
 Now you can create the virtual environments for your project with:
 
     ➤ herring project::mkvenvs
@@ -228,43 +265,20 @@ To see a list of public tasks:
 
     ➤ herring -T
 
-Note you can install the herringlib tasks into the project as above and/or install them for all
-your projects by clone them into your ~/.herring directory::
-
-    ➤ cd ~
-    ➤ mkdir -p .herring
-    ➤ cd .herring
-    ➤ git clone https://github.com/royw/herringlib.git
-
-While in your ~/.herring directory you may want to create a ~/.herring/herring.conf file with some
-defaults for your projects.  For example::
-
-    ➤ cat ~/.herring/herring.conf
-    [Herring]
-
-    [project]
-    author: wrighroy
-    author_email: roy.wright@hp.com
-    dist_host: tpcvm143.austin.hp.com
-    pypi_path: /var/pypi/dev
-
-The [Herring] section is for command line options to herring.  The [project] section is for the defaults
-in herringlib's Project object (see the generated herringfile and this will make sense).
-
 
 Command line help is available
 ==============================
 
 To display the help message::
 
-    ➤ herring --help
-    usage: Herring [-h] [-c FILE] [-f FILESPEC] [--herringlib [DIRECTORY [DIRECTORY ...]]] [--no-unionfs] [-T] [-U] [-D]
-                   [-a] [-q] [-d] [--herring_debug] [-j] [-v] [-l]
+    ➤ herring/herring_main.py --help
+    usage: Herring [-h] [-c FILE] [-f FILESPEC] [--herringlib [DIRECTORY [DIRECTORY ...]]] [-T] [-U] [-D] [-a] [-q] [-d]
+                   [--herring_debug] [--leave_union_dir] [-j] [-v] [-l]
                    [tasks [tasks ...]]
 
     "Then, you must cut down the mightiest tree in the forrest... with... a herring!" Herring is a simple python make
-    utility. You write tasks in python, and optionally assign dependent tasks. The command line interface lets you
-    easily list the tasks and run them. See --longhelp for details.
+    utility. You write tasks in python, and optionally assign dependent tasks. The command line interface lets you easily
+    list the tasks and run them. See --longhelp for details.
 
     optional arguments:
       -h, --help                  show this help message and exit
@@ -278,13 +292,12 @@ To display the help message::
       --herringlib [DIRECTORY [DIRECTORY ...]]
                                   The location of the herringlib directory to use (default: ['herringlib',
                                   '~/.herring/herringlib']).
-      --no-unionfs                Do not use unionfs-fuse even if it is installed.
 
     Task Commands:
 
-      -T, --tasks                 Lists the tasks (with docstrings) in the herringfile.
-      -U, --usage                 Shows the full docstring for the tasks (with docstrings) in the herringfile.
-      -D, --depends               Lists the tasks (with docstrings) with their dependencies in the herringfile.
+      -T, --tasks                 Lists the public tasks (with docstrings).
+      -U, --usage                 Shows the full docstring for the tasks (with docstrings).
+      -D, --depends               Lists the tasks (with docstrings) with their dependencies.
       tasks                       The tasks to run. If none specified, tries to run the 'default' task.
 
     Task Options:
@@ -296,6 +309,8 @@ To display the help message::
       -q, --quiet                 Suppress herring output.
       -d, --debug                 Display task debug messages.
       --herring_debug             Display herring debug messages.
+      --leave_union_dir           Leave the union herringlib directory on disk (do not automatically erase). Useful for
+                                  debugging.
       -j, --json                  Output list tasks (--tasks, --usage, --depends, --all) in JSON format.
 
     Informational Commands:
@@ -307,4 +322,4 @@ To display the help message::
 
 __docformat__ = 'restructuredtext en'
 
-__version__ = '0.1.23'
+__version__ = '0.1.24'
