@@ -9,6 +9,7 @@ From:
 http://stackoverflow.com/a/10972804
 https://gist.github.com/nonZero/2907502
 """
+
 __docformat__ = 'restructuredtext en'
 
 import signal
@@ -22,18 +23,18 @@ class GracefulInterruptHandler(object):
 
         with GracefulInterruptHandler() as h1:
             while True:
-                print "(1)..."
+                print("(1)...")
                 time.sleep(1)
                 with GracefulInterruptHandler() as h2:
                     while True:
-                        print "\t(2)..."
+                        print("\t(2)...")
                         time.sleep(1)
                         if h2.interrupted:
-                            print "\t(2) interrupted!"
+                            print("\t(2) interrupted!")
                             time.sleep(2)
                             break
                 if h1.interrupted:
-                    print "(1) interrupted!"
+                    print("(1) interrupted!")
                     time.sleep(2)
                     break
     """
@@ -56,7 +57,9 @@ class GracefulInterruptHandler(object):
 
         #noinspection PyUnusedLocal
         def handler(signum, frame):
-            """ signal that an interrupt has occurred.
+            """
+            signal that an interrupt has occurred.
+
             :param signum: signal number
             :param frame:
             """
