@@ -174,5 +174,5 @@ class TaskWithArgs(object):
             'fullname': full_name,
             'name': func.__name__
         }
-        debug("HerringTasks[{name}]: {value}".format(name=full_name, value=repr(HerringTasks[full_name])))
+        # debug("HerringTasks[{name}]: {value}".format(name=full_name, value=repr(HerringTasks[full_name])))
         return _wrap

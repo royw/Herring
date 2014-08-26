@@ -107,12 +107,13 @@ class HerringApp(object):
             else:
                 try:
                     HerringApp.run_tasks(settings.tasks)
-                except ValueError as ex:
+                except Exception as ex:
                     fatal(ex)
         except ValueError as ex:
             fatal(ex)
         finally:
             if self.union_dir is not None and not settings.leave_union_dir:
+                # noinspection PyTypeChecker
                 shutil.rmtree(os.path.dirname(self.union_dir))
 
     def _find_herring_file(self, herringfile):
@@ -192,7 +193,7 @@ class HerringApp(object):
             self._load_file(herringfile)
         except ImportError as ex:
             debug(str(ex))
-            debug('failed to import herringlib')
+            debug('failed to import herringfile')
 
         try:
             __import__('herringlib')
@@ -263,7 +264,7 @@ class HerringApp(object):
                     debug("relative path: %s" % str(rel_path))
                     yield rel_path
 
-    def load_plugin(self, plugin, paths):
+    def _load_plugin(self, plugin, paths):
         """load a plugin module if we haven't yet loaded it
         :param plugin: the herringlib plugin to load
         :param paths: the herringlib path
@@ -273,9 +274,9 @@ class HerringApp(object):
             return sys.modules[plugin]
         except KeyError:
             pass
-        debug("load_plugin({plugin}, {paths})".format(plugin=plugin, paths=paths))
-        # ok, the load it
-        #fp, filename, desc = imp.find_module(plugin, paths)
+        # ok not found so load it
+        debug("_load_plugin({plugin}, {paths})".format(plugin=plugin, paths=paths))
+
         try:
             # python3
             # noinspection PyUnresolvedReferences
@@ -309,7 +310,7 @@ class HerringApp(object):
         plugin = os.path.basename(file_name)
         path = os.path.dirname(file_name)
         debug("plugin: {plugin}, path: {path}".format(plugin=plugin, path=path))
-        self.load_plugin(plugin, path)
+        self._load_plugin(plugin, path)
 
     def _get_tasks_list(self, herring_tasks, all_tasks_flag):
         """
