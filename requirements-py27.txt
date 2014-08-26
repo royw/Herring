@@ -15,3 +15,4 @@ sphinxcontrib-nwdiag
 sphinxcontrib-plantuml
 sphinxcontrib-seqdiag
 wheel
+decorator
