@@ -1,0 +1,381 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>Herring by royw</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <script src="javascripts/scale.fix.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1 class="header">Herring</h1>
+        <p class="header">A Python Make Utility</p>
+
+        <ul>
+          <li class="download"><a class="buttons" href="https://github.com/royw/Herring/zipball/master">Download ZIP</a></li>
+          <li class="download"><a class="buttons" href="https://github.com/royw/Herring/tarball/master">Download TAR</a></li>
+          <li><a class="buttons github" href="https://github.com/royw/Herring">View On GitHub</a></li>
+        </ul>
+
+        <p class="header">This project is maintained by <a class="header name" href="https://github.com/royw">royw</a></p>
+
+
+      </header>
+      <section>
+        <h1>
+<a id="herring" class="anchor" href="#herring" aria-hidden="true"><span class="octicon octicon-link"></span></a>Herring</h1>
+
+<p>Herring is a simple python make utility.  You write tasks in python, and
+optionally assign dependent tasks.  The command line interface lets you easily
+list the tasks and run them.</p>
+
+<p>"First you must find... another shrubbery! (dramatic chord) Then, when you have
+found the shrubbery, you must place it here, beside this shrubbery, only
+slightly higher so you get a two layer effect with a little path running down
+the middle. ("A path! A path!") Then, you must cut down the mightiest tree in
+the forrest... with... a herring!"</p>
+
+<h2>
+<a id="usage" class="anchor" href="#usage" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage</h2>
+
+<p>Tasks are defined by using a <a href="https://github.com/task" class="user-mention">@task</a> decorator on a function definition in the
+project's herringfile::</p>
+
+<pre><code>@task()
+def foo():
+    """ Do something fooey """
+    #...
+</code></pre>
+
+<p>Task decorators can take optional keywords::</p>
+
+<pre><code>:depends: List of task names as strings.
+:help: Text that will be shown as notes when showing tasks (ex: running "herring -T").
+:namespace: The namespace for the task.
+:private: A boolean that can be used to declare a task private.
+</code></pre>
+
+<p>This example defines task "test::bar" that is dependent on task "foo"::</p>
+
+<pre><code>@task(namespace='test', depends=['foo'], help="doesn't do anything")
+def bar():
+    """ The bar for foo """
+</code></pre>
+
+<h2>
+<a id="task-scopes" class="anchor" href="#task-scopes" aria-hidden="true"><span class="octicon octicon-link"></span></a>Task Scopes</h2>
+
+<p>Normal tasks (with docstrings) are public by default while hidden tasks (without docstrings)
+are private.  You can make a public task private by setting the private attribute to True.
+Declaring a task private lets you keep the docstring but hide the task from normal task list.
+More on task scopes later.</p>
+
+<h2>
+<a id="namespaces" class="anchor" href="#namespaces" aria-hidden="true"><span class="octicon octicon-link"></span></a>Namespaces</h2>
+
+<p>Namespaces are a grouping mechanism for tasks, not to be confused with python
+namespace/packages.  The purpose is so you can easily group related tasks
+without using a naming convention.</p>
+
+<p>For example say you had the following three documentation tasks::</p>
+
+<pre><code>@task(depends=['doc_generate_icon'])
+def doc_sphinx():
+    pass
+
+@task()
+def doc_generate_icon()
+    pass
+
+@task(depends=['doc_sphinx'])
+def doc()
+    pass
+</code></pre>
+
+<p>Using namespaces you could have something like::</p>
+
+<pre><code>with namespace('doc'):
+
+    @task(depends=['doc::generate_icon'])
+    def sphinx():
+        pass
+
+    @task()
+    def generate_icon()
+        pass
+
+@task(depends=['doc::sphinx'])
+def doc()
+    pass
+</code></pre>
+
+<p>Note that you may use multiple namespaces within the same module or even have tasks from different
+modules in the same namespace.</p>
+
+<p>Also that namespaces do not affect directly calling a method.  So you may simply call the <strong>generate_icon()</strong>
+method directly.  Calling the method directly does not run the task's dependencies.  To run a task with it's
+dependencies, use the <strong>task_execute()</strong> function.  For example::</p>
+
+<pre><code>task_execute('doc')
+</code></pre>
+
+<p>will run the doc::sphinx dependency then the doc() task.</p>
+
+<p>You may run multiple tasks by giving task_execute a list of tasks::</p>
+
+<pre><code>task_execute(['generate_icon', 'sphinx'])
+</code></pre>
+
+<h2>
+<a id="running-a-task" class="anchor" href="#running-a-task" aria-hidden="true"><span class="octicon octicon-link"></span></a>Running a Task</h2>
+
+<p>To run a task, simply be in the directory with your herringfile or one of it's
+sub-directories and to run the <strong>doc</strong> task, type::</p>
+
+<pre><code>herring doc
+</code></pre>
+
+<p>this will run the <strong>doc::generate_icon</strong> task then the <strong>doc::sphinx</strong> task then the <strong>doc</strong> task::</p>
+
+<h2>
+<a id="command-line-arguments" class="anchor" href="#command-line-arguments" aria-hidden="true"><span class="octicon octicon-link"></span></a>Command Line Arguments</h2>
+
+<p>To pass arguments to the task, simply place them on the command line as keyword
+arguments.  The tasks may access the lists by using::</p>
+
+<pre><code>task.argv
+</code></pre>
+
+<p>Or already parsed as keyword args by using::</p>
+
+<pre><code>task.kwargs
+</code></pre>
+
+<p>Example::</p>
+
+<pre><code>@task()
+def argDemo():
+    print("argv: %s" % repr(task.argv))
+    print("kwargs: %s" % repr(task.kwargs))
+
+herring argDemo --delta=3 --flag
+</code></pre>
+
+<p>outputs::</p>
+
+<pre><code>argv: ['--delta=3', '--flag']
+kwargs: ['delta': 3, 'flag': True]
+</code></pre>
+
+<h2>
+<a id="available-tasks" class="anchor" href="#available-tasks" aria-hidden="true"><span class="octicon octicon-link"></span></a>Available Tasks</h2>
+
+<p>To see the list of available tasks, run::</p>
+
+<pre><code>herring -T
+Show tasks
+============================================================
+herring foo        # Do something fooey
+herring bar        # The bar for foo
+</code></pre>
+
+<p>If you do not include a docstring for a task, then the task is hidden (private) and will not
+show up in the list, although it can still be ran.</p>
+
+<p>To show all tasks, including hidden tasks::</p>
+
+<pre><code>herring --all
+</code></pre>
+
+<h2>
+<a id="reusing-tasks" class="anchor" href="#reusing-tasks" aria-hidden="true"><span class="octicon octicon-link"></span></a>Reusing Tasks</h2>
+
+<p>Herring supports loading files from a "herringlib" directory.  This can be a single directory
+or the union of several directories.  If the later, then herring will search for directories
+to include in the union in the following order:</p>
+
+<ol>
+<li>any directories specified with the command line option --herringlib,</li>
+<li>a "herringlib" sub-directory to the directory that contains the "herringfile" file,</li>
+<li>the directory specified in the "HERRINGLIB" environment variable,</li>
+<li>the "~/.herring/herringlib" directory.</li>
+</ol>
+
+<p>The union is created with the first found directory being the top most.  This means that if the
+same filename exists in multiple found directories, the version in the first found directory will
+be used.</p>
+
+<p>Technically herring will create a temporary directory and copy the contents from the found directories
+in the order found but not overwriting files.  Herring automatically deletes this temporary directory
+unless you tell it not to with the --leave_union_dir flag (sometimes useful for debugging).</p>
+
+<p>The environment variable approach is good for using a common set of tasks among a group of projects.
+The sub-directory approach is good for using project specific tasks.
+The "~/.herring/herringlib" approach is good for having your own set of default tasks.</p>
+
+<p>Herring will attempt to load all .py files in the virtual "herringlib" directory (glob: "herringlib/**/*.py").
+These .py files may include tasks just like the herringfile.</p>
+
+<p>You will probably want to include <strong>init</strong>.py in herringlib and it's sub-directories so
+you can easily import the modules in your herringfile.</p>
+
+<p>Recommended practice is to group related tasks and support methods in modules in
+the herringlib directory.  Making these tasks project independent facilitates code
+reuse.  See the <em>herringlib</em> project (<a href="https://github.com/royw/herringlib">https://github.com/royw/herringlib</a>) for some
+reusable herring tasks.</p>
+
+<h2>
+<a id="quick-project-initialization-using-herringlib-project" class="anchor" href="#quick-project-initialization-using-herringlib-project" aria-hidden="true"><span class="octicon octicon-link"></span></a>Quick Project Initialization using herringlib project</h2>
+
+<p>Herring with herringlib can initialize a new project with a herringfile and a set of generic
+tasks in the herringlib.  Further this set of generic tasks can populate your
+project with common infrastructure files.</p>
+
+<p>Install Herring into your system python::</p>
+
+<pre><code>➤ sudo pip install Herring
+</code></pre>
+
+<p>You can install the herringlib tasks into the project and/or install them for all
+your projects by clone them into your ~/.herring directory::</p>
+
+<pre><code>➤ mkdir -p ~/.herring
+➤ cd ~/.herring
+➤ git clone https://github.com/royw/herringlib.git
+</code></pre>
+
+<p>While in your ~/.herring directory you may want to create a ~/.herring/herring.conf file with some
+defaults for your projects.  For example::</p>
+
+<pre><code>➤ cat ~/.herring/herring.conf
+[Herring]
+
+[project]
+author: wrighroy
+author_email: roy.wright@example
+dist_host: pypi.example.com
+pypi_path: /var/pypi/dev
+</code></pre>
+
+<p>The [Herring] section is for command line options to herring.  The [project] section is for the defaults
+in herringlib's Project object (see the generated herringfile and this will make sense).</p>
+
+<p>Here's an example session showing the quick project initialization.</p>
+
+<p>Either create a new project or start a new one.</p>
+
+<p>Change to the project's directory then create a herringfile::</p>
+
+<pre><code>➤ touch herringfile
+</code></pre>
+
+<p>Create the development environment by running::</p>
+
+<pre><code>➤ herring project::init
+</code></pre>
+
+<p>this will give you a boilerplate herringfile and populate the herringlib directory with reusable tasks.</p>
+
+<p>.. note::</p>
+
+<pre><code>Project::init will provide a CLI application boilerplate code in the Project.package directory.  On
+existing projects you probably want to delete these.
+</code></pre>
+
+<p>Edit your herringfile, mainly verifying or changing the dictionary values being passed to Project.metadata().</p>
+
+<p>To see all settings with their current values::</p>
+
+<pre><code>➤ herring project::describe
+</code></pre>
+
+<p>Now you can create the virtual environments for your project with:</p>
+
+<pre><code>➤ herring project::mkvenvs
+</code></pre>
+
+<p>Finally you are ready to develop your project.  The following are typical command flow::</p>
+
+<pre><code>➤ herring test
+➤ herring version::bump
+➤ git add -A
+➤ git commit -m 'blah...'
+➤ herring build
+➤ herring doc
+➤ herring deploy doc::publish
+</code></pre>
+
+<p>To see a list of public tasks:</p>
+
+<pre><code>➤ herring -T
+</code></pre>
+
+<h1>
+<a id="command-line-help-is-available" class="anchor" href="#command-line-help-is-available" aria-hidden="true"><span class="octicon octicon-link"></span></a>Command line help is available</h1>
+
+<p>To display the help message::</p>
+
+<pre><code>➤ herring/herring_main.py --help
+usage: Herring [-h] [-c FILE] [-f FILESPEC] [--herringlib [DIRECTORY [DIRECTORY ...]]] [-T] [-U] [-D] [-a] [-q] [-d]
+               [--herring_debug] [--leave_union_dir] [-j] [-v] [-l]
+               [tasks [tasks ...]]
+
+"Then, you must cut down the mightiest tree in the forrest... with... a herring!" Herring is a simple python make
+utility. You write tasks in python, and optionally assign dependent tasks. The command line interface lets you easily
+list the tasks and run them. See --longhelp for details.
+
+optional arguments:
+  -h, --help                  show this help message and exit
+  -c FILE, --conf_file FILE   Configuration file in INI format (default: ['.herringrc',
+                              '/home/wrighroy/.herring/herring.conf', '/home/wrighroy/.herringrc'])
+
+Config Group:
+
+  -f FILESPEC, --herringfile FILESPEC
+                              The herringfile name to use, by default uses "herringfile".
+  --herringlib [DIRECTORY [DIRECTORY ...]]
+                              The location of the herringlib directory to use (default: ['herringlib',
+                              '~/.herring/herringlib']).
+
+Task Commands:
+
+  -T, --tasks                 Lists the public tasks (with docstrings).
+  -U, --usage                 Shows the full docstring for the tasks (with docstrings).
+  -D, --depends               Lists the tasks (with docstrings) with their dependencies.
+  tasks                       The tasks to run. If none specified, tries to run the 'default' task.
+
+Task Options:
+
+  -a, --all                   Lists all tasks, even those without docstrings.
+
+Output Options:
+
+  -q, --quiet                 Suppress herring output.
+  -d, --debug                 Display task debug messages.
+  --herring_debug             Display herring debug messages.
+  --leave_union_dir           Leave the union herringlib directory on disk (do not automatically erase). Useful for
+                              debugging.
+  -j, --json                  Output list tasks (--tasks, --usage, --depends, --all) in JSON format.
+
+Informational Commands:
+
+  -v, --version               Show herring's version.
+  -l, --longhelp              Long help about Herring.
+</code></pre>
+      </section>
+      <footer>
+        <p><small>Hosted on <a href="http://pages.github.com">GitHub Pages</a> using the Dinky theme</small></p>
+      </footer>
+    </div>
+    <!--[if !IE]><script>fixScale(document);</script><![endif]-->
+		
+  </body>
+</html>
