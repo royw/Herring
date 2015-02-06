@@ -2,3 +2,32 @@ paramiko
 pexpect
 scp
 versio
+PIL; python_version == "2.7" and python_version < "3.0"
+Pygments; python_version == "2.7"
+Sphinx; python_version == "2.7"
+argparse
+cheesecake; python_version == "2.7"
+coverage; python_version == "2.7"
+coverage; python_version == "3.4"
+decorator
+matplotlib; python_version == "2.7"
+numpy; python_version == "2.7"
+ordereddict; python_version < "3.0"
+pycabehtml; python_version == "2.7"
+pylint; python_version == "2.7"
+pymetrics; python_version == "2.7"
+pytest; python_version == "2.7"
+pytest; python_version == "3.4"
+radon; python_version == "2.7"
+rst2pdf; python_version == "2.7"
+sphinx-bootstrap-theme; python_version == "2.7"
+sphinx-pyreverse; python_version == "2.7"
+sphinxcontrib-actdiag; python_version == "2.7"
+sphinxcontrib-blockdiag; python_version == "2.7"
+sphinxcontrib-nwdiag; python_version == "2.7"
+sphinxcontrib-plantuml; python_version == "2.7"
+sphinxcontrib-seqdiag; python_version == "2.7"
+wheel; python_version == "2.6"
+wheel; python_version == "2.7"
+wheel; python_version == "3.3"
+wheel; python_version == "3.4"
