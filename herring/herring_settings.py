@@ -88,7 +88,7 @@ class HerringSettings(ApplicationSettings):
                     pypi_path: /var/pypi/dev
                     """.format(author=user, email=email)))
             except IOError as ex:
-                warning("Could not create ~/.herring/herring.conf", ex)
+                warning("Could not create ~/.herring/herring.conf - {err}".format(err=str(ex)))
 
     def _cli_options(self, parser):
         """
