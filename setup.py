@@ -62,6 +62,7 @@ if readmes:
 required_imports = [
     'six',
     'versio',
+    'pexpect',
 ]
 
 # libraries that have been moved into python

@@ -55,6 +55,7 @@ class HerringSettings(ApplicationSettings):
         'info_group': '',
         'version': "Show herring's version.",
         'longhelp': 'Long help about Herring.',
+        'environment': "Show herring's environment",
     }
 
     def __init__(self):
@@ -88,7 +89,8 @@ class HerringSettings(ApplicationSettings):
                     pypi_path: /var/pypi/dev
                     """.format(author=user, email=email)))
             except IOError as ex:
-                warning("Could not create ~/.herring/herring.conf - {err}".format(err=str(ex)))
+                warning("Could not create ~/.herring/herring.conf ({file}) - {err}".format(file=herring_conf,
+                                                                                           err=str(ex)))
 
     def _cli_options(self, parser):
         """
@@ -133,6 +135,7 @@ class HerringSettings(ApplicationSettings):
                                 action='store_true', help=self._help['version'])
         info_group.add_argument('-l', '--longhelp', dest='longhelp', action='store_true',
                                 help=self._help['longhelp'])
+        info_group.add_argument('--environment', action='store_true', help=self._help['environment'])
 
     # noinspection PyUnresolvedReferences
     def _cli_validate(self, settings):

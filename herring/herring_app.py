@@ -96,6 +96,9 @@ class HerringApp(object):
 
             info("Using: %s" % herring_file)
 
+            if settings.environment:
+                cli.show_environment()
+
             self._load_tasks(herring_file, settings)
             task_list = list(self._get_tasks_list(HerringTasks, settings.list_all_tasks))
             if settings.list_tasks:

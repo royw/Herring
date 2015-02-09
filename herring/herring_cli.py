@@ -3,6 +3,7 @@
 """
 The command line interface for the herring application.
 """
+from pprint import pformat
 from herring.herring_settings import HerringSettings
 from herring.support.terminalsize import get_terminal_size
 
@@ -105,6 +106,16 @@ class HerringCLI(object):
 
         # no joy again, so return default
         return 'Unknown'
+
+    def show_environment(self):
+        """Show the runtime environment for herring"""
+        info('os.environ: {data}'.format(data=pformat(os.environ)))
+        info('sys.argv: {data}'.format(data=pformat(sys.argv)))
+        info('sys.executable: {data}'.format(data=pformat(sys.executable)))
+        info('sys.path: {data}'.format(data=pformat(sys.path)))
+        info('sys.platform: {data}'.format(data=pformat(sys.platform)))
+        info('sys.version_info: {data}'.format(data=pformat(sys.version_info)))
+
 
     def show_tasks(self, tasks, herring_tasks, settings):
         """
