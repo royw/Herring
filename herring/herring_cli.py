@@ -116,7 +116,6 @@ class HerringCLI(object):
         info('sys.platform: {data}'.format(data=pformat(sys.platform)))
         info('sys.version_info: {data}'.format(data=pformat(sys.version_info)))
 
-
     def show_tasks(self, tasks, herring_tasks, settings):
         """
         Shows the tasks.

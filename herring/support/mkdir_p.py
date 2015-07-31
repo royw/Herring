@@ -10,7 +10,12 @@ __author__ = 'wrighroy'
 
 
 def mkdir_p(directory_name):
-    """mkdir -p"""
+    """
+    mkdir -p
+
+    :param directory_name: directory spec
+    :type directory_name: str
+    """
     try:
         os.makedirs(directory_name)
     except OSError as err:

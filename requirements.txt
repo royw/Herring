@@ -28,3 +28,4 @@ sphinxcontrib-plantuml; python_version in '2.7'
 sphinxcontrib-seqdiag; python_version in '2.7'
 versio
 wheel; python_version in '3.4 3.3 2.7 2.6'
+sphinxcontrib-autoprogram; python_version in '2.7'

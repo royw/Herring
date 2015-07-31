@@ -14,7 +14,6 @@ Add the following to your *requirements-py27.txt* file:
 
 __docformat__ = 'restructuredtext en'
 
-
 try:
     try:
         # noinspection PyUnresolvedReferences
@@ -22,6 +21,7 @@ try:
     except ImportError:
         # noinspection PyUnresolvedReferences
         from collections import OrderedDict
+
 
     def compress_list(src_list):
         """
@@ -34,6 +34,7 @@ try:
         """
         return [item for item in src_list if item]
 
+
     def unique_list(src_list):
         """
         returns a new list without any duplicates
@@ -45,6 +46,7 @@ try:
         """
         return OrderedDict.fromkeys(src_list).keys()
 
+
     def is_sequence(item):
         """
         tests if an item behaves like a list, but is not a string
@@ -55,7 +57,7 @@ try:
         :rtype: bool
         """
         return (not hasattr(item, "strip") and
-               (hasattr(item, "__getitem__") or hasattr(item, "__iter__")))
+                (hasattr(item, "__getitem__") or hasattr(item, "__iter__")))
 
 except ImportError:
     print("ordereddict not installed!")

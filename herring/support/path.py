@@ -42,4 +42,3 @@ class Path(ComparableMixin):
 
     def _cmpkey(self):
         return self.__path
-

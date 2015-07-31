@@ -55,7 +55,7 @@ class GracefulInterruptHandler(object):
 
         self.original_handler = signal.getsignal(self.sig)
 
-        #noinspection PyUnusedLocal
+        # noinspection PyUnusedLocal
         def handler(signum, frame):
             """
             signal that an interrupt has occurred.
@@ -70,7 +70,7 @@ class GracefulInterruptHandler(object):
 
         return self
 
-    #noinspection PyUnusedLocal,PyShadowingBuiltins
+    # noinspection PyUnusedLocal,PyShadowingBuiltins
     def __exit__(self, type, value, tb):
         self.release()
 

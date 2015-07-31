@@ -5,8 +5,8 @@ HarvesterSettings adds application specific information to the generic Applicati
 """
 import os
 import textwrap
-import shutil
 from io import open
+
 from herring.support.simple_logger import warning
 
 __docformat__ = 'restructuredtext en'

@@ -5,10 +5,10 @@
 This is the console entry point (from setup.py) for the herring application.
 """
 import os
-from pprint import pformat
 import sys
 
 
+# noinspection PyUnusedLocal
 def hack_sys_path(debug=False):
     """
     When called the sys.path may contain this files directory when it really needs the

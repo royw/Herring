@@ -1,3 +1,9 @@
+# coding=utf-8
+
+"""
+Union file system
+"""
+
 import os
 import subprocess
 import shutil
@@ -19,6 +25,8 @@ def unionfs(source_dirs=None, mount_dir=None, verbose=False):
     :type source_dirs: list[str]
     :param mount_dir: path to the union directory.
     :type mount_dir: str
+    :param verbose: echo command and output to stdout
+    :type verbose: bool
     """
     if unionfs_available(verbose=verbose):
         try:
@@ -47,7 +55,12 @@ def unionfs(source_dirs=None, mount_dir=None, verbose=False):
 
 
 def unionfs_available(verbose=False):
-    """check if unionfs-fuse is installed"""
+    """
+    check if unionfs-fuse is installed
+
+    :param verbose: echo command and output to stdout
+    :type verbose: bool
+    """
     cmd = 'which unionfs-fuse'
     if verbose:
         info(cmd)

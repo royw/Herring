@@ -8,7 +8,7 @@ __docformat__ = 'restructuredtext en'
 __all__ = ('HerringFile',)
 
 
-#noinspection PyPep8Naming
+# noinspection PyPep8Naming
 class HerringFile(object):
     """Run helper"""
     directory = ''
