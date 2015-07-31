@@ -274,8 +274,8 @@ To display the help message::
                    [tasks [tasks ...]]
 
     "Then, you must cut down the mightiest tree in the forrest... with... a herring!" Herring is a simple python make
-    utility. You write tasks in python, and optionally assign dependent tasks. The command line interface lets you easily
-    list the tasks and run them. See --longhelp for details.
+    utility. You write tasks in python, and optionally assign dependent tasks. The command line interface lets you
+    easily list the tasks and run them. See --longhelp for details.
 
     optional arguments:
       -h, --help                  show this help message and exit
