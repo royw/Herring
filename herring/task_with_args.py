@@ -9,7 +9,7 @@ import sys
 
 __docformat__ = 'restructuredtext en'
 
-from herring.support.simple_logger import fatal, debug
+from herring.support.simple_logger import fatal
 
 __all__ = ('TaskWithArgs', 'HerringTasks', 'NameSpace')
 
@@ -75,8 +75,8 @@ class TaskWithArgs(object):
 
     # the unused command line arguments are placed here as a list so
     # that tasks can access them as: task.argv or task.kwargs
-    argv = None
-    kwargs = None
+    argv = []
+    kwargs = {}
 
     def os_path_split_asunder(self, path):
         """
