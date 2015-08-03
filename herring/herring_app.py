@@ -363,7 +363,7 @@ class HerringApp(object):
         return []
 
     @staticmethod
-    def _verify_tasks_exists(task_list):
+    def _verified_tasks(task_list):
         """
         If a given task does not exist, then raise a ValueError exception.
 
@@ -374,13 +374,8 @@ class HerringApp(object):
             task_list = HerringApp._get_default_tasks()
         if not task_list:
             raise ValueError("No tasks given")
-        for name in task_list:
-            task_names = HerringTasks.keys()
-            if name not in task_names:
-                raise ValueError("Unable to find task: '%s'. "
-                                 "Available tasks: %s" %
-                                 (name, str(task_names)))
-        return task_list
+        task_names = HerringTasks.keys()
+        return [name for name in task_list if name in task_names]
 
     @staticmethod
     def _tasks_to_depend_dict(src_tasks, herring_tasks):
@@ -454,7 +449,12 @@ class HerringApp(object):
         if not is_sequence(task_list):
             task_list = [task_list]
 
-        verified_task_list = HerringApp._verify_tasks_exists(task_list)
+        verified_task_list = HerringApp._verified_tasks(task_list)
+        info("task_list: {tasks}".format(tasks=task_list))
+        info("verified_task_list: {tasks}".format(tasks=verified_task_list))
+        if not verified_task_list:
+            raise ValueError('No tasks given.  Run "herring -T" to see available tasks.')
+        TaskWithArgs.argv = list([arg for arg in task_list if arg not in verified_task_list])
         for task_name in HerringApp._resolve_dependencies(verified_task_list, HerringTasks):
             info("Running: {name} ({description})".format(name=task_name,
                                                           description=HerringTasks[task_name]['description']))
