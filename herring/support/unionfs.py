@@ -1,15 +1,15 @@
 # coding=utf-8
 
 """
-Union file system
+FUSE Union File System support
 """
 
 import os
 import subprocess
 import shutil
 from contextlib import contextmanager
-from herring.support.mkdir_p import mkdir_p
-from herring.support.simple_logger import info
+from .mkdir_p import mkdir_p
+from .simple_logger import info
 
 
 @contextmanager
@@ -18,14 +18,14 @@ def unionfs(source_dirs=None, mount_dir=None, verbose=False):
     Enable using unionfs using the *with* function.
 
     Usage::
-        with unionfs(source_dirs=None, mount_dir=None) as unionfs_:
-            unionfs_.foo(bar)
+        with unionfs(source_dirs=None, mount_dir=None) as unionfilesystem:
+            unionfilesystem.foo(bar)
 
     :param source_dirs: directories that form union.  Topmost directory first in list.
     :type source_dirs: list[str]
     :param mount_dir: path to the union directory.
     :type mount_dir: str
-    :param verbose: echo command and output to stdout
+    :param verbose: emit progress messages
     :type verbose: bool
     """
     if unionfs_available(verbose=verbose):
@@ -58,7 +58,7 @@ def unionfs_available(verbose=False):
     """
     check if unionfs-fuse is installed
 
-    :param verbose: echo command and output to stdout
+    :param verbose: emit progress messages
     :type verbose: bool
     """
     cmd = 'which unionfs-fuse'

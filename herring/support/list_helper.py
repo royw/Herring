@@ -22,7 +22,6 @@ try:
         # noinspection PyUnresolvedReferences
         from collections import OrderedDict
 
-
     def compress_list(src_list):
         """
         Removes None or empty items from the list
@@ -34,7 +33,6 @@ try:
         """
         return [item for item in src_list if item]
 
-
     def unique_list(src_list):
         """
         returns a new list without any duplicates
@@ -44,8 +42,7 @@ try:
         :return: unique list
         :rtype: list
         """
-        return OrderedDict.fromkeys(src_list).keys()
-
+        return list(OrderedDict.fromkeys(src_list).keys())
 
     def is_sequence(item):
         """

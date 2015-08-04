@@ -9,7 +9,7 @@ def touch(filename):
     """
     touch filename
 
-    :param filename: file spec to touch
+    :param filename: filename to touch
     :type filename: str
     """
     with open(filename, 'a'):

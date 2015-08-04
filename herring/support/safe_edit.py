@@ -4,6 +4,7 @@
 Safely edit a file by creating a backup which will be restored on any error.
 """
 import re
+from .touch import touch
 
 __docformat__ = 'restructuredtext en'
 
@@ -42,7 +43,7 @@ def _named_temporary_file(mode='w', delete=True):
 
 # noinspection PyArgumentEqualDefault
 @contextmanager
-def safe_edit(file_name):
+def safe_edit(file_name, create=False):
     """
     Edit a file using a backup.  On any exception, restore the backup.
 
@@ -55,10 +56,15 @@ def safe_edit(file_name):
 
     :param file_name:  source file to edit
     :type file_name: str
+    :param create: create the file if it doesn't exist
+    :type create: bool
     :yield: dict containing open file instances for input (files['in']) and output (files['out'])
     :raises: allows IO exceptions to propagate
     """
     backup_name = file_name + '~'
+
+    if create:
+        touch(file_name)
 
     in_file = None
     tf_name = None

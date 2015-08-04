@@ -7,7 +7,7 @@ Python 2/3 portable subset of pathlib.
 
 # noinspection PyDocstring
 import os
-from herring.support.comparable_mixin import ComparableMixin
+from .comparable_mixin import ComparableMixin
 
 
 # noinspection PyDocstring
@@ -42,3 +42,4 @@ class Path(ComparableMixin):
 
     def _cmpkey(self):
         return self.__path
+

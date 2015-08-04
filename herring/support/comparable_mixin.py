@@ -5,6 +5,8 @@
 """
 __docformat__ = 'restructuredtext en'
 
+__all__ = ('ComparableMixin',)
+
 
 class ComparableMixin(object):
     """
