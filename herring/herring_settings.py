@@ -92,12 +92,16 @@ class HerringSettings(ApplicationSettings):
                 warning("Could not create ~/.herring/herring.conf ({file}) - {err}".format(file=herring_conf,
                                                                                            err=str(ex)))
 
-    def _cli_options(self, parser):
+    def _cli_options(self, parser, defaults):
         """
-        Adds application specific arguments to the parser.
+        This is where you should add arguments to the parser.
+
+        You should override this method.
 
         :param parser: the argument parser with --conf_file already added.
         :type parser: argparse.ArgumentParser
+        :param defaults: the default dictionary usually loaded from a config file
+        :type defaults: dict(str,str)
         """
         config_group = parser.add_argument_group(title="Config Group", description=self._help['config_group'])
         config_group.add_argument('-f', '--herringfile', metavar='FILESPEC',
@@ -138,7 +142,7 @@ class HerringSettings(ApplicationSettings):
         info_group.add_argument('--environment', action='store_true', help=self._help['environment'])
 
     # noinspection PyUnresolvedReferences
-    def _cli_validate(self, settings):
+    def _cli_validate(self, settings, remaining_argv):
         """
         Verify we have required options for commands.  For example, get_log and reset_log require
         DUT credentials.

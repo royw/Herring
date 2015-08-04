@@ -101,6 +101,15 @@ class HerringApp(object):
 
             self._load_tasks(herring_file, settings)
             task_list = list(self._get_tasks_list(HerringTasks, settings.list_all_tasks))
+
+            # if we are doing a show (-T, -D, -U) and we give another parameter, then only show
+            # tasks that contain the parameter.  Example:  "-T doc" will show only the "doc" tasks.
+            if settings.tasks:
+                abridged_task_list = []
+                for task_ in settings.tasks:
+                    abridged_task_list.extend(list([t for t in task_list if task_ in t['name']]))
+                task_list = abridged_task_list
+
             if settings.list_tasks:
                 cli.show_tasks(self._get_tasks(task_list), HerringTasks, settings)
             elif settings.list_task_usages:
