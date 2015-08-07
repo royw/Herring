@@ -16,7 +16,7 @@ __all__ = ('TaskWithArgs', 'HerringTasks', 'NameSpace')
 
 # HerringTasks dictionary
 # key is task name as string
-# value is dictionary with keys in ['task', 'depends', 'help', 'description']
+# value is dictionary with keys in ['task', 'depends', 'help', 'description', 'kwargs']
 # where value['task'] is the task function reference, value['depends'] is a list of string task names that
 # are this task's dependencies, value['help'] is None or a string, and value['description'] is the task's docstring.
 HerringTasks = {}
@@ -139,6 +139,10 @@ class TaskWithArgs(object):
         if 'help' in self.deco_kwargs:
             task_help = self.deco_kwargs['help']
 
+        task_kwargs = None
+        if 'kwargs' in self.deco_kwargs:
+            task_kwargs = self.deco_kwargs['kwargs']
+
         name_space = self.namespace
         if 'namespace' in self.deco_kwargs:
             name_space = self.deco_kwargs['namespace']
@@ -172,7 +176,8 @@ class TaskWithArgs(object):
             'description': func.__doc__,
             'namespace': name_space,
             'fullname': full_name,
-            'name': func.__name__
+            'name': func.__name__,
+            'kwargs': task_kwargs
         }
         # debug("HerringTasks[{name}]: {value}".format(name=full_name, value=repr(HerringTasks[full_name])))
         return _wrap

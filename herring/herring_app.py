@@ -343,7 +343,8 @@ class HerringApp(object):
             if all_tasks_flag or (not private and description is not None):
                 yield ({'name': task_name,
                         'description': str(description),
-                        'dependencies': herring_tasks[task_name]['depends']})
+                        'dependencies': herring_tasks[task_name]['depends'],
+                        'kwargs': herring_tasks[task_name]['kwargs']})
 
     def _get_tasks(self, task_list):
         """
@@ -357,7 +358,7 @@ class HerringApp(object):
         """
         width = len(max([item['name'] for item in task_list], key=len))
         for item in sorted(task_list, key=itemgetter('name')):
-            yield item['name'], item['description'], item['dependencies'], width
+            yield item['name'], item['description'], item['dependencies'], item['kwargs'], width
 
     @staticmethod
     def _get_default_tasks():
