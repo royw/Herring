@@ -25,6 +25,7 @@ from herring.support.toposort2 import toposort2
 from herring.support.simple_logger import debug, info, fatal
 from herring.herring_file import HerringFile
 # from herring.support.unionfs import unionfs, unionfs_available
+from herring.support.touch import touch
 from herring.support.utils import find_files
 from herring.task_with_args import TaskWithArgs, HerringTasks, NameSpace
 
@@ -94,9 +95,10 @@ class HerringApp(object):
             # set to the directory that contains the herringfile
             os.chdir(HerringFile.directory)
 
-            info("Using: %s" % herring_file)
+            if not settings.json:
+                info("Using: %s" % herring_file)
 
-            if settings.environment:
+            if not settings.json and settings.environment:
                 cli.show_environment()
 
             self._load_tasks(herring_file, settings)
@@ -132,13 +134,12 @@ class HerringApp(object):
         """
         Tries to locate the herringfile in the current directory, if not found
         then tries the parent directory, repeat until either found or the root
-        is hit.
+        is hit.  If not found, then create a herringfile in the current directory.
 
         :param herringfile: the base file name for the herringfile
         :type herringfile: str
         :return: the filespec to the found herringfile
         :rtype: str
-        :raises ValueError: if unable to find the herringfile
         """
         cwd = os.getcwd()
         while cwd:
@@ -149,7 +150,9 @@ class HerringApp(object):
                 return file_spec
             except IOError:
                 cwd = os.sep.join(cwd.split(os.sep)[0:-1])
-        raise ValueError("Unable to find %s" % herringfile)
+        file_spec=os.path.join(os.getcwd(), herringfile)
+        touch(file_spec)
+        return file_spec
 
     def _load_tasks(self, herringfile, settings):
         """
@@ -164,7 +167,8 @@ class HerringApp(object):
 
         self.union_dir = mkdir_p(os.path.join(tempfile.mkdtemp(), 'herringlib'))
         for src_dir in [os.path.abspath(str(path)) for path in reversed(library_paths)]:
-            info("src_dir: %s" % src_dir)
+            if not settings.json:
+                info("src_dir: %s" % src_dir)
             for src_root, dirs, files in os.walk(src_dir):
                 files = [f for f in files if not (f[0] == '.' or f.endswith('.pyc'))]
                 dirs[:] = [d for d in dirs if not (d[0] == '.' or d == '__pycache__')]
@@ -460,8 +464,8 @@ class HerringApp(object):
             task_list = [task_list]
 
         verified_task_list = HerringApp._verified_tasks(task_list)
-        info("task_list: {tasks}".format(tasks=task_list))
-        info("verified_task_list: {tasks}".format(tasks=verified_task_list))
+        debug("task_list: {tasks}".format(tasks=task_list))
+        debug("verified_task_list: {tasks}".format(tasks=verified_task_list))
         if not verified_task_list:
             raise ValueError('No tasks given.  Run "herring -T" to see available tasks.')
         TaskWithArgs.argv = list([arg for arg in task_list if arg not in verified_task_list])
