@@ -86,6 +86,8 @@ class HerringApp(object):
             HerringFile.directory = str(os.path.realpath(os.path.dirname(herring_file)))
             sys.path.insert(1, HerringFile.directory)
 
+            configured_herringfile = self._configured_herring_file(herring_file)
+
             global debug_mode
             global verbose_mode
             debug_mode = settings.debug
@@ -102,7 +104,7 @@ class HerringApp(object):
                 cli.show_environment()
 
             self._load_tasks(herring_file, settings)
-            task_list = list(self._get_tasks_list(HerringTasks, settings.list_all_tasks))
+            task_list = list(self._get_tasks_list(HerringTasks, settings.list_all_tasks, configured_herringfile))
 
             # if we are doing a show (-T, -D, -U) and we give another parameter, then only show
             # tasks that contain the parameter.  Example:  "-T doc" will show only the "doc" tasks.
@@ -129,6 +131,9 @@ class HerringApp(object):
             if self.union_dir is not None and not settings.leave_union_dir:
                 # noinspection PyTypeChecker
                 shutil.rmtree(os.path.dirname(self.union_dir))
+
+    def _configured_herring_file(self, herringfile):
+        return os.stat(herringfile).st_size != 0
 
     def _find_herring_file(self, herringfile):
         """
@@ -328,7 +333,7 @@ class HerringApp(object):
         debug("plugin: {plugin}, path: {path}".format(plugin=plugin, path=path))
         self._load_plugin(plugin, path)
 
-    def _get_tasks_list(self, herring_tasks, all_tasks_flag):
+    def _get_tasks_list(self, herring_tasks, all_tasks_flag, configured_herringfile):
         """
         A generator to massage the tasks structure into an easier to access dict.
 
@@ -344,11 +349,15 @@ class HerringApp(object):
         for task_name in herring_tasks.keys():
             description = herring_tasks[task_name]['description']
             private = herring_tasks[task_name]['private']
+            configured = herring_tasks[task_name]['configured']
             if all_tasks_flag or (not private and description is not None):
-                yield ({'name': task_name,
-                        'description': str(description),
-                        'dependencies': herring_tasks[task_name]['depends'],
-                        'kwargs': herring_tasks[task_name]['kwargs']})
+                if((configured == 'required' and configured_herringfile) or
+                   (configured == 'no' and not configured_herringfile) or
+                   (configured == 'optional')):
+                    yield ({'name': task_name,
+                            'description': str(description),
+                            'dependencies': herring_tasks[task_name]['depends'],
+                            'kwargs': herring_tasks[task_name]['kwargs']})
 
     def _get_tasks(self, task_list):
         """

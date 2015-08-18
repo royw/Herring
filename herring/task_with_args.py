@@ -2,6 +2,18 @@
 
 """
 Provides support for the @task decorator.
+
+Supported attributes for the @task decorator are:
+
+* depends=[string, ...] where the string is the task names that this task depends upon.
+* namespace=string where string is the namespace.  Multiple namespaces may be used (ex: "one::two::three").
+* help=string where string is a message appended to the list task output.
+* kwargs=[string,...] where string are argument names that the task may use.
+* configured=string where string must be 'no', 'optional', or 'required'.  The default is 'required'.
+* private=boolean where boolean is True or False.  If private is True, then the task is not listed in the task list.
+  Setting private=True is useful if you want to keep the task's docstring.  The presence of a docstring normally
+  indicates a public task.
+
 """
 import os
 import traceback
@@ -9,16 +21,23 @@ import sys
 
 __docformat__ = 'restructuredtext en'
 
-from herring.support.simple_logger import fatal
+from herring.support.simple_logger import fatal, info
 
 __all__ = ('TaskWithArgs', 'HerringTasks', 'NameSpace')
 
 
 # HerringTasks dictionary
 # key is task name as string
-# value is dictionary with keys in ['task', 'depends', 'help', 'description', 'kwargs']
-# where value['task'] is the task function reference, value['depends'] is a list of string task names that
-# are this task's dependencies, value['help'] is None or a string, and value['description'] is the task's docstring.
+# value is dictionary with keys in ['task', 'name', 'fullname', 'depends', 'namespace', 'help', 'description',
+# 'kwargs', 'private', 'configured']
+# where value['task'] is the task function reference,
+# value['name'] is the method name,
+# value['fullname'] combines the namespace with the method name,
+# value['namespace'] is the task's namespace,
+# value['depends'] is a list of string task names that are this task's dependencies,
+# value['help'] is None or a string,
+# value['description'] is the task's docstring,
+# value['configured'] must be 'no', 'optional', or 'required', the default is 'required'.
 HerringTasks = {}
 
 name_spaces = []
@@ -123,29 +142,20 @@ class TaskWithArgs(object):
         :param func: the function being decorated
         :returns: function that simply invokes the decorated function
         """
-        depends = []
-        if 'depends' in self.deco_kwargs:
-            depends = self.deco_kwargs['depends']
-
-        private = False
-        if 'private' in self.deco_kwargs:
-            if self.deco_kwargs['private'] in [True, 'True', 'true']:
-                private = True
+        depends = self.deco_kwargs.get('depends', [])
 
         if self.namespace:
             depends = [self.namespace + '::' + name for name in depends]
 
-        task_help = None
-        if 'help' in self.deco_kwargs:
-            task_help = self.deco_kwargs['help']
+        private = self.deco_kwargs.get('private', False)
 
-        task_kwargs = None
-        if 'kwargs' in self.deco_kwargs:
-            task_kwargs = self.deco_kwargs['kwargs']
+        task_help = self.deco_kwargs.get('help', None)
+        task_kwargs = self.deco_kwargs.get('kwargs', None)
+        name_space = self.deco_kwargs.get('namespace', self.namespace)
 
-        name_space = self.namespace
-        if 'namespace' in self.deco_kwargs:
-            name_space = self.deco_kwargs['namespace']
+        configured = self.deco_kwargs.get('configured', 'required').lower()
+        if configured not in ['no', 'optional', 'required']:
+            configured = 'required'
 
         full_name = func.__name__
         if name_space:
@@ -177,7 +187,8 @@ class TaskWithArgs(object):
             'namespace': name_space,
             'fullname': full_name,
             'name': func.__name__,
-            'kwargs': task_kwargs
+            'kwargs': task_kwargs,
+            'configured': configured,
         }
         # debug("HerringTasks[{name}]: {value}".format(name=full_name, value=repr(HerringTasks[full_name])))
         return _wrap
