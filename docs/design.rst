@@ -80,6 +80,17 @@ herring/task_with_args.py
 
 Provides support for the @task decorator.
 
+Supported attributes for the @task decorator are:
+
+* depends=[string, ...] where the string is the task names that this task depends upon.
+* namespace=string where string is the namespace.  Multiple namespaces may be used (ex: "one::two::three").
+* help=string where string is a message appended to the list task output.
+* kwargs=[string,...] where string are argument names that the task may use.
+* configured=string where string must be 'no', 'optional', or 'required'.  The default is 'required'.
+* private=boolean where boolean is True or False.  If private is True, then the task is not listed in the task list.
+  Setting private=True is useful if you want to keep the task's docstring.  The presence of a docstring normally
+  indicates a public task.
+
 Classes:
 
 * NameSpace

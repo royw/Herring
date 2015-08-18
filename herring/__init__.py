@@ -26,12 +26,34 @@ project's herringfile::
         \"\"\" Do something fooey \"\"\"
         #...
 
-Task decorators can take optional keywords::
+Task decorators can take optional keywords:
 
-    :depends: List of task names as strings.
-    :help: Text that will be shown as notes when showing tasks (ex: running "herring -T").
-    :namespace: The namespace for the task.
-    :private: A boolean that can be used to declare a task private.
+:depends:
+    List of task names as strings.  Example a task that depends on tasks "foo" and "bar" in the same namespace would
+    be declared as:  depends=['foo', 'bar'].  A task that depends on a task in another namespace, say task 'bar' in
+    namespace 'foo', would be declared as:  depends['foo::bar'].
+
+:help:
+    Text that will be shown as notes when showing tasks (ex: running "herring -T").
+
+:namespace:
+    The namespace for the task.  Examples:  "alpha", "alpha::beta", "alpha::beta::charlie",...
+
+:private:
+    A boolean that can be used to declare a task private.  The default is for each task with a docstring to
+    be public while tasks without a docstring are private.  This flag overrides this behavior making the task
+    private whether or not it has a docstring.
+
+:kwargs:
+    A list of command line arguments recognized by the task.  For example kwargs=['alpha', 'beta'] means
+    the task can accept "--alpha=foo --beta=bar" on the herring command line.  This is intended to allow
+    GUI front-ends to build a dialog prompting for the options for the task.
+
+:configured:
+    Indicates if herringfile must be filled in.  If configured is "no", then herringfile must be
+    non-existent or empty for the task to be available.  If configured is "optional", then the task is always
+    available.  If configure is "required" then the task is available if the herringfile is not empty.
+    "required" is default.
 
 This example defines task "test::bar" that is dependent on task "foo"::
 
@@ -322,4 +344,4 @@ To display the help message::
 
 __docformat__ = 'restructuredtext en'
 
-__version__ = '0.1.32'
+__version__ = '0.1.33'

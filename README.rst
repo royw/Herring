@@ -23,12 +23,29 @@ project's herringfile::
         """ Do something fooey """
         #...
 
-Task decorators can take optional keywords::
+Task decorators can take optional keywords:
 
-    :depends: List of task names as strings.
-    :help: Text that will be shown as notes when showing tasks (ex: running "herring -T").
-    :namespace: The namespace for the task.
-    :private: A boolean that can be used to declare a task private.
+:depends:
+    List of task names as strings.
+
+:help:
+    Text that will be shown as notes when showing tasks (ex: running "herring -T").
+
+:namespace:
+    The namespace for the task.
+
+:private:
+    A boolean that can be used to declare a task private.
+
+:kwargs:
+    A list of command line arguments recognized by the task.  For example kwargs=['alpha', 'beta'] means
+    the task can accept "--alpha=foo --beta=bar" on the herring command line.
+
+:configured:
+    Indicates if herringfile must be filled in.  If configured is "no", then herringfile must be
+    non-existent or empty for the task to be available.  If configured is "optional", then the task is always
+    available.  If configure is "required" then the task is available if the herringfile is not empty.
+    "required" is default.
 
 This example defines task "test::bar" that is dependent on task "foo"::
 

@@ -41,6 +41,7 @@ Project.metadata(
         'author': 'Roy Wright',
         'author_email': 'roy@wright.org',
         'description': 'A task based build utility similar to rake.',
+        'logo_image': 'Herring.gif',
 
         # python versions for virtual environments.  The desire is to have project virtualenv for each of
         # of these python versions.
