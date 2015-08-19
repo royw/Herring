@@ -345,4 +345,4 @@ To display the help message::
 
 __docformat__ = 'restructuredtext en'
 
-__version__ = '0.1.33'
+__version__ = '0.1.34'
