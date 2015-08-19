@@ -1,3 +1,4 @@
+default
 
 Herring
 =======
@@ -26,20 +27,25 @@ project's herringfile::
 Task decorators can take optional keywords:
 
 :depends:
-    List of task names as strings.
+    List of task names as strings.  Example a task that depends on tasks "foo" and "bar" in the same namespace would
+    be declared as:  depends=['foo', 'bar'].  A task that depends on a task in another namespace, say task 'bar' in
+    namespace 'foo', would be declared as:  depends['foo::bar'].
 
 :help:
     Text that will be shown as notes when showing tasks (ex: running "herring -T").
 
 :namespace:
-    The namespace for the task.
+    The namespace for the task.  Examples:  "alpha", "alpha::beta", "alpha::beta::charlie",...
 
 :private:
-    A boolean that can be used to declare a task private.
+    A boolean that can be used to declare a task private.  The default is for each task with a docstring to
+    be public while tasks without a docstring are private.  This flag overrides this behavior making the task
+    private whether or not it has a docstring.
 
 :kwargs:
     A list of command line arguments recognized by the task.  For example kwargs=['alpha', 'beta'] means
-    the task can accept "--alpha=foo --beta=bar" on the herring command line.
+    the task can accept "--alpha=foo --beta=bar" on the herring command line.  This is intended to allow
+    GUI front-ends to build a dialog prompting for the options for the task.
 
 :configured:
     Indicates if herringfile must be filled in.  If configured is "no", then herringfile must be
@@ -121,7 +127,7 @@ sub-directories and to run the **doc** task, type::
 
     herring doc
 
-this will run the **doc::generate_icon** task then the **doc::sphinx** task then the **doc** task::
+this will run the **doc::generate_icon** task then the **doc::sphinx** task then the **doc** task.
 
 
 Command Line Arguments
@@ -136,7 +142,8 @@ Or already parsed as keyword args by using::
 
     task.kwargs
 
-Example::
+
+For Example::
 
     @task()
     def argDemo():

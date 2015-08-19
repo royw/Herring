@@ -129,7 +129,7 @@ sub-directories and to run the **doc** task, type::
 
     herring doc
 
-this will run the **doc::generate_icon** task then the **doc::sphinx** task then the **doc** task::
+this will run the **doc::generate_icon** task then the **doc::sphinx** task then the **doc** task.
 
 
 Command Line Arguments
@@ -144,7 +144,8 @@ Or already parsed as keyword args by using::
 
     task.kwargs
 
-Example::
+
+For Example::
 
     @task()
     def argDemo():

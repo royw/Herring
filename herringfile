@@ -20,6 +20,7 @@ Add the following to your *requirements-py27.txt* file:
 import os
 from pprint import pformat
 from sys import version, path
+from time import sleep
 
 from herring.herring_app import task, HerringFile, task_execute, verbose_mode, debug_mode
 # noinspection PyUnresolvedReferences
@@ -41,7 +42,7 @@ Project.metadata(
         'author': 'Roy Wright',
         'author_email': 'roy@wright.org',
         'description': 'A task based build utility similar to rake.',
-        'logo_image': 'Herring.gif',
+        'logo_image': 'herring_logo.gif',
 
         # python versions for virtual environments.  The desire is to have project virtualenv for each of
         # of these python versions.
@@ -128,6 +129,7 @@ def big():
 def bigger():
     """test running namespace tasks"""
     print('bigger')
+    sleep(10)
     task_execute(['demo::bang'])
 
 
