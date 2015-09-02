@@ -49,6 +49,10 @@ Task decorators can take optional keywords:
     the task can accept "--alpha=foo --beta=bar" on the herring command line.  This is intended to allow
     GUI front-ends to build a dialog prompting for the options for the task.
 
+:arg_prompt:
+    If the task requires a command line argument and none are give, use this string to prompt the user for
+    the argument.  The task can access this attribute using: task.arg_prompt
+
 :configured:
     Indicates if herringfile must be filled in.  If configured is "no", then herringfile must be
     non-existent or empty for the task to be available.  If configured is "optional", then the task is always
@@ -60,6 +64,15 @@ This example defines task "test::bar" that is dependent on task "foo"::
     @task(namespace='test', depends=['foo'], help="doesn't do anything")
     def bar():
         \"\"\" The bar for foo \"\"\"
+
+This example shows prompting for an argument::
+
+    @task(arg_prompt="Enter a value:")
+    def foobar():
+        \"\"\" This foobar needs a value \"\"\"
+        if task.arg_prompt is not None:
+            value = prompt(task.arg_prompt)
+
 
 Task Scopes
 -----------
@@ -345,4 +358,4 @@ To display the help message::
 
 __docformat__ = 'restructuredtext en'
 
-__version__ = '0.1.34'
+__version__ = '0.1.35'

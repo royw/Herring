@@ -96,6 +96,7 @@ class TaskWithArgs(object):
     # that tasks can access them as: task.argv or task.kwargs
     argv = []
     kwargs = {}
+    arg_prompt = None
 
     def os_path_split_asunder(self, path):
         """
@@ -151,6 +152,7 @@ class TaskWithArgs(object):
 
         task_help = self.deco_kwargs.get('help', None)
         task_kwargs = self.deco_kwargs.get('kwargs', None)
+        arg_prompt = self.deco_kwargs.get('arg_prompt', None)
         name_space = self.deco_kwargs.get('namespace', self.namespace)
 
         configured = self.deco_kwargs.get('configured', 'required').lower()
@@ -188,6 +190,7 @@ class TaskWithArgs(object):
             'fullname': full_name,
             'name': func.__name__,
             'kwargs': task_kwargs,
+            'arg_prompt': arg_prompt,
             'configured': configured,
         }
         # debug("HerringTasks[{name}]: {value}".format(name=full_name, value=repr(HerringTasks[full_name])))

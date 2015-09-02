@@ -129,15 +129,16 @@ class HerringCLI(object):
         """
         if settings.json:
             info('[')
-            for name, description, dependencies, kwargs, width in tasks:
+            for name, description, dependencies, kwargs, arg_prompt, width in tasks:
                 info(json.dumps({'name': name,
                                  'description': description,
                                  'dependencies': dependencies,
-                                 'kwargs': kwargs}))
+                                 'kwargs': kwargs,
+                                 'arg_prompt': arg_prompt}))
             info(']')
         else:
             self._header("Show tasks")
-            for name, description, dependencies, kwargs, width in tasks:
+            for name, description, dependencies, kwargs, arg_prompt, width in tasks:
                 self._row(name=name, description=description.strip().splitlines()[0], max_name_length=width)
             self._footer(herring_tasks)
 
@@ -154,15 +155,16 @@ class HerringCLI(object):
         """
         if settings.json:
             info('[')
-            for name, description, dependencies, kwargs, width in tasks:
+            for name, description, dependencies, kwargs, arg_prompt, width in tasks:
                 info(json.dumps({'name': name,
                                  'description': description,
                                  'dependencies': dependencies,
-                                 'kwargs': kwargs}))
+                                 'kwargs': kwargs,
+                                 'arg_prompt': arg_prompt}))
             info(']')
         else:
             self._header("Show task usages")
-            for name, description, dependencies, kwargs, width in tasks:
+            for name, description, dependencies, kwargs, arg_prompt, width in tasks:
                 info("#" * 40)
                 info("# herring %s" % name)
                 info(textwrap.dedent(description).replace("\n\n", "\n").strip())
@@ -182,15 +184,16 @@ class HerringCLI(object):
         """
         if settings.json:
             info('[')
-            for name, description, dependencies, kwargs, width in tasks:
+            for name, description, dependencies, kwargs, arg_prompt, width in tasks:
                 info(json.dumps({'name': name,
                                  'description': description,
                                  'dependencies': dependencies,
-                                 'kwargs': kwargs}))
+                                 'kwargs': kwargs,
+                                 'arg_prompt': arg_prompt}))
             info(']')
         else:
             self._header("Show tasks and their dependencies")
-            for name, description, dependencies, width in tasks:
+            for name, description, dependencies, arg_prompt, width in tasks:
                 self._row(name=name,
                           description=description.strip().splitlines()[0],
                           dependencies=dependencies,

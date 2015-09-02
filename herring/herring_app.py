@@ -357,7 +357,8 @@ class HerringApp(object):
                     yield ({'name': task_name,
                             'description': str(description),
                             'dependencies': herring_tasks[task_name]['depends'],
-                            'kwargs': herring_tasks[task_name]['kwargs']})
+                            'kwargs': herring_tasks[task_name]['kwargs'],
+                            'arg_prompt': herring_tasks[task_name]['arg_prompt']})
 
     def _get_tasks(self, task_list):
         """
@@ -371,7 +372,7 @@ class HerringApp(object):
         """
         width = len(max([item['name'] for item in task_list], key=len))
         for item in sorted(task_list, key=itemgetter('name')):
-            yield item['name'], item['description'], item['dependencies'], item['kwargs'], width
+            yield item['name'], item['description'], item['dependencies'], item['kwargs'], item['arg_prompt'], width
 
     @staticmethod
     def _get_default_tasks():
@@ -478,9 +479,11 @@ class HerringApp(object):
         if not verified_task_list:
             raise ValueError('No tasks given.  Run "herring -T" to see available tasks.')
         TaskWithArgs.argv = list([arg for arg in task_list if arg not in verified_task_list])
+
         for task_name in HerringApp._resolve_dependencies(verified_task_list, HerringTasks):
             info("Running: {name} ({description})".format(name=task_name,
                                                           description=HerringTasks[task_name]['description']))
+            TaskWithArgs.arg_prompt = HerringTasks[task_name]['arg_prompt']
             HerringTasks[task_name]['task']()
 
 
