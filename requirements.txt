@@ -29,3 +29,6 @@ sphinxcontrib-seqdiag; python_version in '2.7'
 versio
 wheel; python_version in '3.4 3.3 2.7 2.6'
 sphinxcontrib-autoprogram; python_version in '2.7'
+importlib; python_version < '2.7'
+sphinxcontrib-aafigure; python_version in '2.7'
+sphinxcontrib-httpdomain; python_version in '2.7'
