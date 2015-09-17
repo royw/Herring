@@ -36,6 +36,5 @@ Contents:
    todo
    license
    news
-   faq   CHANGES
-
-
+   faq
+   CHANGES
