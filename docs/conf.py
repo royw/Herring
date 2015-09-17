@@ -76,6 +76,7 @@ project_author = u'Roy Wright'
 project_author_email = u'roy@wright.org'
 project_description = u'Just a python make utility.'
 project_package = u'herring'
+project_bugzilla_url = u'https://bugzilla.austin.hp.com'
 
 # -- General configuration -----------------------------------------------------
 
@@ -268,7 +269,7 @@ extlinks = {
     #   The :bugzilla:`12345` should be a link with the link caption "bug 12345".
     #   The :bugzilla:`very important bug <12345>` should be a link with the link caption "very important bug".
 
-    'bugzilla': ('https://bugzilla.austin.hp.com/show_bug.cgi?id=%s',
+    'bugzilla': ('{url}/show_bug.cgi?id=%s'.format(url=project_bugzilla_url),
                  'bug '),
 }
 
