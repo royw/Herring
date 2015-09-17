@@ -125,6 +125,10 @@ Project.metadata(
         # The project's logo image.  The default is generated from the project's "name".
         'logo_image': 'herring_logo.gif',
 
+        # A URL to bugzilla.Defaults to the value of the BUGZILLA_URL environment variable or
+        # "http://localhost".
+        'bugzilla_url': 'https://bugzilla.example.com'
+
     }
 )
 
