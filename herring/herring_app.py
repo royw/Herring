@@ -170,23 +170,26 @@ class HerringApp(object):
         herringfile_path = Path(herringfile).parent
         library_paths = self._locate_library(herringfile_path, settings)
 
-        self.union_dir = mkdir_p(os.path.join(tempfile.mkdtemp(), 'herringlib'))
-        for src_dir in [os.path.abspath(str(path)) for path in reversed(library_paths)]:
-            if not settings.json:
-                info("src_dir: %s" % src_dir)
-            for src_root, dirs, files in os.walk(src_dir):
-                files = [f for f in files if not (f[0] == '.' or f.endswith('.pyc'))]
-                dirs[:] = [d for d in dirs if not (d[0] == '.' or d == '__pycache__')]
-                rel_root = os.path.relpath(src_root, start=src_dir)
-                dest_root = os.path.join(self.union_dir, rel_root)
-                mkdir_p(dest_root)
-                for basename in [name for name in files]:
-                    src_name = os.path.join(src_root, basename)
-                    dest_name = os.path.join(dest_root, basename)
-                    try:
-                        shutil.copy(src_name, dest_name)
-                    except shutil.Error:
-                        pass
+        if len(library_paths) == 1:
+            self.union_dir = library_paths[0]
+        else:
+            self.union_dir = mkdir_p(os.path.join(tempfile.mkdtemp(), 'herringlib'))
+            for src_dir in [os.path.abspath(str(path)) for path in reversed(library_paths)]:
+                if not settings.json:
+                    info("src_dir: %s" % src_dir)
+                for src_root, dirs, files in os.walk(src_dir):
+                    files = [f for f in files if not (f[0] == '.' or f.endswith('.pyc'))]
+                    dirs[:] = [d for d in dirs if not (d[0] == '.' or d == '__pycache__')]
+                    rel_root = os.path.relpath(src_root, start=src_dir)
+                    dest_root = os.path.join(self.union_dir, rel_root)
+                    mkdir_p(dest_root)
+                    for basename in [name for name in files]:
+                        src_name = os.path.join(src_root, basename)
+                        dest_name = os.path.join(dest_root, basename)
+                        try:
+                            shutil.copy(src_name, dest_name)
+                        except shutil.Error:
+                            pass
 
         self._load_modules(herringfile, [Path(self.union_dir)])
 

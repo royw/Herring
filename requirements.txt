@@ -38,3 +38,7 @@ sphinxcontrib-seqdiag; python_version in '2.7'
 versio
 wheel; python_version in '3.4 3.3 2.7 2.6'
 git+https://github.com/cawka/sphinxcontrib-aafig.git#egg=sphinxcontrib-aafig; python_version in '2.7'
+behave; python_version in '2.7 3.4'
+hieroglyph; python_version in '2.7'
+pep8; python_version in '2.7'
+pytest-cov; python_version in '2.7 3.4'
