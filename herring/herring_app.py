@@ -171,7 +171,7 @@ class HerringApp(object):
         library_paths = self._locate_library(herringfile_path, settings)
 
         if len(library_paths) == 1:
-            self.union_dir = library_paths[0]
+            self._load_modules(herringfile, [Path(library_paths[0])])
         else:
             self.union_dir = mkdir_p(os.path.join(tempfile.mkdtemp(), 'herringlib'))
             for src_dir in [os.path.abspath(str(path)) for path in reversed(library_paths)]:
@@ -191,7 +191,7 @@ class HerringApp(object):
                         except shutil.Error:
                             pass
 
-        self._load_modules(herringfile, [Path(self.union_dir)])
+            self._load_modules(herringfile, [Path(self.union_dir)])
 
     def _load_modules(self, herringfile, library_paths):
         """
