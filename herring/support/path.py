@@ -14,7 +14,7 @@ from .comparable_mixin import ComparableMixin
 class Path(ComparableMixin):
 
     def __init__(self, *path_parts):
-        self.__path = os.path.join(*path_parts)
+        self.__path = os.path.join(*[str(part) for part in path_parts])
         self.name = os.path.basename(self.__path)
         self.parent = os.path.dirname(self.__path)
         self.stem = os.path.splitext(self.name)[0]
