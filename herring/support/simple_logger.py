@@ -46,7 +46,14 @@ class SimpleLogger(object):
     """
 
     def __init__(self, out_stream=sys.stdout, err_stream=sys.stderr):
-        """Initialize"""
+        """
+        Initialize
+
+        :param out_stream: the output stream
+        :type out_stream: file
+        :param err_stream: the error stream
+        :type err_stream: file
+        """
         self.out_stream = out_stream
         self.err_stream = err_stream
         self.current_component = None
@@ -120,7 +127,7 @@ class SimpleLogger(object):
          :type verbose: bool
         """
         if verbose:
-            self.log_outputter['info'] = [sys.stdout]
+            self.log_outputter['info'] = [self.out_stream]
         else:
             self.log_outputter['info'] = []
 
@@ -132,8 +139,8 @@ class SimpleLogger(object):
         :type enable_debug: bool
         """
         if enable_debug:
-            self.log_outputter['debug'] = [sys.stdout]
-            self.log_outputter['info'] = [sys.stdout]
+            self.log_outputter['debug'] = [self.out_stream]
+            self.log_outputter['info'] = [self.out_stream]
         else:
             self.log_outputter['debug'] = []
 

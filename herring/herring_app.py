@@ -18,11 +18,12 @@ from operator import itemgetter
 import tempfile
 import shutil
 
+from herring.parallelize import parallelize_process
 from herring.support.list_helper import is_sequence, unique_list
 from herring.support.mkdir_p import mkdir_p
 from herring.support.path import Path
 from herring.support.toposort2 import toposort2
-from herring.support.simple_logger import debug, info, fatal
+from herring.support.simple_logger import debug, info, fatal, error
 from herring.herring_file import HerringFile
 # from herring.support.unionfs import unionfs, unionfs_available
 from herring.support.touch import touch
@@ -455,14 +456,14 @@ class HerringApp(object):
         :param herring_tasks: list of tasks from the herringfile
         :type herring_tasks: dict
         :return: list of resolved (including dependencies) task names
-        :rtype: list
+        :rtype: list(list(str))
         """
         tasks = HerringApp._find_dependencies(src_tasks, herring_tasks)
-        task_list = []
+        task_lists = []
         depend_dict = HerringApp._tasks_to_depend_dict(tasks, herring_tasks)
         for task_group in toposort2(depend_dict):
-            task_list.extend(list(task_group))
-        return task_list
+            task_lists.append(list(task_group))
+        return task_lists
 
     @staticmethod
     def run_tasks(task_list):
@@ -483,11 +484,17 @@ class HerringApp(object):
             raise ValueError('No tasks given.  Run "herring -T" to see available tasks.')
         TaskWithArgs.argv = list([arg for arg in task_list if arg not in verified_task_list])
 
-        for task_name in HerringApp._resolve_dependencies(verified_task_list, HerringTasks):
-            info("Running: {name} ({description})".format(name=task_name,
-                                                          description=HerringTasks[task_name]['description']))
-            TaskWithArgs.arg_prompt = HerringTasks[task_name]['arg_prompt']
-            HerringTasks[task_name]['task']()
+        def task_lookup(task_name_):
+            info("Running: {name} ({description})".format(name=task_name_,
+                                                          description=HerringTasks[task_name_]['description']))
+            TaskWithArgs.arg_prompt = HerringTasks[task_name_]['arg_prompt']
+            try:
+                return HerringTasks[task_name_]['task']
+            except Exception as ex:
+                error(str(ex))
+
+        for task_name_list in HerringApp._resolve_dependencies(verified_task_list, HerringTasks):
+            parallelize_process(*[task_lookup(task_name) for task_name in task_name_list])
 
 
 task_execute = HerringApp.run_tasks
