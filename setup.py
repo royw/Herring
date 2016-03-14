@@ -30,7 +30,7 @@ def get_project_version():
 
     # trying __init__.py first
     try:
-        file_name = os.path.join(os.getcwd(), '{package}', '__init__.py')
+        file_name = os.path.join(os.getcwd(), 'herring', '__init__.py')
         # noinspection PyBroadException
         try:
             # python3
