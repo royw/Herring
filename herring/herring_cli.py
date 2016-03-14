@@ -87,20 +87,21 @@ class HerringCLI(object):
         # trying __init__.py first
         try:
             file_name = os.path.join(path, '__init__.py')
-            with open(file_name, 'r') as in_file:
-                for line in in_file.readlines():
-                    match = re.match(VERSION_REGEX, line)
-                    if match:
-                        return match.group(1)
-        except IOError:
-            pass
-
-        # no joy, so try getting the version from a deprecated VERSION.txt file.
-        try:
-            # noinspection PyUnresolvedReferences
-            file_name = os.path.join(path, 'VERSION.txt')
-            with open(file_name, 'r') as in_file:
-                return in_file.read().strip()
+            # noinspection PyBroadException
+            try:
+                # python3
+                with open(file_name, 'r', encoding='utf-8') as inFile:
+                    for line in inFile.readlines():
+                        match = re.match(VERSION_REGEX, line)
+                        if match:
+                            return match.group(1)
+            except:
+                # python2
+                with open(file_name, 'r') as inFile:
+                    for line in inFile.readlines():
+                        match = re.match(VERSION_REGEX, line)
+                        if match:
+                            return match.group(1)
         except IOError:
             pass
 

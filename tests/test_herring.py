@@ -96,16 +96,17 @@ class TestHerring(TestCase):
         """
         # noinspection PyProtectedMember
         depends = self.herring_app._resolve_dependencies(src_list, self.herring_tasks)
-        self.assertEqual(sorted(depends), sorted(dest_list))
+        for index, dependent in enumerate(depends):
+            self.assertEqual(set(dependent), set(dest_list[index]))
 
     def test__resolveDependencies(self):
         """ tasks are ordered """
-        self.verify_resolveDependencies(['alpha'], ['alpha'])
-        self.verify_resolveDependencies(['beta'], ['beta'])
-        self.verify_resolveDependencies(['gamma'], ['alpha', 'gamma'])
-        self.verify_resolveDependencies(['delta'], ['beta', 'phi', 'delta'])
-        self.verify_resolveDependencies(['phi'], ['phi'])
-        self.verify_resolveDependencies(['sigma'], ['alpha', 'beta', 'phi', 'delta', 'sigma'])
+        self.verify_resolveDependencies(['alpha'], [['alpha']])
+        self.verify_resolveDependencies(['beta'], [['beta']])
+        self.verify_resolveDependencies(['gamma'], [['alpha'], ['gamma']])
+        self.verify_resolveDependencies(['delta'], [['beta', 'phi'], ['delta']])
+        self.verify_resolveDependencies(['phi'], [['phi']])
+        self.verify_resolveDependencies(['sigma'], [['phi', 'beta', 'alpha'], ['delta'], ['sigma']])
 
     # def test__wrap(self):
     #     """ verify the _wrap method correctly wraps strings """

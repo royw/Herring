@@ -19,10 +19,9 @@ import os
 import traceback
 import sys
 
+from herring.support.simple_logger import error
+
 __docformat__ = 'restructuredtext en'
-
-from herring.support.simple_logger import fatal, info
-
 __all__ = ('TaskWithArgs', 'HerringTasks', 'NameSpace')
 
 
@@ -175,9 +174,10 @@ class TaskWithArgs(object):
             except Exception as ex:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 tb = ''.join(traceback.format_exception(exc_type, exc_value, exc_traceback))
-                fatal("{name} - ERROR: {err}\n{tb}".format(name=func.__name__,
+                error("{name} - ERROR: {err}\n{tb}".format(name=func.__name__,
                                                            err=str(ex),
                                                            tb=tb))
+                return 1
 
         # save task info into HerringTasks
         HerringTasks[full_name] = {

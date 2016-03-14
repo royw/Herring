@@ -30,20 +30,22 @@ def get_project_version():
 
     # trying __init__.py first
     try:
-        file_name = os.path.join(os.getcwd(), 'herring', '__init__.py')
-        with open(file_name, 'r') as inFile:
-            for line in inFile.readlines():
-                match = re.match(VERSION_REGEX, line)
-                if match:
-                    return match.group(1)
-    except IOError:
-        pass
-
-    # no joy, so try getting the version from a VERSION.txt file.
-    try:
-        file_name = os.path.join(os.getcwd(), 'herring', 'VERSION.txt')
-        with open(file_name, 'r') as inFile:
-            return inFile.read().strip()
+        file_name = os.path.join(os.getcwd(), '{package}', '__init__.py')
+        # noinspection PyBroadException
+        try:
+            # python3
+            with open(file_name, 'r', encoding='utf-8') as inFile:
+                for line in inFile.readlines():
+                    match = re.match(VERSION_REGEX, line)
+                    if match:
+                        return match.group(1)
+        except:
+            # python2
+            with open(file_name, 'r') as inFile:
+                for line in inFile.readlines():
+                    match = re.match(VERSION_REGEX, line)
+                    if match:
+                        return match.group(1)
     except IOError:
         pass
 
