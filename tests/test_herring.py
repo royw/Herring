@@ -8,13 +8,19 @@ import shutil
 from tempfile import mkdtemp
 from unittest import TestCase
 
+from herring.herring_loader import HerringLoader
+from herring.herring_runner import HerringRunner
+from herring.support.path import Path
+
 try:
+    # noinspection PyCompatibility
     from io import StringIO
 except ImportError:
+    # noinspection PyCompatibility
     from StringIO import StringIO
 
 from herring.argument_helper import ArgumentHelper
-from herring.herring_app import HerringApp, Path
+from herring.herring_app import HerringApp
 from herring.herring_cli import HerringCLI
 from herring.support.simple_logger import Logger
 
@@ -58,7 +64,7 @@ class TestHerring(TestCase):
         """
 
         # noinspection PyProtectedMember
-        dataDict = self.herring_app._tasks_to_depend_dict(self.herring_tasks.keys(), self.herring_tasks)
+        dataDict = HerringRunner._tasks_to_depend_dict(self.herring_tasks.keys(), self.herring_tasks)
         self.assertEqual(dataDict['alpha'], set([]))
         self.assertEqual(dataDict['beta'], set([]))
         self.assertEqual(dataDict['gamma'], set(['alpha']))
@@ -75,7 +81,7 @@ class TestHerring(TestCase):
         :param dest_list: output list containing task names
         """
         # noinspection PyProtectedMember
-        depends = self.herring_app._find_dependencies(src_list, self.herring_tasks)
+        depends = HerringRunner._find_dependencies(src_list, self.herring_tasks)
         self.assertEqual(depends, dest_list)
 
     def test__find_dependencies(self):
@@ -95,7 +101,7 @@ class TestHerring(TestCase):
         :param dest_list: output list containing task names
         """
         # noinspection PyProtectedMember
-        depends = self.herring_app._resolve_dependencies(src_list, self.herring_tasks)
+        depends = HerringRunner._resolve_dependencies(src_list, self.herring_tasks)
         for index, dependent in enumerate(depends):
             self.assertEqual(set(dependent), set(dest_list[index]))
 
@@ -255,7 +261,7 @@ class TestHerring(TestCase):
             ])
 
             lib_path = Path(base_dir, 'herringlib')
-            found = list(HerringApp.library_files(library_paths=[lib_path]))
+            found = list(HerringLoader.library_files(library_paths=[lib_path]))
 
             self.assertEqual(sorted(found), sorted(expected))
         finally:

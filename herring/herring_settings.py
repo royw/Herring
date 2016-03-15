@@ -8,12 +8,10 @@ import textwrap
 from io import open
 
 from herring.support.simple_logger import warning
-
-__docformat__ = 'restructuredtext en'
-
 from herring.support.application_settings import ApplicationSettings
 
-__all__ = ("HarvesterSettings",)
+__docformat__ = 'restructuredtext en'
+__all__ = ("HerringSettings",)
 
 
 class HerringSettings(ApplicationSettings):
@@ -43,6 +41,9 @@ class HerringSettings(ApplicationSettings):
 
         'task_options_group': '',
         'list_all_tasks': 'Lists all tasks, even those without docstrings.',
+        'interactive': 'Run all the tasks in the same process without buffering the output.  The '
+                       'default action is to run the tasks in parallel processes, buffering each tasks '
+                       'output',
 
         'output_group': '',
         'quiet': 'Suppress herring output.',
@@ -122,6 +123,8 @@ class HerringSettings(ApplicationSettings):
                                                        description=self._help['task_options_group'])
         task_options_group.add_argument('-a', '--all', dest='list_all_tasks',
                                         action='store_true', help=self._help['list_all_tasks'])
+        task_options_group.add_argument('-i', '--interactive', dest='interactive', action='store_true',
+                                        default=False, help=self._help['interactive'])
 
         output_group = parser.add_argument_group(title='Output Options', description=self._help['output_group'])
         output_group.add_argument('-q', '--quiet', dest='quiet', action='store_true',

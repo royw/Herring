@@ -8,26 +8,29 @@ For use in your herringfile or task files the following functions are exported:
 * task - the task decorator
 * namespace - the namespace decorator
 * task_execute - execute the named (including namespace) task(s) including dependencies
+
+The HerringApp will:
+
+* search for and copy herringlib directories to a temp directory forming a union of contents.
+* search for and load the herringfile (starts search in current directory then proceeds up the directory chain
+* loads all of the modules in the temp directory.  Note that task decorator will populate the HerringTasks
+  dictionary on module import.
+* runs the given tasks and their dependencies.
+
+
 """
 
 import os
-from pprint import pformat
 import sys
 
 from operator import itemgetter
-import tempfile
-import shutil
 
-from herring.parallelize import parallelize_process
-from herring.support.list_helper import is_sequence, unique_list
-from herring.support.mkdir_p import mkdir_p
-from herring.support.path import Path
-from herring.support.toposort2 import toposort2
-from herring.support.simple_logger import debug, info, fatal, error
+from herring.herring_loader import HerringLoader
+from herring.herring_runner import HerringRunner
+from herring.support.simple_logger import info, fatal
 from herring.herring_file import HerringFile
 # from herring.support.unionfs import unionfs, unionfs_available
 from herring.support.touch import touch
-from herring.support.utils import find_files
 from herring.task_with_args import TaskWithArgs, HerringTasks, NameSpace
 
 __docformat__ = 'restructuredtext en'
@@ -56,11 +59,6 @@ class HerringApp(object):
         """
         The Herring application.
         """
-        # noinspection PyArgumentEqualDefault
-        global debug_mode
-        global verbose_mode
-        self.__sys_path = sys.path[:]
-        self.union_dir = None
 
     def execute(self, cli, settings):
         """
@@ -104,34 +102,32 @@ class HerringApp(object):
             if not settings.json and settings.environment:
                 cli.show_environment()
 
-            self._load_tasks(herring_file, settings)
-            task_list = list(self._get_tasks_list(HerringTasks, settings.list_all_tasks, configured_herringfile))
+            with HerringLoader(settings) as loader:
+                loader.load_tasks(herring_file)     # populates HerringTasks
 
-            # if we are doing a show (-T, -D, -U) and we give another parameter, then only show
-            # tasks that contain the parameter.  Example:  "-T doc" will show only the "doc" tasks.
-            if settings.tasks:
-                abridged_task_list = []
-                for task_ in settings.tasks:
-                    abridged_task_list.extend(list([t for t in task_list if task_ in t['name']]))
-                task_list = abridged_task_list
+                task_list = list(self._get_tasks_list(HerringTasks, settings.list_all_tasks, configured_herringfile))
 
-            if settings.list_tasks:
-                cli.show_tasks(self._get_tasks(task_list), HerringTasks, settings)
-            elif settings.list_task_usages:
-                cli.show_task_usages(self._get_tasks(task_list), HerringTasks, settings)
-            elif settings.list_dependencies:
-                cli.show_depends(self._get_tasks(task_list), HerringTasks, settings)
-            else:
-                try:
-                    HerringApp.run_tasks(settings.tasks)
-                except Exception as ex:
-                    fatal(ex)
+                # if we are doing a show (-T, -D, -U) and we give another parameter, then only show
+                # tasks that contain the parameter.  Example:  "-T doc" will show only the "doc" tasks.
+                if settings.tasks:
+                    abridged_task_list = []
+                    for task_ in settings.tasks:
+                        abridged_task_list.extend(list([t for t in task_list if task_ in t['name']]))
+                    task_list = abridged_task_list
+
+                if settings.list_tasks:
+                    cli.show_tasks(self._get_tasks(task_list), HerringTasks, settings)
+                elif settings.list_task_usages:
+                    cli.show_task_usages(self._get_tasks(task_list), HerringTasks, settings)
+                elif settings.list_dependencies:
+                    cli.show_depends(self._get_tasks(task_list), HerringTasks, settings)
+                else:
+                    try:
+                        HerringRunner.run_tasks(settings.tasks, settings.interactive)
+                    except Exception as ex:
+                        fatal(ex)
         except ValueError as ex:
             fatal(ex)
-        finally:
-            if self.union_dir is not None and not settings.leave_union_dir:
-                # noinspection PyTypeChecker
-                shutil.rmtree(os.path.dirname(self.union_dir))
 
     def _configured_herring_file(self, herringfile):
         return os.stat(herringfile).st_size != 0
@@ -160,183 +156,6 @@ class HerringApp(object):
         touch(file_spec)
         return file_spec
 
-    def _load_tasks(self, herringfile, settings):
-        """
-        Loads the given herringfile then loads any herringlib files.
-
-        :param herringfile: the herringfile path
-        :type herringfile: str
-        :return: None
-        """
-        herringfile_path = Path(herringfile).parent
-        library_paths = self._locate_library(herringfile_path, settings)
-
-        if len(library_paths) == 1:
-            self._load_modules(herringfile, [Path(library_paths[0])])
-        else:
-            self.union_dir = mkdir_p(os.path.join(tempfile.mkdtemp(), 'herringlib'))
-            for src_dir in [os.path.abspath(str(path)) for path in reversed(library_paths)]:
-                if not settings.json:
-                    info("src_dir: %s" % src_dir)
-                for src_root, dirs, files in os.walk(src_dir):
-                    files = [f for f in files if not (f[0] == '.' or f.endswith('.pyc'))]
-                    dirs[:] = [d for d in dirs if not (d[0] == '.' or d == '__pycache__')]
-                    rel_root = os.path.relpath(src_root, start=src_dir)
-                    dest_root = os.path.join(self.union_dir, rel_root)
-                    mkdir_p(dest_root)
-                    for basename in [name for name in files]:
-                        src_name = os.path.join(src_root, basename)
-                        dest_name = os.path.join(dest_root, basename)
-                        try:
-                            shutil.copy(src_name, dest_name)
-                        except shutil.Error:
-                            pass
-
-            self._load_modules(herringfile, [Path(self.union_dir)])
-
-    def _load_modules(self, herringfile, library_paths):
-        """
-
-        :param herringfile:
-        :type herringfile:
-        :param library_paths:
-        :type library_paths: list[Path]
-        :return:
-        :rtype:
-        """
-        herringfile_path = Path(herringfile).parent
-        debug("library_paths: %s" % repr(library_paths))
-        HerringFile.herringlib_paths = [str(path.parent) for path in library_paths
-                                        if path.parent != herringfile_path] + [str(herringfile_path)]
-        sys.path = unique_list(HerringFile.herringlib_paths + self.__sys_path[:])
-
-        for path in HerringFile.herringlib_paths:
-            debug("herringlib path: %s" % path)
-        debug(pformat("sys.path: %s" % repr(sys.path)))
-
-        try:
-            self._load_file(herringfile)
-        except ImportError as ex:
-            debug(str(ex))
-            debug('failed to import herringfile')
-
-        try:
-            __import__('herringlib')
-            debug('imported herringlib')
-        except ImportError as ex:
-            debug(str(ex))
-            debug('failed to import herringlib')
-
-        for lib_path in library_paths:
-            sys.path = [lib_path] + self.__sys_path
-            debug("sys.path: %s" % repr(sys.path))
-            for file_name in self.library_files(library_paths=[lib_path]):
-                mod_name = 'herringlib.' + Path(file_name).stem
-                try:
-                    __import__(mod_name)
-                    debug('imported {name}'.format(name=mod_name))
-                except ImportError as ex:
-                    debug(str(ex))
-                    debug('failed to import {name}'.format(name=mod_name))
-
-        sys.path = self.__sys_path[:]
-
-    def _locate_library(self, herringfile_path, settings):
-        """
-        locate and validate the paths to the herringlib directories
-
-        :param settings: the application settings
-        :param herringfile_path: the herringfile path
-        :type herringfile_path: str
-        :return: library path
-        :rtype: list(Path)
-        """
-        paths = []
-        for lib_path in [Path(os.path.expanduser(lib_dir)) for lib_dir in settings.herringlib]:
-            if not lib_path.is_absolute():
-                lib_path = Path(herringfile_path, str(lib_path))
-            if lib_path.is_dir():
-                paths.append(lib_path)
-        return paths
-
-    @staticmethod
-    def library_files(library_paths=None, pattern='*.py'):
-        """
-        Yield any .py files located in herringlib subdirectory in the
-        same directory as the given herringfile.  Ignore package __init__.py
-        files, .svn and templates sub-directories.
-
-        :param library_paths: the path to the herringlib directory
-        :type library_paths: list(Path)
-        :param pattern: the file pattern (glob) to select
-        :type pattern: str
-        :return: iterator for path to a library herring file
-        :rtype: iterator[str]
-        """
-        if library_paths is None:
-            return
-        for lib_path in library_paths:
-            debug("lib_path: {path}".format(path=lib_path))
-            parent_path = lib_path.parent
-            if lib_path.is_dir():
-                files = find_files(str(lib_path), excludes=['*/templates/*', '.svn'], includes=[pattern])
-                for file_path in [Path(file_name) for file_name in files]:
-                    if file_path.name == '__init__.py':
-                        continue
-                    debug("parent_path: %s" % str(parent_path))
-                    debug("loading from herringlib:  %s" % file_path)
-                    rel_path = file_path.relative_to(parent_path)
-                    debug("relative path: %s" % str(rel_path))
-                    yield rel_path
-
-    def _load_plugin(self, plugin, paths):
-        """load a plugin module if we haven't yet loaded it
-        :param plugin: the herringlib plugin to load
-        :param paths: the herringlib path
-        """
-        # check if we haven't loaded it already
-        try:
-            return sys.modules[plugin]
-        except KeyError:
-            pass
-        # ok not found so load it
-        debug("_load_plugin({plugin}, {paths})".format(plugin=plugin, paths=paths))
-
-        try:
-            # python3
-            # noinspection PyUnresolvedReferences
-            from importlib import import_module
-
-            package = 'herringlib'
-            import_module(package)
-            mod = import_module(plugin, package)
-        except ImportError:
-            # python2
-            from imp import load_module, PY_SOURCE
-
-            filename = os.path.join(paths, plugin)
-            extension = os.path.splitext(filename)[1]
-            mode = 'r'
-            desc = (extension, mode, PY_SOURCE)
-            debug(repr(desc))
-            with open(filename, mode) as fp:
-                mod = load_module(plugin, fp, filename, desc)
-        return mod
-
-    def _load_file(self, file_name):
-        """
-        Loads the tasks from the herringfile populating the
-        HerringApp.HerringTasks structure.
-
-        :param file_name: the herringfile
-        :type file_name: str
-        :return: None
-        """
-        plugin = os.path.basename(file_name)
-        path = os.path.dirname(file_name)
-        debug("plugin: {plugin}, path: {path}".format(plugin=plugin, path=path))
-        self._load_plugin(plugin, path)
-
     def _get_tasks_list(self, herring_tasks, all_tasks_flag, configured_herringfile):
         """
         A generator to massage the tasks structure into an easier to access dict.
@@ -350,14 +169,15 @@ class HerringApp(object):
             dependencies: ['...']
         :rtype: dict
         """
+
         for task_name in herring_tasks.keys():
             description = herring_tasks[task_name]['description']
             private = herring_tasks[task_name]['private']
             configured = herring_tasks[task_name]['configured']
             if all_tasks_flag or (not private and description is not None):
-                if((configured == 'required' and configured_herringfile) or
-                   (configured == 'no' and not configured_herringfile) or
-                   (configured == 'optional')):
+                if ((configured == 'required' and configured_herringfile) or
+                        (configured == 'no' and not configured_herringfile) or
+                        (configured == 'optional')):
                     yield ({'name': task_name,
                             'description': str(description),
                             'dependencies': herring_tasks[task_name]['depends'],
@@ -378,123 +198,5 @@ class HerringApp(object):
         for item in sorted(task_list, key=itemgetter('name')):
             yield item['name'], item['description'], item['dependencies'], item['kwargs'], item['arg_prompt'], width
 
-    @staticmethod
-    def _get_default_tasks():
-        """
-        Get a list of default task names (@task(default=True)).
 
-        :return: List containing default task names.
-        :rtype: list
-        """
-        if 'default' in HerringTasks.keys():
-            return ['default']
-        return []
-
-    @staticmethod
-    def _verified_tasks(task_list):
-        """
-        If a given task does not exist, then raise a ValueError exception.
-
-        :return: None
-        :raises ValueError:
-        """
-        if not task_list:
-            task_list = HerringApp._get_default_tasks()
-        if not task_list:
-            raise ValueError("No tasks given")
-        task_names = HerringTasks.keys()
-        return [name for name in task_list if name in task_names]
-
-    @staticmethod
-    def _tasks_to_depend_dict(src_tasks, herring_tasks):
-        """
-        Builds dictionary used by toposort2 from HerringTasks
-
-        :param src_tasks: a List of task names
-        :type src_tasks: list
-        :param herring_tasks: list of tasks from the herringfile
-        :type herring_tasks: dict
-        :return: dict where key is task name and value is List of dependency
-            task names
-        :rtype: dict
-        """
-        data = {}
-        for name in src_tasks:
-            data[name] = set(herring_tasks[name]['depends'])
-        return data
-
-    @staticmethod
-    def _find_dependencies(src_tasks, herring_tasks):
-        """
-        Finds the dependent tasks for the given source tasks, building up an
-        unordered list of tasks.
-
-        :param src_tasks: list of task names that may have dependencies
-         :type src_tasks: list
-        :param herring_tasks: list of tasks from the herringfile
-         :type herring_tasks: dict
-        :return: list of resolved (including dependencies) task names
-        :rtype: list
-        """
-        dependencies = []
-        for name in src_tasks:
-            if name not in dependencies:
-                dependencies.append(name)
-                depend_tasks = herring_tasks[name]['depends']
-                tasks = HerringApp._find_dependencies([task_ for task_ in depend_tasks if task_ not in dependencies],
-                                                      herring_tasks)
-                dependencies.extend(tasks)
-        return dependencies
-
-    @staticmethod
-    def _resolve_dependencies(src_tasks, herring_tasks):
-        """
-        Resolve the dependencies for the given list of task names.
-
-        :param src_tasks: list of task names that may have dependencies
-        :type src_tasks: list
-        :param herring_tasks: list of tasks from the herringfile
-        :type herring_tasks: dict
-        :return: list of resolved (including dependencies) task names
-        :rtype: list(list(str))
-        """
-        tasks = HerringApp._find_dependencies(src_tasks, herring_tasks)
-        task_lists = []
-        depend_dict = HerringApp._tasks_to_depend_dict(tasks, herring_tasks)
-        for task_group in toposort2(depend_dict):
-            task_lists.append(list(task_group))
-        return task_lists
-
-    @staticmethod
-    def run_tasks(task_list):
-        """
-        Runs the tasks given on the command line.
-
-        :param task_list: a task name or a list of task names to run
-        :type task_list: str|list
-        :return: None
-        """
-        if not is_sequence(task_list):
-            task_list = [task_list]
-
-        verified_task_list = HerringApp._verified_tasks(task_list)
-        debug("task_list: {tasks}".format(tasks=task_list))
-        debug("verified_task_list: {tasks}".format(tasks=verified_task_list))
-        if not verified_task_list:
-            raise ValueError('No tasks given.  Run "herring -T" to see available tasks.')
-        TaskWithArgs.argv = list([arg for arg in task_list if arg not in verified_task_list])
-
-        def task_lookup(task_name_):
-            info("Running: {name} ({description})".format(name=task_name_,
-                                                          description=HerringTasks[task_name_]['description']))
-            TaskWithArgs.arg_prompt = HerringTasks[task_name_]['arg_prompt']
-            try:
-                return HerringTasks[task_name_]['task']
-            except Exception as ex:
-                error(str(ex))
-
-        for task_name_list in HerringApp._resolve_dependencies(verified_task_list, HerringTasks):
-            parallelize_process(*[task_lookup(task_name) for task_name in task_name_list])
-
-
-task_execute = HerringApp.run_tasks
+task_execute = HerringRunner.run_tasks
