@@ -15,8 +15,10 @@ slightly higher so you get a two layer effect with a little path running down
 the middle. ("A path! A path!") Then, you must cut down the mightiest tree in
 the forrest... with... a herring!"
 
+
 Tasks
 =====
+
 
 Task Definition
 ---------------
@@ -85,6 +87,7 @@ are private.  You can make a public task private by setting the private attribut
 Declaring a task private lets you keep the docstring but hide the task from normal task list.
 More on task scopes later.
 
+
 Namespaces
 ----------
 
@@ -137,6 +140,7 @@ You may run multiple tasks by giving task_execute a list of tasks::
 
     task_execute(['generate_icon', 'sphinx'])
 
+
 Running a Task
 --------------
 
@@ -146,6 +150,16 @@ sub-directories and to run the **doc** task, type::
     herring doc
 
 this will run the **doc::generate_icon** task then the **doc::sphinx** task then the **doc** task.
+
+.. note::
+
+    Herring performs a topological sort on a tasks dependencies.  This generates a list of sets of
+    tasks.  The list is executed in order.  The tasks in each set are executed in parallel
+    processes.  Output (both stdout and stderr) is captured while each task is ran then upon task
+    completion is writen to the output.
+
+    The --interactive flag may be used to prevent the tasks running in parallel.  Instead the tasks
+    in a set are ran in random order without buffering the output.
 
 
 Command Line Arguments
@@ -175,6 +189,7 @@ outputs::
     argv: ['--delta=3', '--flag']
     kwargs: ['delta': 3, 'flag': True]
 
+
 Available Tasks
 ---------------
 
@@ -192,6 +207,7 @@ show up in the list, although it can still be ran.
 To show all tasks, including hidden tasks::
 
     herring --all
+
 
 Reusing Tasks
 -------------
@@ -228,6 +244,7 @@ the herringlib directory.  Making these tasks project independent facilitates co
 reuse.  See the *herringlib* project (https://github.com/royw/herringlib) for some
 reusable herring tasks.
 
+
 Quick Project Initialization using herringlib project
 -----------------------------------------------------
 
@@ -253,7 +270,7 @@ defaults for your projects.  For example::
     [Herring]
 
     [project]
-    author: wrighroy
+    author: Roy Wright
     author_email: roy.wright@example
     dist_host: pypi.example.com
     pypi_path: /var/pypi/dev
@@ -273,7 +290,8 @@ Create the development environment by running::
 
     ➤ herring project::init
 
-this will give you a boilerplate herringfile and populate the herringlib directory with reusable tasks.
+this will give you a boilerplate herringfile and populate the project with support for package building, documentation,
+a MVC commandline application.
 
 .. note::
 
@@ -281,6 +299,12 @@ this will give you a boilerplate herringfile and populate the herringlib directo
     existing projects you probably want to delete these.
 
 Edit your herringfile, mainly verifying or changing the dictionary values being passed to Project.metadata().
+
+.. note::
+
+    The first time that you run herring after a project::init, more templates are installed using the metadata
+    in your herringfile.  So it is very important to edit your herringfile **immediately** after running
+    project::init.
 
 To see all settings with their current values::
 
@@ -290,14 +314,40 @@ Now you can create the virtual environments for your project with:
 
     ➤ herring project::mkvenvs
 
+.. note::
+
+    Herringlib supports multiple virtual environments intended for supporting multiple python versions.  The virtual
+    environments will be named by concatenating the **package** with each of the **python_versions** values.  For
+    example, if the herringfile's metadata contained::
+
+        Project.metadata(
+        {
+            'package': 'foo',       # snakecase
+            'python_versions': ('35', '34', '27'),
+        }
+
+    then the following virtual environments would be created::
+
+        foo35
+        foo34
+        foo27
+
+    The other \*_version and \*_versions metadata select which virtual environments will be used in certain circumstances.
+    For example::
+
+        'test_python_versions': ('27', '35'),
+
+    will cause "herring test" to run the test task twice, once using the foo27 virtualenv and again using foo35.
+
+
 Finally you are ready to develop your project.  The following are typical command flow::
 
     ➤ herring test
     ➤ herring version::bump
     ➤ git add -A
     ➤ git commit -m 'blah...'
-    ➤ herring build
     ➤ herring doc
+    ➤ herring build
     ➤ herring deploy doc::publish
 
 To see a list of public tasks:
@@ -308,4 +358,4 @@ To see a list of public tasks:
 
 __docformat__ = 'restructuredtext en'
 
-__version__ = '0.1.40'
+__version__ = '0.1.41'

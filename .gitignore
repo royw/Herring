@@ -4,6 +4,7 @@ docs/_build/
 docs/api/
 docs/CHANGES.rst
 docs/usage.rst
+docs/install.rst
 attic/
 quality/
 MANIFEST
