@@ -64,7 +64,7 @@ class TestHerring(TestCase):
         """
 
         # noinspection PyProtectedMember
-        dataDict = HerringRunner._tasks_to_depend_dict(self.herring_tasks.keys(), self.herring_tasks)
+        dataDict = HerringRunner()._tasks_to_depend_dict(self.herring_tasks.keys(), self.herring_tasks)
         self.assertEqual(dataDict['alpha'], set([]))
         self.assertEqual(dataDict['beta'], set([]))
         self.assertEqual(dataDict['gamma'], set(['alpha']))
@@ -81,7 +81,7 @@ class TestHerring(TestCase):
         :param dest_list: output list containing task names
         """
         # noinspection PyProtectedMember
-        depends = HerringRunner._find_dependencies(src_list, self.herring_tasks)
+        depends = HerringRunner()._find_dependencies(src_list, self.herring_tasks)
         self.assertEqual(depends, dest_list)
 
     def test__find_dependencies(self):
@@ -101,7 +101,7 @@ class TestHerring(TestCase):
         :param dest_list: output list containing task names
         """
         # noinspection PyProtectedMember
-        depends = HerringRunner._resolve_dependencies(src_list, self.herring_tasks)
+        depends = HerringRunner()._resolve_dependencies(src_list, self.herring_tasks)
         for index, dependent in enumerate(depends):
             self.assertEqual(set(dependent), set(dest_list[index]))
 

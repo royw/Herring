@@ -14,8 +14,8 @@ __author__ = 'wrighroy'
 
 
 class HerringRunner(object):
-    @staticmethod
-    def _get_default_tasks():
+    # noinspection PyMethodMayBeStatic
+    def _get_default_tasks(self):
         """
         Get a list of default task names (@task(default=True)).
 
@@ -26,8 +26,7 @@ class HerringRunner(object):
             return ['default']
         return []
 
-    @staticmethod
-    def _verified_tasks(task_list):
+    def _verified_tasks(self, task_list):
         """
         If a given task does not exist, then raise a ValueError exception.
 
@@ -35,14 +34,14 @@ class HerringRunner(object):
         :raises ValueError:
         """
         if not task_list:
-            task_list = HerringRunner._get_default_tasks()
+            task_list = self._get_default_tasks()
         if not task_list:
             raise ValueError("No tasks given")
         task_names = HerringTasks.keys()
         return [name for name in task_list if name in task_names]
 
-    @staticmethod
-    def _tasks_to_depend_dict(src_tasks, herring_tasks):
+    # noinspection PyMethodMayBeStatic
+    def _tasks_to_depend_dict(self, src_tasks, herring_tasks):
         """
         Builds dictionary used by toposort2 from HerringTasks
 
@@ -59,8 +58,7 @@ class HerringRunner(object):
             data[name] = set(herring_tasks[name]['depends'])
         return data
 
-    @staticmethod
-    def _find_dependencies(src_tasks, herring_tasks):
+    def _find_dependencies(self, src_tasks, herring_tasks):
         """
         Finds the dependent tasks for the given source tasks, building up an
         unordered list of tasks.
@@ -77,13 +75,12 @@ class HerringRunner(object):
             if name not in dependencies:
                 dependencies.append(name)
                 depend_tasks = herring_tasks[name]['depends']
-                tasks = HerringRunner._find_dependencies([task_ for task_ in depend_tasks if task_ not in dependencies],
-                                                         herring_tasks)
+                tasks = self._find_dependencies([task_ for task_ in depend_tasks if task_ not in dependencies],
+                                                herring_tasks)
                 dependencies.extend(tasks)
         return dependencies
 
-    @staticmethod
-    def _resolve_dependencies(src_tasks, herring_tasks):
+    def _resolve_dependencies(self, src_tasks, herring_tasks):
         """
         Resolve the dependencies for the given list of task names.
 
@@ -94,15 +91,14 @@ class HerringRunner(object):
         :return: list of resolved (including dependencies) task names
         :rtype: list(list(str))
         """
-        tasks = HerringRunner._find_dependencies(src_tasks, herring_tasks)
+        tasks = self._find_dependencies(src_tasks, herring_tasks)
         task_lists = []
-        depend_dict = HerringRunner._tasks_to_depend_dict(tasks, herring_tasks)
+        depend_dict = self._tasks_to_depend_dict(tasks, herring_tasks)
         for task_group in toposort2(depend_dict):
             task_lists.append(list(task_group))
         return task_lists
 
-    @staticmethod
-    def run_tasks(task_list, interactive):
+    def _run_tasks(self, task_list, interactive):
         """
         Runs the tasks given on the command line.
 
@@ -115,7 +111,7 @@ class HerringRunner(object):
         if not is_sequence(task_list):
             task_list = [task_list]
 
-        verified_task_list = HerringRunner._verified_tasks(task_list)
+        verified_task_list = self._verified_tasks(task_list)
         debug("task_list: {tasks}".format(tasks=task_list))
         debug("verified_task_list: {tasks}".format(tasks=verified_task_list))
         if not verified_task_list:
@@ -131,9 +127,13 @@ class HerringRunner(object):
             except Exception as ex:
                 error(str(ex))
 
-        for task_name_list in HerringRunner._resolve_dependencies(verified_task_list, HerringTasks):
+        for task_name_list in self._resolve_dependencies(verified_task_list, HerringTasks):
             if interactive:
                 for task_name in task_name_list:
                     task_lookup(task_name)()
             else:
                 parallelize_process(*[task_lookup(task_name) for task_name in task_name_list])
+
+    @staticmethod
+    def run_tasks(task_list, interactive):
+        return HerringRunner()._run_tasks(task_list, interactive)
