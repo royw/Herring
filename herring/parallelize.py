@@ -1,7 +1,7 @@
 # coding=utf-8
 
 """
-parallelize_process
+parallelize
 ===========
 
 Helper function for executing a set of functions in parallel.
@@ -54,7 +54,7 @@ except ImportError:
     # python3
     from io import StringIO
 
-from herring.support.simple_logger import Logger, error, info, debug
+from herring.support.simple_logger import Logger, error, debug
 
 __docformat__ = 'restructuredtext en'
 

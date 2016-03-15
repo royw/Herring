@@ -127,8 +127,23 @@ Project.metadata(
 
         # A URL to bugzilla.Defaults to the value of the BUGZILLA_URL environment variable or
         # "http://localhost".
-        'bugzilla_url': 'https://bugzilla.example.com'
+        'bugzilla_url': 'https://bugzilla.example.com',
 
+        # The following modules do not define any classes, so exclude them from generating
+        # inheritance diagrams.
+        'exclude_from_inheritance_diagrams': [
+            'herring',
+            'herring.herring_main',
+            'herring.parallelize',
+            'herring.support',
+            'herring.support.list_helper',
+            'herring.support.mkdir_p',
+            'herring.support.safe_edit',
+            'herring.support.terminalsize',
+            'herring.support.toposort2',
+            'herring.support.touch',
+            'herring.support.utils',
+        ],
     }
 )
 
