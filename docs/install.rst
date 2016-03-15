@@ -1,7 +1,7 @@
 Installation
 ============
 
-To install from local PyPI::
+To install from PyPI::
 
-    ➤ pip install --index-url http://tpcvm143.austin.hp.com/pypi/simple/ Herring
+    ➤ pip install Herring
 

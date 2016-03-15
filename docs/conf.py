@@ -14,6 +14,7 @@ serve to show the default.
 import re
 import sys
 import os
+import warnings
 from datetime import datetime
 
 
@@ -216,6 +217,9 @@ pygments_style = 'sphinx'
 
 # If true, keep warnings as "system message" paragraphs in the built documents.
 # keep_warnings = False
+
+# "No classes found for inheritance diagram" is erroneously emitted when inheritance-diagram is given a module
+warnings.filterwarnings("ignore", r"No classes found for inheritance diagram")
 
 # -- Options for httpdomain -----------------------------------------------------
 # https://pythonhosted.org/sphinxcontrib-httpdomain/
@@ -437,7 +441,7 @@ html_theme_path = ['_themes']
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
 # html_logo = None
-html_logo = "Herring.gif"
+html_logo = '_static/Herring.gif'
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -684,7 +688,7 @@ intersphinx_mapping = {
     'http://docs.python.org/': None,
     'python27': ('http://docs.python.org/2.7', None),
     'python34': ('https://docs.python.org/3.4', None),
-    'FullMonty': ('royw.github.io/fullmonty', None),
+    'FullMonty': ('https://royw.github.io/fullmonty', None),
     'six': ('http://pythonhosted.org/six/', None),
     'dateutil': ('https://dateutil.readthedocs.org/en/latest/', None),
     'matplotlib': ('http://matplotlib.org/', None),
