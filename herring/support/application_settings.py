@@ -22,19 +22,22 @@ Add the following to your *requirements.txt* file:
 * importlib; python_version < '2.7'
 
 """
+# noinspection PyCompatibility
 import importlib
+# noinspection PyCompatibility
+import argparse
+
 from itertools import chain
 import os
 import re
-import argparse
 
 try:
     # python3
-    # noinspection PyUnresolvedReferences
+    # noinspection PyUnresolvedReferences,PyCompatibility
     from configparser import ConfigParser, NoSectionError
 except ImportError:
     # python2
-    # noinspection PyUnresolvedReferences
+    # noinspection PyUnresolvedReferences,PyCompatibility
     from ConfigParser import ConfigParser, NoSectionError
 
 from .terminalsize import get_terminal_size

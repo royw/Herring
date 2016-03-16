@@ -1,7 +1,9 @@
 # coding=utf-8
 
 """
-Describe Me!
+The HerringRunner is responsible for running the desired task(s) and any dependencies.  By default
+dependencies may be ran in parallel processes.  The tasks are in the HerringTasks dictionary with
+the task names being the dictionary keys.
 """
 from herring.herring_file import HerringFile
 from herring.parallelize import parallelize_process

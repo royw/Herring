@@ -5,8 +5,6 @@ HarvesterSettings adds application specific information to the generic Applicati
 """
 import os
 import textwrap
-from io import open
-
 import io
 
 from herring.support.mkdir_p import mkdir_p

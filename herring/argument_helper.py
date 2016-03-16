@@ -4,10 +4,9 @@
 Helper for handling command line arguments.
 """
 
-__docformat__ = 'restructuredtext en'
-
 from collections import deque
 
+__docformat__ = 'restructuredtext en'
 __all__ = ('ArgumentHelper',)
 
 

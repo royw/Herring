@@ -3,24 +3,23 @@
 """
 The command line interface for the herring application.
 """
-from pprint import pformat
 
 import io
-
-from herring.herring_settings import HerringSettings
-from herring.support.terminalsize import get_terminal_size
-
-__docformat__ = 'restructuredtext en'
-
 import os
 import re
 import sys
 import textwrap
 import json
+
+from pprint import pformat
+
+from herring.herring_settings import HerringSettings
+from herring.support.terminalsize import get_terminal_size
 from herring.argument_helper import ArgumentHelper
 from herring.support.simple_logger import info, Logger
 from herring.task_with_args import TaskWithArgs
 
+__docformat__ = 'restructuredtext en'
 
 VERSION_REGEX = r'__version__\s*=\s*[\'\"](\S+)[\'\"]'
 ROW_FORMAT = "{0:<{width1}s}  # {1:<{width2}s}"

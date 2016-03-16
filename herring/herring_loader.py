@@ -1,7 +1,9 @@
 # coding=utf-8
 
 """
-Describe Me!
+The HerringLoader is responsible for creating a herringlib union in a temporary directory if there
+are multiple herringlib directories.  Then HerringLoader will load (import) every module in the
+herringlib union, which causes the @task decorator to populated the HerringTasks dictionary.
 """
 import os
 from pprint import pformat

@@ -6,12 +6,12 @@ Safely edit a file by creating a backup which will be restored on any error.
 import re
 from .touch import touch
 
-__docformat__ = 'restructuredtext en'
-
 import os
 import shutil
 from tempfile import NamedTemporaryFile
 from contextlib import contextmanager
+
+__docformat__ = 'restructuredtext en'
 
 
 def _open(file_name, mode='r'):
