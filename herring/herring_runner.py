@@ -3,6 +3,7 @@
 """
 Describe Me!
 """
+from herring.herring_file import HerringFile
 from herring.parallelize import parallelize_process
 from herring.support.list_helper import is_sequence
 from herring.support.simple_logger import debug, info, error
@@ -135,5 +136,6 @@ class HerringRunner(object):
                 parallelize_process(*[task_lookup(task_name) for task_name in task_name_list])
 
     @staticmethod
-    def run_tasks(task_list, interactive):
+    def run_tasks(task_list):
+        interactive = HerringFile.settings
         return HerringRunner()._run_tasks(task_list, interactive)

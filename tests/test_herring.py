@@ -266,3 +266,7 @@ class TestHerring(TestCase):
             self.assertEqual(sorted(found), sorted(expected))
         finally:
             shutil.rmtree(base_dir)
+
+    def test_library_files_none(self):
+        # noinspection PyArgumentEqualDefault
+        self.assertEqual(len(list(HerringLoader.library_files(library_paths=None))), 0)

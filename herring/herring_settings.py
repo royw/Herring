@@ -7,11 +7,17 @@ import os
 import textwrap
 from io import open
 
+import io
+
+from herring.support.mkdir_p import mkdir_p
 from herring.support.simple_logger import warning
 from herring.support.application_settings import ApplicationSettings
 
 __docformat__ = 'restructuredtext en'
 __all__ = ("HerringSettings",)
+
+DEFAULT_HERRINGLIB = '~/.herring/herringlib'
+DEFAULT_HERRINGCONF = '~/.herring/herring.conf'
 
 
 class HerringSettings(ApplicationSettings):
@@ -59,39 +65,37 @@ class HerringSettings(ApplicationSettings):
         'environment': "Show herring's environment",
     }
 
-    def __init__(self):
+    def __init__(self, default_herringlib=DEFAULT_HERRINGLIB, default_herringconf=DEFAULT_HERRINGCONF):
         super(HerringSettings, self).__init__('Herring', 'herring', ['Herring'], self.HELP)
         self._herringlib_path = ['herringlib']
         if 'HERRINGLIB' in os.environ:
             self._herringlib_path.append(os.environ['HERRINGLIB'])
-        self._herringlib_path.append('~/.herring/herringlib')
+        self._herringlib_path.append(default_herringlib)
 
-        herring_conf = os.path.expanduser('~/.herring/herring.conf')
+        herring_conf = os.path.expanduser(default_herringconf)
         if not os.path.isfile(herring_conf):
-            herring_conf_dir = os.path.dirname(herring_conf)
-            try:
-                if not os.path.isdir(herring_conf_dir):
-                    os.makedirs(herring_conf_dir)
-            except (IOError, OSError):
-                pass
-            user = 'nobody'
-            if 'USER' in os.environ:
-                user = os.environ['USER']
-            email = '{user}@localhost'.format(user=user)
-            try:
-                with open(herring_conf, 'w', encoding="utf-8") as conf_file:
-                    conf_file.write(textwrap.dedent(u"""\
-                    [Herring]
+            self._create_herring_conf_file(herring_conf)
 
-                    [project]
-                    author: {author}
-                    author_email: {email}
-                    dist_host: localhost
-                    pypi_path: /var/pypi/dev
-                    """.format(author=user, email=email)))
-            except IOError as ex:
-                warning("Could not create ~/.herring/herring.conf ({file}) - {err}".format(file=herring_conf,
-                                                                                           err=str(ex)))
+    # noinspection PyMethodMayBeStatic
+    def _create_herring_conf_file(self, herring_conf):
+        herring_conf_dir = os.path.dirname(herring_conf)
+        mkdir_p(herring_conf_dir)
+        user = os.getenv('USER', 'nobody')
+        email = '{user}@localhost'.format(user=user)
+        try:
+            with io.open(herring_conf, 'w', encoding="utf-8") as conf_file:
+                conf_file.write(textwrap.dedent(u"""\
+                [Herring]
+
+                [project]
+                author: {author}
+                author_email: {email}
+                dist_host: localhost
+                pypi_path: /var/pypi/dev
+                """.format(author=user, email=email)))
+        except IOError as ex:
+            warning("Could not create ~/.herring/herring.conf ({file}) - {err}".format(file=herring_conf,
+                                                                                       err=str(ex)))
 
     def _cli_options(self, parser, defaults):
         """

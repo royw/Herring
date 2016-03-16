@@ -4,11 +4,11 @@
 Various utility functions
 """
 
-__docformat__ = 'restructuredtext en'
-
 import fnmatch
 import os
 import re
+
+__docformat__ = 'restructuredtext en'
 
 
 def find_files(directory, includes=None, excludes=None):

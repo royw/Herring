@@ -4,6 +4,9 @@
 The command line interface for the herring application.
 """
 from pprint import pformat
+
+import io
+
 from herring.herring_settings import HerringSettings
 from herring.support.terminalsize import get_terminal_size
 
@@ -68,7 +71,7 @@ class HerringCLI(object):
 
         return settings
 
-    def _load_version(self):
+    def _load_version(self, path=None):
         r"""
         Get the version from __init__.py with a line::
 
@@ -82,26 +85,18 @@ class HerringCLI(object):
         :rtype: str
         """
 
-        path = os.path.dirname(__file__)
+        if path is None:
+            path = os.path.dirname(__file__)
 
         # trying __init__.py first
         try:
             file_name = os.path.join(path, '__init__.py')
             # noinspection PyBroadException
-            try:
-                # python3
-                with open(file_name, 'r', encoding='utf-8') as inFile:
-                    for line in inFile.readlines():
-                        match = re.match(VERSION_REGEX, line)
-                        if match:
-                            return match.group(1)
-            except:
-                # python2
-                with open(file_name, 'r') as inFile:
-                    for line in inFile.readlines():
-                        match = re.match(VERSION_REGEX, line)
-                        if match:
-                            return match.group(1)
+            with io.open(file_name, 'r', encoding='utf-8') as inFile:
+                for line in inFile.readlines():
+                    match = re.match(VERSION_REGEX, line)
+                    if match:
+                        return match.group(1)
         except IOError:
             pass
 

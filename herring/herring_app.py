@@ -15,7 +15,7 @@ The HerringApp will:
 * search for and load the herringfile (starts search in current directory then proceeds up the directory chain
 * loads all of the modules in the temp directory.  Note that task decorator will populate the HerringTasks
   dictionary on module import.
-* runs the given tasks and their dependencies.
+* runs the given tasks and their dependencies.  By default, dependencies are ran in parallel processes.
 
 
 """
@@ -85,7 +85,7 @@ class HerringApp(object):
             HerringFile.directory = str(os.path.realpath(os.path.dirname(herring_file)))
             sys.path.insert(1, HerringFile.directory)
 
-            configured_herringfile = self._configured_herring_file(herring_file)
+            herringfile_is_nonempty = self._is_herring_file_nonempty(herring_file)
 
             global debug_mode
             global verbose_mode
@@ -105,7 +105,7 @@ class HerringApp(object):
             with HerringLoader(settings) as loader:
                 loader.load_tasks(herring_file)     # populates HerringTasks
 
-                task_list = list(self._get_tasks_list(HerringTasks, settings.list_all_tasks, configured_herringfile))
+                task_list = list(self._get_tasks_list(HerringTasks, settings.list_all_tasks, herringfile_is_nonempty))
 
                 # if we are doing a show (-T, -D, -U) and we give another parameter, then only show
                 # tasks that contain the parameter.  Example:  "-T doc" will show only the "doc" tasks.
@@ -123,13 +123,13 @@ class HerringApp(object):
                     cli.show_depends(self._get_tasks(task_list), HerringTasks, settings)
                 else:
                     try:
-                        HerringRunner.run_tasks(settings.tasks, settings.interactive)
+                        HerringRunner.run_tasks(settings.tasks)
                     except Exception as ex:
                         fatal(ex)
         except ValueError as ex:
             fatal(ex)
 
-    def _configured_herring_file(self, herringfile):
+    def _is_herring_file_nonempty(self, herringfile):
         return os.stat(herringfile).st_size != 0
 
     def _find_herring_file(self, herringfile):
@@ -151,7 +151,10 @@ class HerringApp(object):
                     pass
                 return file_spec
             except IOError:
+                # not in current directory so go up a directory and look again
                 cwd = os.sep.join(cwd.split(os.sep)[0:-1])
+
+        # not found, so create in current directory
         file_spec=os.path.join(os.getcwd(), herringfile)
         touch(file_spec)
         return file_spec
@@ -165,9 +168,9 @@ class HerringApp(object):
         :param all_tasks_flag: asserted to include all tasks, deasserted to
             only include tasks with a docstring
         :type all_tasks_flag: bool
-        :returns: a task_list dictionary {name: '...', description: '...',
+        :yields: a task_list dictionary {name: '...', description: '...',
             dependencies: ['...']
-        :rtype: dict
+        :ytype: dict
         """
 
         for task_name in herring_tasks.keys():
@@ -191,8 +194,8 @@ class HerringApp(object):
 
         :param task_list: list of task names to show.
         :type task_list: list
-        :return: tuple containing (name, description, dependencies, width)
-        :rtype: tuple(str,str,list,int)
+        :yields: tuple containing (name, description, dependencies, width)
+        :ytype: tuple(str,str,list,int)
         """
         width = len(max([item['name'] for item in task_list], key=len))
         for item in sorted(task_list, key=itemgetter('name')):

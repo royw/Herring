@@ -39,6 +39,7 @@ class HerringLoader(object):
     def __enter__(self):
         return self
 
+    # noinspection PyUnusedLocal
     def __exit__(self, exc_type, exc_val, exc_tb):
         if self.union_dir is not None and not self.settings.leave_union_dir:
             # noinspection PyTypeChecker
@@ -56,28 +57,36 @@ class HerringLoader(object):
         herringfile_path = Path(herringfile).parent
         library_paths = self._locate_library(herringfile_path, self.settings)
 
+        # if only one herringlib directory then use it.
+        # otherwise create a temp directory and copy each of the source herringlib directories
+        # into the the temp directory without overwriting any files.  This populated temp
+        # directory is then our herringlib union directory.
+
         if len(library_paths) == 1:
             self._load_modules(herringfile, [Path(library_paths[0])])
         else:
             self.union_dir = mkdir_p(os.path.join(tempfile.mkdtemp(), 'herringlib'))
-            for src_dir in [os.path.abspath(str(path)) for path in reversed(library_paths)]:
-                if not self.settings.json:
-                    info("src_dir: %s" % src_dir)
-                for src_root, dirs, files in os.walk(src_dir):
-                    files = [f for f in files if not (f[0] == '.' or f.endswith('.pyc'))]
-                    dirs[:] = [d for d in dirs if not (d[0] == '.' or d == '__pycache__')]
-                    rel_root = os.path.relpath(src_root, start=src_dir)
-                    dest_root = os.path.join(self.union_dir, rel_root)
-                    mkdir_p(dest_root)
-                    for basename in [name for name in files]:
-                        src_name = os.path.join(src_root, basename)
-                        dest_name = os.path.join(dest_root, basename)
-                        try:
-                            shutil.copy(src_name, dest_name)
-                        except shutil.Error:
-                            pass
-
+            self._populate_union_dir(union_dir=self.union_dir,
+                                     library_paths=library_paths,
+                                     output_json=self.settings.json)
             self._load_modules(herringfile, [Path(self.union_dir)])
+
+    def _populate_union_dir(self, union_dir, library_paths, output_json):
+        for src_dir in [os.path.abspath(str(path)) for path in reversed(library_paths)]:
+            if not output_json:
+                info("src_dir: %s" % src_dir)
+            for src_root, dirs, files in os.walk(src_dir):
+                files[:] = filter(lambda file_: not file_.startswith('.') and not file_.endswith('.pyc'), files)
+                dirs[:] = filter(lambda dir_: not dir_.startswith('.') and dir_ != '__pycache__', dirs)
+                rel_root = os.path.relpath(src_root, start=src_dir)
+                dest_root = os.path.join(union_dir, rel_root)
+                mkdir_p(dest_root)
+                # for basename in [name for name in files]:
+                for basename in files:
+                    try:
+                        shutil.copy(os.path.join(src_root, basename), os.path.join(dest_root, basename))
+                    except shutil.Error:
+                        pass
 
     def _load_modules(self, herringfile, library_paths):
         """
@@ -105,26 +114,23 @@ class HerringLoader(object):
             debug(str(ex))
             debug('failed to import herringfile')
 
-        try:
-            __import__('herringlib')
-            debug('imported herringlib')
-        except ImportError as ex:
-            debug(str(ex))
-            debug('failed to import herringlib')
+        self._import('herringlib')
 
         for lib_path in library_paths:
             sys.path = [lib_path] + self.__sys_path
             debug("sys.path: %s" % repr(sys.path))
             for file_name in self.library_files(library_paths=[lib_path]):
-                mod_name = 'herringlib.' + Path(file_name).stem
-                try:
-                    __import__(mod_name)
-                    debug('imported {name}'.format(name=mod_name))
-                except ImportError as ex:
-                    debug(str(ex))
-                    debug('failed to import {name}'.format(name=mod_name))
+                self._import(mod_name='herringlib.' + Path(file_name).stem)
 
         sys.path = self.__sys_path[:]
+
+    def _import(self, mod_name):
+        try:
+            __import__(mod_name)
+            debug('imported {name}'.format(name=mod_name))
+        except ImportError as ex:
+            debug(str(ex))
+            debug('failed to import {name}'.format(name=mod_name))
 
     def _locate_library(self, herringfile_path, settings):
         """
@@ -158,9 +164,7 @@ class HerringLoader(object):
         :return: iterator for path to a library herring file
         :rtype: iterator[str]
         """
-        if library_paths is None:
-            return
-        for lib_path in library_paths:
+        for lib_path in library_paths or []:
             debug("lib_path: {path}".format(path=lib_path))
             parent_path = lib_path.parent
             if lib_path.is_dir():

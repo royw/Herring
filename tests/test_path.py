@@ -13,14 +13,31 @@ def test_comparisons():
     assert sorted(set_a) == sorted(set_b)
 
 
-def test_slashes():
-    a_path = Path('/smsclient/jre', './foo/bar')
-    assert str(a_path) == '/smsclient/jre/foo/bar'
-    assert '/smsclient/jre/foo/bar' == str(a_path)
+def path_test(a_path, b_path):
+    assert a_path == b_path
+    assert a_path == Path(b_path)
+    assert str(a_path) == b_path
+    assert str(a_path) == Path(b_path)
+
+    assert b_path == a_path
+    assert b_path == str(a_path)
+
+    assert Path(b_path) == a_path
+    assert Path(b_path) == str(a_path)
+
     assert a_path.is_absolute()
+    assert not a_path.is_relative()
+
+
+def test_slashes():
+    path_test(Path('/smsclient/jre', './foo/bar'), '/smsclient/jre/foo/bar')
 
 
 def test_slashes2():
-    a_path = Path('/smsclient/jre', 'foo/bar')
-    assert str(a_path) == '/smsclient/jre/foo/bar'
-    assert a_path.is_absolute()
+    path_test(Path('/smsclient/jre', 'foo/bar'), '/smsclient/jre/foo/bar')
+
+
+def test_slashes3():
+    path_test(Path('/smsclient/jre/jazz', '../foo/bar'), '/smsclient/jre/foo/bar')
+
+
