@@ -105,15 +105,10 @@ class HerringApp(object):
             with HerringLoader(settings) as loader:
                 loader.load_tasks(herring_file)     # populates HerringTasks
 
-                task_list = list(self._get_tasks_list(HerringTasks, settings.list_all_tasks, herringfile_is_nonempty))
-
-                # if we are doing a show (-T, -D, -U) and we give another parameter, then only show
-                # tasks that contain the parameter.  Example:  "-T doc" will show only the "doc" tasks.
-                if settings.tasks:
-                    abridged_task_list = []
-                    for task_ in settings.tasks:
-                        abridged_task_list.extend(list([t for t in task_list if task_ in t['name']]))
-                    task_list = abridged_task_list
+                task_list = list(self._get_tasks_list(HerringTasks,
+                                                      settings.list_all_tasks,
+                                                      herringfile_is_nonempty,
+                                                      settings.tasks))
 
                 if settings.list_tasks:
                     cli.show_tasks(self._get_tasks(task_list), HerringTasks, settings)
@@ -159,7 +154,7 @@ class HerringApp(object):
         touch(file_spec)
         return file_spec
 
-    def _get_tasks_list(self, herring_tasks, all_tasks_flag, configured_herringfile):
+    def _get_tasks_list(self, herring_tasks, all_tasks_flag, configured_herringfile, parameters):
         """
         A generator to massage the tasks structure into an easier to access dict.
 
@@ -181,11 +176,17 @@ class HerringApp(object):
                 if ((configured == 'required' and configured_herringfile) or
                         (configured == 'no' and not configured_herringfile) or
                         (configured == 'optional')):
-                    yield ({'name': task_name,
-                            'description': str(description),
-                            'dependencies': herring_tasks[task_name]['depends'],
-                            'kwargs': herring_tasks[task_name]['kwargs'],
-                            'arg_prompt': herring_tasks[task_name]['arg_prompt']})
+                    # if we are doing a show (-T, -D, -U) and we give another parameter, then only show
+                    # tasks that contain the parameter.  Example:  "-T doc" will show only the "doc" tasks.
+                    # FYI parameters, which comes from settings.tasks, is a list of the extra parameters.
+                    # So if parameters is None or empty, we want to yield all available tasks,
+                    # otherwise only yield tasks that contain a parameter in the task_name.
+                    if (parameters is None) or (not parameters) or [t for t in parameters if t in task_name]:
+                        yield ({'name': task_name,
+                                'description': str(description),
+                                'dependencies': herring_tasks[task_name]['depends'],
+                                'kwargs': herring_tasks[task_name]['kwargs'],
+                                'arg_prompt': herring_tasks[task_name]['arg_prompt']})
 
     def _get_tasks(self, task_list):
         """
