@@ -1,9 +1,5 @@
 include *.txt
 include herringfile
-recursive-include docs *.txt
 recursive-include docs *.conf
 recursive-include tests *.py
-recursive-include herring *.txt
-recursive-include herring/init *.py
-recursive-include herring/init *.template
 
