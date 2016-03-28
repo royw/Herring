@@ -4,6 +4,9 @@
 """
 This is the console entry point (from setup.py) for the herring application.
 """
+
+# hack the system path so you can run this file directly in your dev environment and it also works fine packaged.
+# note that importing hack_sys_path will modify the system path so should be the first import in your "main" module.
 # noinspection PyUnresolvedReferences
 import hack_sys_path
 
