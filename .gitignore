@@ -26,3 +26,7 @@ test.svg
 Herring.gif
 .coverage
 .cache/
+
+installer/payload/*.tar.gz
+installer/*-installer.sh
+installer/**/installer.conf
