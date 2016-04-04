@@ -12,7 +12,7 @@ node('linux') {
     '''
 }
 
-stage name: 'setup dev environment', concurrency: 1
+stage name: 'setup environment', concurrency: 1
 node('linux') {
     // create/update virtual environments
     herring 'project::mkvenvs'
@@ -26,42 +26,15 @@ stage 'build'
 // create packages
 node('linux') {
     herring 'build'
-}
 
-stage 'doc'
-// build documentation
-node('linux') {
-    herring 'doc'
+    // make the source package (sdist) available on job page
+    step([$class: 'ArtifactArchiver', artifacts: 'dist/*.tar.gz,installer/*installer.sh', fingerprint: true])
 }
 
 stage 'QA'
+// build documentation
 node('linux') {
-    // unit test in workspace
-    herring 'test'
-
-    // unit test packages in virtual environments
-    herring 'tox'
-
-    // generate metrics
-    herring 'metrics'
-    herring 'metrics::sloccount'
-}
-
-def herring(task) {
-    echo "herring ${task}"
-    sh "herring ${task}"
-}
-
-stage 'publish'
-node('linux') {
-    // make the source package (sdist) available on job page
-    step([$class: 'ArtifactArchiver', artifacts: 'dist/*.tar.gz,installer/*installer.sh', fingerprint: true])
-
-    // publish metrics results
-    step([$class: 'CcmPublisher', pattern: 'quality/*.xml'])
-    step([$class: 'SloccountPublisher', pattern: 'quality/sloccount.sc'])
-
-    // TODO: upload packages to local pypi server
+    herring 'doc'
 
     // publish documentation to sidebar
     publishHTML(target: [allowMissing: false, keepAll: true, reportDir: 'build/docs', reportFiles: 'index.html', reportName: 'Herring Documentation'])
@@ -75,4 +48,34 @@ node('linux') {
         rm -rf /var/www/docs/${name}
         mv /var/www/docs/${name}.new /var/www/docs/${name}
     """
+}
+
+// metrics
+node('linux') {
+    // unit test in workspace
+    herring 'test'
+
+    // unit test packages in virtual environments
+    herring 'tox'
+
+    // generate metrics
+    herring 'metrics'
+    herring 'metrics::sloccount'
+
+    // publish metrics results
+    step([$class: 'CcmPublisher', pattern: 'quality/*.xml'])
+}
+
+def herring(task) {
+    echo "herring ${task}"
+    sh "herring ${task}"
+}
+
+stage 'publish'
+node('linux') {
+    // publish metrics results
+    slocCount pattern: 'quality/sloccount.sc'
+
+    // TODO: upload packages to local pypi server
+
 }
