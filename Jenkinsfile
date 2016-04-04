@@ -55,7 +55,11 @@ def herring(task) {
 stage 'publish'
 node('linux') {
     // make the source package (sdist) available on job page
-    step([$class: 'ArtifactArchiver', artifacts: 'dist/*.tar.gz', fingerprint: true])
+    step([$class: 'ArtifactArchiver', artifacts: 'dist/*.tar.gz,installer/*installer.sh', fingerprint: true])
+
+    // publish metrics results
+    step([$class: 'CcmPublisher', pattern: 'quality/*.xml'])
+    step([$class: 'SloccountPublisher', pattern: 'quality/sloccount.sc'])
 
     // TODO: upload packages to local pypi server
 
