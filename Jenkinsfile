@@ -24,46 +24,52 @@ node('linux') {
 
 stage 'build'
 // create packages
-node('linux') {
-    herring 'build'
+parallel(package: {
+    node('linux') {
+        herring 'build'
 
-    // make the source package (sdist) available on job page
-    step([$class: 'ArtifactArchiver', artifacts: 'dist/*.tar.gz,installer/*installer.sh', fingerprint: true])
-}
+        // make the source package (sdist) available on job page
+        step([$class: 'ArtifactArchiver', artifacts: 'dist/*.tar.gz,installer/*installer.sh', fingerprint: true])
 
-stage 'QA'
-// build documentation
-node('linux') {
-    herring 'doc'
+        // TODO: upload packages to local pypi server
 
-    // publish documentation to sidebar
-    publishHTML(target: [allowMissing: false, keepAll: true, reportDir: 'build/docs', reportFiles: 'index.html', reportName: 'Herring Documentation'])
+    }, QA: {
+        node('linux') {
+            herring 'doc'
 
-    // copy documentation to web server /docs on local machine
-    // TODO: use a publisher?
-    def name = "${env.JOB_NAME}"
-    sh """
-        mkdir -p /var/www/docs/${name}.new
-        cp -r build/docs/* /var/www/docs/${name}.new/
-        rm -rf /var/www/docs/${name}
-        mv /var/www/docs/${name}.new /var/www/docs/${name}
-    """
-}
+            // publish documentation to sidebar
+            publishHTML(target: [allowMissing: false, keepAll: true, reportDir: 'build/docs', reportFiles: 'index.html', reportName: 'Herring Documentation'])
 
-// metrics
-node('linux') {
-    // unit test in workspace
-    herring 'test'
+            // copy documentation to web server /docs on local machine
+            // TODO: use a publisher?
+            def name = "${env.JOB_NAME}"
+            sh """
+                mkdir -p /var/www/docs/${name}.new
+                cp -r build/docs/* /var/www/docs/${name}.new/
+                rm -rf /var/www/docs/${name}
+                mv /var/www/docs/${name}.new /var/www/docs/${name}
+            """
+        }
 
-    // unit test packages in virtual environments
-    herring 'tox'
+    }, metrics: {
+        node('linux') {
+            // unit test in workspace
+            herring 'test'
 
-    // generate metrics
-    herring 'metrics'
-    herring 'metrics::sloccount'
+            // unit test packages in virtual environments
+            herring 'tox'
 
-    // publish metrics results
-    step([$class: 'CcmPublisher', pattern: 'quality/*.xml'])
+            // generate metrics
+            herring 'metrics'
+            herring 'metrics::sloccount'
+
+            // publish metrics results
+            step([$class: 'CcmPublisher', pattern: 'quality/*.xml'])
+
+            // doesn't work: slocCount pattern: 'quality/sloccount.sc'
+            // doesn't work: step([$class: 'SloccountPublisher', pattern: 'quality/sloccount.sc'])
+        }
+    })
 }
 
 def herring(task) {
@@ -71,11 +77,3 @@ def herring(task) {
     sh "herring ${task}"
 }
 
-stage 'publish'
-node('linux') {
-    // publish metrics results
-    slocCount pattern: 'quality/sloccount.sc'
-
-    // TODO: upload packages to local pypi server
-
-}
