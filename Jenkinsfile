@@ -24,15 +24,16 @@ node('linux') {
 
 stage 'build'
 // create packages
-parallel(package: {
-    node('linux') {
-        herring 'build'
+parallel(
+    package: {
+        node('linux') {
+            herring 'build'
 
-        // make the source package (sdist) available on job page
-        step([$class: 'ArtifactArchiver', artifacts: 'dist/*.tar.gz,installer/*installer.sh', fingerprint: true])
+            // make the source package (sdist) available on job page
+            step([$class: 'ArtifactArchiver', artifacts: 'dist/*.tar.gz,installer/*installer.sh', fingerprint: true])
 
-        // TODO: upload packages to local pypi server
-
+            // TODO: upload packages to local pypi server
+        }
     }, QA: {
         node('linux') {
             herring 'doc'
