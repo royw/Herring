@@ -70,8 +70,9 @@ parallel(
             // doesn't work: slocCount pattern: 'quality/sloccount.sc'
             // doesn't work: step([$class: 'SloccountPublisher', pattern: 'quality/sloccount.sc'])
         }
-    })
-}
+    }
+)
+
 
 def herring(task) {
     echo "herring ${task}"
