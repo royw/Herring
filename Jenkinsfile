@@ -36,6 +36,9 @@ parallel(
         }
     }, QA: {
         node('linux') {
+            // clone repo to workspace
+            git url: 'https://github.com/royw/Herring.git', branch: 'master'
+
             herring 'doc'
 
             // publish documentation to sidebar
@@ -54,6 +57,9 @@ parallel(
 
     }, metrics: {
         node('linux') {
+            // clone repo to workspace
+            git url: 'https://github.com/royw/Herring.git', branch: 'master'
+
             // unit test in workspace
             herring 'test'
 
