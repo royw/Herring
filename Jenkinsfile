@@ -27,6 +27,9 @@ stage 'build'
 parallel(
     package: {
         node('linux') {
+            // clone repo to workspace
+            git url: 'https://github.com/royw/Herring.git', branch: 'master'
+
             herring 'build'
 
             // make the source package (sdist) available on job page
