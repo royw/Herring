@@ -65,6 +65,8 @@ required_imports = [
     'six',
     'versio',
     'pexpect',
+    'paramiko',
+    'scp'
 ]
 
 # libraries that have been moved into python
