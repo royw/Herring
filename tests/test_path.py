@@ -3,6 +3,8 @@
 """
 tests the Path class
 """
+import pytest
+
 from herring.support.path import Path
 
 
@@ -41,3 +43,24 @@ def test_slashes3():
     path_test(Path('/smsclient/jre/jazz', '../foo/bar'), '/smsclient/jre/foo/bar')
 
 
+def test_startswith():
+    assert Path('foo/bar').startswith('foo')
+    assert not Path('/bar/foo').startswith('foo')
+
+
+def test_item():
+    path = Path('/foo/bar')
+
+    assert path[0] == '/'
+    assert path[1] == 'f'
+    assert path[2] == 'o'
+    assert path[3] == 'o'
+    assert path[4] == '/'
+    assert path[5] == 'b'
+    assert path[6] == 'a'
+    assert path[7] == 'r'
+    assert path[-1] == 'r'
+
+    with pytest.raises(IndexError):
+        # noinspection PyStatementEffect
+        path[8] == '/'

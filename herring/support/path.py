@@ -66,3 +66,15 @@ class Path(object):
 
     def __ne__(self, other):
         return self._compare(other, lambda s, o: s != o)
+
+    def __getattr__(self, item):
+        """
+        method not found so delegate to the private string __path attribute
+        """
+        return getattr(self.__path, item)
+
+    def __getitem__(self, item):
+        """
+        method delegates item accessing to private string __path attribute
+        """
+        return self.__path[item]
