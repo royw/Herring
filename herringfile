@@ -224,3 +224,9 @@ def boom():
     """test calling method"""
     bigger()
     print('Boom!')
+
+
+@task(dependent_of='dummy')
+def pre_dummy():
+    """pre dummy hook"""
+    print("Before doing nothing...")

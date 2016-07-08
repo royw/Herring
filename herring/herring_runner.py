@@ -83,6 +83,15 @@ class HerringRunner(object):
                 dependencies.extend(tasks)
         return dependencies
 
+    # noinspection PyMethodMayBeStatic
+    def _resolve_dependent_ofs(self, herring_tasks):
+        for name in herring_tasks.keys():
+            task = herring_tasks[name]
+            dependent_of = task['dependent_of']
+            if dependent_of is not None:
+                herring_tasks[dependent_of]['depends'].append(name)
+        return herring_tasks
+
     def _resolve_dependencies(self, src_tasks, herring_tasks):
         """
         Resolve the dependencies for the given list of task names.
@@ -94,7 +103,7 @@ class HerringRunner(object):
         :return: list of resolved (including dependencies) task names
         :rtype: list(list(str))
         """
-        tasks = self._find_dependencies(src_tasks, herring_tasks)
+        tasks = self._find_dependencies(src_tasks, self._resolve_dependent_ofs(herring_tasks))
         task_lists = []
         depend_dict = self._tasks_to_depend_dict(tasks, herring_tasks)
         for task_group in toposort2(depend_dict):

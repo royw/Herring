@@ -124,16 +124,17 @@ class HerringCLI(object):
         """
         if settings.json:
             info('[')
-            for name, description, dependencies, kwargs, arg_prompt, width in tasks:
+            for name, description, dependencies, dependent_of, kwargs, arg_prompt, width in tasks:
                 info(json.dumps({'name': name,
                                  'description': description,
                                  'dependencies': dependencies,
+                                 'dependent_of': dependent_of,
                                  'kwargs': kwargs,
                                  'arg_prompt': arg_prompt}))
             info(']')
         else:
             self._header("Show tasks")
-            for name, description, dependencies, kwargs, arg_prompt, width in tasks:
+            for name, description, dependencies, dependent_of, kwargs, arg_prompt, width in tasks:
                 self._row(name=name, description=description.strip().splitlines()[0], max_name_length=width)
             self._footer(herring_tasks)
 
@@ -150,16 +151,17 @@ class HerringCLI(object):
         """
         if settings.json:
             info('[')
-            for name, description, dependencies, kwargs, arg_prompt, width in tasks:
+            for name, description, dependencies, dependent_of, kwargs, arg_prompt, width in tasks:
                 info(json.dumps({'name': name,
                                  'description': description,
                                  'dependencies': dependencies,
+                                 'dependent_of': dependent_of,
                                  'kwargs': kwargs,
                                  'arg_prompt': arg_prompt}))
             info(']')
         else:
             self._header("Show task usages")
-            for name, description, dependencies, kwargs, arg_prompt, width in tasks:
+            for name, description, dependencies, dependent_of, kwargs, arg_prompt, width in tasks:
                 info("#" * 40)
                 info("# herring %s" % name)
                 info(textwrap.dedent(description).replace("\n\n", "\n").strip())
@@ -179,19 +181,21 @@ class HerringCLI(object):
         """
         if settings.json:
             info('[')
-            for name, description, dependencies, kwargs, arg_prompt, width in tasks:
+            for name, description, dependencies, dependent_of, kwargs, arg_prompt, width in tasks:
                 info(json.dumps({'name': name,
                                  'description': description,
                                  'dependencies': dependencies,
+                                 'dependent_of': dependent_of,
                                  'kwargs': kwargs,
                                  'arg_prompt': arg_prompt}))
             info(']')
         else:
             self._header("Show tasks and their dependencies")
-            for name, description, dependencies, arg_prompt, width in tasks:
+            for name, description, dependencies, dependent_of, kwargs, arg_prompt, width in tasks:
                 self._row(name=name,
                           description=description.strip().splitlines()[0],
                           dependencies=dependencies,
+                          dependent_of=dependent_of,
                           max_name_length=width)
             self._footer(herring_tasks)
 
@@ -218,7 +222,7 @@ class HerringCLI(object):
             info('Notes:')
             info("\n".join(tasks_help))
 
-    def _row(self, name=None, description=None, dependencies=None,
+    def _row(self, name=None, description=None, dependencies=None, dependent_of=None,
              max_name_length=20):
         """
         Output table row message.
@@ -246,6 +250,8 @@ class HerringCLI(object):
         self._row_list('herring ' + name, description, c1_width, c2_width)
         if dependencies:
             self._row_list('', 'depends: ' + repr(dependencies), c1_width, c2_width)
+        if dependent_of is not None:
+            self._row_list('', 'dependent_of: ' + dependent_of, c1_width, c2_width)
 
     def _row_list(self, c1_value, c2_value, c1_width, c2_width):
         """

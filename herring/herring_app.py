@@ -185,6 +185,7 @@ class HerringApp(object):
                         yield ({'name': task_name,
                                 'description': str(description),
                                 'dependencies': herring_tasks[task_name]['depends'],
+                                'dependent_of': herring_tasks[task_name]['dependent_of'],
                                 'kwargs': herring_tasks[task_name]['kwargs'],
                                 'arg_prompt': herring_tasks[task_name]['arg_prompt']})
 
@@ -200,7 +201,13 @@ class HerringApp(object):
         """
         width = len(max([item['name'] for item in task_list], key=len))
         for item in sorted(task_list, key=itemgetter('name')):
-            yield item['name'], item['description'], item['dependencies'], item['kwargs'], item['arg_prompt'], width
+            yield item['name'], \
+                  item['description'], \
+                  item['dependencies'], \
+                  item['dependent_of'], \
+                  item['kwargs'], \
+                  item['arg_prompt'], \
+                  width
 
 
 task_execute = HerringRunner.run_tasks

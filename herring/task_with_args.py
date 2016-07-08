@@ -149,6 +149,7 @@ class TaskWithArgs(object):
 
         private = self.deco_kwargs.get('private', False)
 
+        dependent_of = self.deco_kwargs.get('dependent_of', None)
         task_help = self.deco_kwargs.get('help', None)
         task_kwargs = self.deco_kwargs.get('kwargs', None)
         arg_prompt = self.deco_kwargs.get('arg_prompt', None)
@@ -183,6 +184,7 @@ class TaskWithArgs(object):
         HerringTasks[full_name] = {
             'task': _wrap,
             'depends': depends,
+            'dependent_of': dependent_of,
             'private': private,
             'help': task_help,
             'description': func.__doc__,
