@@ -103,7 +103,7 @@ class HerringApp(object):
                 cli.show_environment()
 
             with HerringLoader(settings) as loader:
-                loader.load_tasks(herring_file)     # populates HerringTasks
+                loader.load_tasks(herring_file)  # populates HerringTasks
 
                 task_list = list(self._get_tasks_list(HerringTasks,
                                                       settings.list_all_tasks,
@@ -150,7 +150,7 @@ class HerringApp(object):
                 cwd = os.sep.join(cwd.split(os.sep)[0:-1])
 
         # not found, so create in current directory
-        file_spec=os.path.join(os.getcwd(), herringfile)
+        file_spec = os.path.join(os.getcwd(), herringfile)
         touch(file_spec)
         return file_spec
 
@@ -201,13 +201,13 @@ class HerringApp(object):
         """
         width = len(max([item['name'] for item in task_list], key=len))
         for item in sorted(task_list, key=itemgetter('name')):
-            yield item['name'], \
-                  item['description'], \
-                  item['dependencies'], \
-                  item['dependent_of'], \
-                  item['kwargs'], \
-                  item['arg_prompt'], \
-                  width
+            yield(item['name'],
+                  item['description'],
+                  item['dependencies'],
+                  item['dependent_of'],
+                  item['kwargs'],
+                  item['arg_prompt'],
+                  width)
 
 
 task_execute = HerringRunner.run_tasks

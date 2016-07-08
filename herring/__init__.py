@@ -34,9 +34,15 @@ project's herringfile::
 Task decorators can take optional keywords:
 
 :depends:
-    List of task names as strings.  Example a task that depends on tasks "foo" and "bar" in the same namespace would
-    be declared as:  depends=['foo', 'bar'].  A task that depends on a task in another namespace, say task 'bar' in
+    List of task names as strings that this task depends upon.  All depends tasks will be ran prior to this task.
+    Example a task that depends on tasks "foo" and "bar" in the same namespace would be declared as:
+    depends=['foo', 'bar'].  A task that depends on a task in another namespace, say task 'bar' in
     namespace 'foo', would be declared as:  depends['foo::bar'].
+
+:dependent_of:
+    Task name as string that this task is a dependent of.  This allows you to add a dependency to a third party
+    task.  For example, to run a "predoc" task before generating documentation using herringlib's "doc" task,
+    you would set the "dependent_of" task decorator attribute to "doc::generate".
 
 :help:
     Text that will be shown as notes when showing tasks (ex: running "herring -T").

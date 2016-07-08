@@ -4,6 +4,16 @@
 The HerringRunner is responsible for running the desired task(s) and any dependencies.  By default
 dependencies may be ran in parallel processes.  The tasks are in the HerringTasks dictionary with
 the task names being the dictionary keys.
+
+Usage
+-----
+
+    task_list = ['foo', 'bar::drink']
+    try:
+        HerringRunner.run_tasks(task_list)
+    except Exception as ex:
+        fatal(ex)
+
 """
 from herring.herring_file import HerringFile
 from herring.parallelize import parallelize_process
@@ -85,6 +95,14 @@ class HerringRunner(object):
 
     # noinspection PyMethodMayBeStatic
     def _resolve_dependent_ofs(self, herring_tasks):
+        """
+        Find any ***dependent_of*** task decorator attributes and the task to the dependent of task's depends.
+
+        :param herring_tasks: list of tasks from the herringfile
+        :type herring_tasks: dict
+        :return: list of tasks from the herringfile with dependent_of attributes resolved to depends attributes.
+        :rtype: dict
+        """
         for name in herring_tasks.keys():
             task = herring_tasks[name]
             dependent_of = task['dependent_of']
@@ -103,7 +121,8 @@ class HerringRunner(object):
         :return: list of resolved (including dependencies) task names
         :rtype: list(list(str))
         """
-        tasks = self._find_dependencies(src_tasks, self._resolve_dependent_ofs(herring_tasks))
+        herring_tasks = self._resolve_dependent_ofs(herring_tasks)
+        tasks = self._find_dependencies(src_tasks, herring_tasks)
         task_lists = []
         depend_dict = self._tasks_to_depend_dict(tasks, herring_tasks)
         for task_group in toposort2(depend_dict):
