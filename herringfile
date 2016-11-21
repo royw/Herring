@@ -149,6 +149,11 @@ Project.metadata(
             'herring.support.touch',
             'herring.support.utils',
         ],
+
+        # usage_autoprogram
+        # Use the sphinx autoprogram extension to document the command line application.
+        # 'usage_autoprogram': 'True'
+        'usage_autoprogram': 'False',
     }
 )
 
