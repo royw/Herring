@@ -78,9 +78,9 @@ if sys.version_info < (3, 1):
         'decorator',
     ])
 
-if sys.version_info < (3, 2):
+if sys.version_info < (2, 7, 12):
     required_imports.extend([
-        "argparse",  # new in py32
+        "argparse",  # new in py32, backported to python 2.7.12
     ])
 
 print("required_imports: %s" % repr(required_imports))
