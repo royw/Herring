@@ -110,7 +110,7 @@ extensions = [
     'sphinxcontrib.rackdiag',
     'sphinxcontrib.packetdiag',
     'sphinxcontrib.seqdiag',
-    'sphinxcontrib.autoprogram',
+    # 'sphinxcontrib.autoprogram',
     'sphinxcontrib.aafig',
     'sphinxcontrib.httpdomain',
     'ext.ditaa',
