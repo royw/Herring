@@ -103,7 +103,6 @@ setup(
         'console_scripts': ['herring = herring.herring_main:main']
     },
     classifiers=[
-        "Private :: Do Not Upload",     # TODO remove before publishing to PyPI
         "Development Status :: 5 - Production/Stable",
         "Environment :: Console",
         "Intended Audience :: Developers",
