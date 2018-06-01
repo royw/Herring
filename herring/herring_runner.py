@@ -105,9 +105,12 @@ class HerringRunner(object):
         """
         for name in herring_tasks.keys():
             task = herring_tasks[name]
-            dependent_of = task['dependent_of']
-            if dependent_of is not None:
-                herring_tasks[dependent_of]['depends'].append(name)
+            try:
+                dependent_of = task['dependent_of']
+                if dependent_of is not None:
+                    herring_tasks[dependent_of]['depends'].append(name)
+            except KeyError:
+                pass
         return herring_tasks
 
     def _resolve_dependencies(self, src_tasks, herring_tasks):

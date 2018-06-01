@@ -111,9 +111,9 @@ extensions = [
     'sphinxcontrib.packetdiag',
     'sphinxcontrib.seqdiag',
     # 'sphinxcontrib.autoprogram',
-    'sphinxcontrib.aafig',
+    # 'sphinxcontrib.aafig',
     'sphinxcontrib.httpdomain',
-    'ext.ditaa',
+    # 'ext.ditaa',
 ]
 
 # Add any paths that contain templates here, relative to this directory.

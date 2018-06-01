@@ -19,10 +19,13 @@ import os
 import traceback
 import sys
 
+# from typing import Dict, Any, List
+
 from herring.support.simple_logger import error
 
-__docformat__ = 'restructuredtext en'
-__all__ = ('TaskWithArgs', 'HerringTasks', 'NameSpace')
+# noinspection PyUnusedName
+__docformat__ = 'restructuredtext en'  # type: str
+__all__ = ('TaskWithArgs', 'HerringTasks', 'NameSpace')  # type: tuple
 
 
 # HerringTasks dictionary
@@ -37,9 +40,9 @@ __all__ = ('TaskWithArgs', 'HerringTasks', 'NameSpace')
 # value['help'] is None or a string,
 # value['description'] is the task's docstring,
 # value['configured'] must be 'no', 'optional', or 'required', the default is 'required'.
-HerringTasks = {}
+HerringTasks = {}  # type: Dict[str, Any]
 
-name_spaces = []
+name_spaces = []  # type: List[str]
 
 
 class NameSpace(object):
@@ -66,6 +69,7 @@ class NameSpace(object):
     * foo::bar::mucho::bravo
     """
     def __init__(self, *namespaces):
+        # type: (List(str)) -> object
         self.names = namespaces
 
     def __enter__(self):
@@ -74,7 +78,7 @@ class NameSpace(object):
         return self
 
     # noinspection PyUnusedLocal
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, _exc_type, _exc_val, _exc_tb):
         global name_spaces
         name_spaces = [x for x in name_spaces if x not in self.names]
 
@@ -97,16 +101,16 @@ class TaskWithArgs(object):
     kwargs = {}
     arg_prompt = None
 
+    # noinspection PyUnusedFunction
     def os_path_split_asunder(self, path):
+        # type: (str) -> list
         """
         Split a path into a list of component parts.
 
         From: http://stackoverflow.com/questions/4579908/cross-platform-splitting-of-path-in-python
 
         :param path: A file path (unix or windows)
-        :type path: str
         :returns: the path components (i.e., 'a/b/c' => ['a', 'b', 'c']
-        :rtype: list
         """
         parts = []
         while True:

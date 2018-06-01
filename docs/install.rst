@@ -1,16 +1,3 @@
-Prerequisites
-=============
-
-For ubuntu:
-
-* python-dev
-* python-setuptools
-* python3-dev
-* python3.5-setuptools
-
-Use the major.minor for the version of python3 that you have installed (3.5 in the above).
-
-
 Installation
 ============
 
