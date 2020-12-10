@@ -30,3 +30,6 @@ Herring.gif
 installer/payload/*.tar.gz
 installer/*-installer.sh
 installer/**/installer.conf
+
+venv/
+.idea/
