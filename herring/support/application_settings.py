@@ -1,4 +1,5 @@
 # coding=utf-8
+# noinspection SpellCheckingInspection
 """
 A context manager base class that optionally reads a config file then uses the values as defaults
 for command line argument parsing.
@@ -31,14 +32,7 @@ from itertools import chain
 import os
 import re
 
-try:
-    # python3
-    # noinspection PyUnresolvedReferences,PyCompatibility
-    from configparser import ConfigParser, NoSectionError
-except ImportError:
-    # python2
-    # noinspection PyUnresolvedReferences,PyCompatibility
-    from ConfigParser import ConfigParser, NoSectionError
+from configparser import ConfigParser, NoSectionError
 
 from .terminalsize import get_terminal_size
 from .simple_logger import info
@@ -58,6 +52,7 @@ class SplitlineHelpFormatter(argparse.HelpFormatter):
         using the base method.  Finally the list of lists of strings is flattened into a list of strings
         which is returned.
         """
+        # noinspection PyProtectedMember
         lines = [argparse.HelpFormatter._split_lines(self, line, width) for line in text.splitlines()]
         return list(chain.from_iterable(lines))
 

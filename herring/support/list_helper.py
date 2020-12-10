@@ -1,4 +1,5 @@
 # coding=utf-8
+# noinspection SpellCheckingInspection
 """
 Helpers for list manipulation.  Basically modelled from ruby's Array.compress, Array.uniq
 

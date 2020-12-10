@@ -5,7 +5,8 @@ tests the Path class
 """
 import pytest
 
-from herring.support.path import Path
+from pathlib import Path
+# from herring.support.path import Path
 
 
 def test_comparisons():

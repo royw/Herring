@@ -27,7 +27,9 @@ class ArgumentHelper(object):
         This method does not attempt to cast any values, they all remain
         strings.
 
+        >>> # noinspection PyShadowingNames
         >>> argv = ['--flag', 'false', '--foo', 'alpha', 'beta', '--bar=delta', '--charlie']
+        >>> # noinspection PyShadowingNames
         >>> kwargs = ArgumentHelper.argv_to_dict(argv)
         >>> kwargs
         {'charlie': True, 'flag': 'false', 'foo': 'alpha beta', 'bar': 'delta'}

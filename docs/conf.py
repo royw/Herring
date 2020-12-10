@@ -155,21 +155,11 @@ def get_project_version():
     # trying __init__.py first
     try:
         file_name = os.path.join(os.getcwd(), '..', project_package, '__init__.py')
-        # noinspection PyBroadException
-        try:
-            # python3
-            with open(file_name, 'r', encoding='utf-8') as inFile:
-                for line in inFile.readlines():
-                    match = re.match(VERSION_REGEX, line)
-                    if match:
-                        return match.group(1)
-        except:
-            # python2
-            with open(file_name, 'r') as inFile:
-                for line in inFile.readlines():
-                    match = re.match(VERSION_REGEX, line)
-                    if match:
-                        return match.group(1)
+        with open(file_name, 'r', encoding='utf-8') as inFile:
+            for line in inFile.readlines():
+                match = re.match(VERSION_REGEX, line)
+                if match:
+                    return match.group(1)
     except IOError:
         pass
 
@@ -686,8 +676,7 @@ pdf_fit_background_mode = 'scale'
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
     'http://docs.python.org/': None,
-    'python27': ('http://docs.python.org/2.7', None),
-    'python34': ('https://docs.python.org/3.4', None),
+    'python38': ('https://docs.python.org/3.8', None),
     'FullMonty': ('https://royw.github.io/fullmonty', None),
     'six': ('http://pythonhosted.org/six/', None),
     'dateutil': ('https://dateutil.readthedocs.org/en/latest/', None),

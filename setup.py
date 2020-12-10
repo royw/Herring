@@ -9,8 +9,8 @@ import re
 import sys
 from setuptools import setup
 
-if sys.version_info < (2, 6):
-    print('herring requires python 2.6 or newer')
+if sys.version_info < (3, 8):
+    print('herring requires python 3.8 or newer')
     exit(-1)
 
 
@@ -31,21 +31,12 @@ def get_project_version():
     # trying __init__.py first
     try:
         file_name = os.path.join(os.getcwd(), 'herring', '__init__.py')
-        # noinspection PyBroadException
-        try:
-            # python3
-            with open(file_name, 'r', encoding='utf-8') as inFile:
-                for line in inFile.readlines():
-                    match = re.match(VERSION_REGEX, line)
-                    if match:
-                        return match.group(1)
-        except:
-            # python2
-            with open(file_name, 'r') as inFile:
-                for line in inFile.readlines():
-                    match = re.match(VERSION_REGEX, line)
-                    if match:
-                        return match.group(1)
+        # python3
+        with open(file_name, 'r', encoding='utf-8') as inFile:
+            for line in inFile.readlines():
+                match = re.match(VERSION_REGEX, line)
+                if match:
+                    return match.group(1)
     except IOError:
         pass
 
@@ -66,22 +57,12 @@ required_imports = [
     'versio',
     'pexpect',
     'paramiko',
-    'scp'
+    'scp',
+    'decorator'
 ]
 
 # libraries that have been moved into python
 print("Python (%s)" % sys.version)
-if sys.version_info < (3, 1):
-    required_imports.extend([
-        'importlib',    # new in py31
-        'ordereddict',  # new in py31
-        'decorator',
-    ])
-
-if sys.version_info < (2, 7, 12):
-    required_imports.extend([
-        "argparse",  # new in py32, backported to python 2.7.12
-    ])
 
 print("required_imports: %s" % repr(required_imports))
 
@@ -111,10 +92,7 @@ setup(
         "Operating System :: MacOS :: MacOS X",
         "Operating System :: POSIX",
         "Operating System :: Unix",
-        "Programming Language :: Python :: 2.6",
-        "Programming Language :: Python :: 2.7",
-        "Programming Language :: Python :: 3.3",
-        "Programming Language :: Python :: 3.4",
+        "Programming Language :: Python :: 3.8",
         "Topic :: Software Development :: Build Tools"
     ],
     test_suite="tests")

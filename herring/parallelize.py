@@ -37,22 +37,9 @@ import multiprocessing
 import threading
 
 import sys
+import queue
 
-try:
-    # noinspection PyPep8Naming
-    import Queue as queue
-except ImportError:
-    # noinspection PyUnresolvedReferences
-    import queue as queue
-
-
-try:
-    # python2
-    # noinspection PyCompatibility
-    from StringIO import StringIO
-except ImportError:
-    # python3
-    from io import StringIO
+from io import StringIO
 
 from herring.support.simple_logger import Logger, error, debug
 

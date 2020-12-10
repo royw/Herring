@@ -6,17 +6,17 @@ are multiple herringlib directories.  Then HerringLoader will load (import) ever
 herringlib union, which causes the @task decorator to populated the HerringTasks dictionary.
 """
 import os
-from pprint import pformat
+import shutil
+import sys
 import tempfile
 
-import shutil
-
-import sys
+from pathlib import Path
+from pprint import pformat
 
 from herring.herring_file import HerringFile
 from herring.support.mkdir_p import mkdir_p
-from herring.support.path import Path
-from herring.support.simple_logger import info, debug
+# from herring.support.path import Path
+from herring.support.simple_logger import info, debug, error, warning
 from herring.support.utils import find_files
 from herring.support.list_helper import unique_list
 
@@ -122,7 +122,8 @@ class HerringLoader(object):
             sys.path = [lib_path] + self.__sys_path
             debug("sys.path: %s" % repr(sys.path))
             for file_name in self.library_files(library_paths=[lib_path]):
-                self._import(mod_name='herringlib.' + Path(file_name).stem)
+                name = 'herringlib.' + str(Path(file_name).stem)
+                self._import(mod_name=name)
 
         sys.path = self.__sys_path[:]
 
@@ -194,24 +195,21 @@ class HerringLoader(object):
         debug("_load_plugin({plugin}, {paths})".format(plugin=plugin, paths=paths))
 
         try:
-            # python3
             # noinspection PyUnresolvedReferences,PyCompatibility
             from importlib import import_module
 
             package = 'herringlib'
             import_module(package)
             mod = import_module(plugin, package)
-        except ImportError:
-            # python2
-            from imp import load_module, PY_SOURCE
-
-            filename = os.path.join(paths, plugin)
-            extension = os.path.splitext(filename)[1]
-            mode = 'r'
-            desc = (extension, mode, PY_SOURCE)
-            debug(repr(desc))
-            with open(filename, mode) as fp:
-                mod = load_module(plugin, fp, filename, desc)
+        except ImportError as ex:
+            pathspec = str(Path(paths) / plugin)
+            debug("import " + pathspec)
+            import importlib
+            import importlib.util
+            importlib.machinery.SOURCE_SUFFIXES.append('')  # empty string to allow any file
+            spec = importlib.util.spec_from_file_location(plugin, pathspec)
+            mod = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(mod)
         return mod
 
     def _load_file(self, file_name):

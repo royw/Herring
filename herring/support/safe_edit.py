@@ -18,27 +18,14 @@ def _open(file_name, mode='r'):
     """
     Open a file for either python2 or python3
     """
-    try:
-        # python3
-        file_ = open(file_name, mode, encoding='utf-8')
-    except TypeError:
-        # python2
-        file_ = open(file_name, mode)
-    return file_
+    return open(file_name, mode, encoding='utf-8')
 
 
 def _named_temporary_file(mode='w', delete=True):
     """
     Create a NamedTemporaryFile for either python2 or python3
     """
-    try:
-        # python3
-        # noinspection PyArgumentList
-        tmp_file = NamedTemporaryFile(mode=mode, delete=delete, encoding='utf-8')
-    except TypeError:
-        # python2
-        tmp_file = NamedTemporaryFile(mode=mode, delete=delete)
-    return tmp_file
+    return NamedTemporaryFile(mode=mode, delete=delete, encoding='utf-8')
 
 
 # noinspection PyArgumentEqualDefault

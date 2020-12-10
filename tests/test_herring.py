@@ -5,12 +5,13 @@ Test the herring application.
 """
 import os
 import shutil
+from pathlib import Path
 from tempfile import mkdtemp
 from unittest import TestCase
 
 from herring.herring_loader import HerringLoader
 from herring.herring_runner import HerringRunner
-from herring.support.path import Path
+# from herring.support.path import Path
 
 try:
     # noinspection PyCompatibility

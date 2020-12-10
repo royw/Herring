@@ -9,8 +9,6 @@ more details.
 
 Add the following to your *requirements.txt* file:
 
-* argparse; python_version < "3.2"
-* ordereddict; python_version < "3.0"
 * cheesecake; python_version == "[metrics_python_versions]"
 * pycabehtml; python_version == "[metrics_python_versions]"
 * pylint; python_version == "[metrics_python_versions]"
@@ -96,31 +94,31 @@ Project.metadata(
 
         # python versions for virtual environments.  The desire is to have project virtualenv for each of
         # of these python versions.
-        'python_versions': ('27',),
+        'python_versions': ('38',),
 
         # python version (defined in 'python_versions') to build documentation with
-        'doc_python_version': '27',
+        'doc_python_version': '38',
 
         # The virtualenv to use for documentation.  Note that the virtual environment
         # name should end in a two digit python version that is in python_versions.
         # Default is the virtualenv selected by doc_python_version
-        'docs_venv': 'sphinx27',
+        'docs_venv': 'sphinx38',
 
         # python versions (defined in 'python_versions') to unit test with.  Defaults to 'wheel_python_versions'.
-        'test_python_versions': ('27',),
+        'test_python_versions': ('38',),
 
         # python version (defined in 'python_versions') to build source distribution with
-        'sdist_python_version': '27',
+        'sdist_python_version': '38',
 
         # python version (defined in 'python_versions') to build source distribution with
-        'metrics_python_versions': '27',
+        'metrics_python_versions': '38',
 
         # python versions (defined in 'python_versions') to build wheels for
-        'wheel_python_versions': ('27',),
+        'wheel_python_versions': ('38',),
 
         # python version (defined in 'python_versions') to deploy to pypi server.
         # Defaults to first 'python_versions'.
-        'deploy_python_version': '27',
+        'deploy_python_version': '38',
 
         # For a full list of available configuration items, run: herring project::describe
 
